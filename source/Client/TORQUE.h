@@ -55,8 +55,14 @@ EXTERN uint16 TORQUE_u16GearShiftPressureControlCount;
 //ASAM mode=readvalue name="Shift Control Pressure Count" type=uint16 offset=0 min=0 max=65535 m=1 b=0 units="dl" format=5.0 help="Shift Control Pressure Count"
 EXTERN uint8 TORQUE_u8ATXSelectedGear;
 //ASAM mode=readvalue name="ATX Selected Gear" type=uint8 offset=0 min=0 max=255 m=1 b=0 units="dl" format=1.0 help="ATX Selected Gear"
-EXTERN uint16 TORQUE_u16RevMatchRPM;
-//ASAM mode=readvalue name="Rev Match RPM" type=uint16 offset=0 min=0 max=65535 m=1 b=0 units="RPM" format=4.0 help="Rev Match Downshift RPM"
+EXTERN uint32 TORQUE_u32RevMatchRPM;
+//ASAM mode=readvalue name="Rev Match RPM" type=uint32 offset=0 min=0 max=65535 m=1 b=0 units="RPM" format=4.0 help="Rev Match Downshift RPM"
+EXTERN uint16 TORQUE_u16RevMatchPosition;
+//ASAM mode=readvalue name="Rev Match ETC Position" type=uint16 offset=0 min=0 max=65535 m=1 b=0 units="dl" format=4.0 help="Rev Match ETC Position"
+EXTERN bool TORQUE_boVehicleMovingUS;
+//ASAM mode=readvalue name="ATX Vehicle Moving Upshifts" type=uint8 offset=0 min=0 max=1 m=1 b=0 units="dl" format=1.0 help="ATX Vehicle Moving Upshifts"
+EXTERN bool TORQUE_boVehicleMovingDS;
+//ASAM mode=readvalue name="ATX Vehicle Moving Downshifts" type=uint8 offset=0 min=0 max=1 m=1 b=0 units="dl" format=1.0 help="ATX Vehicle Moving Downshifts"
 
 /* GLOBAL FUNCTION DECLARATIONS ***********************************************/
 void TORQUE_vStart(uint32 * const pu32Arg);

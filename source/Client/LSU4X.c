@@ -29,14 +29,14 @@
 /* LOCAL VARIABLE DEFINITIONS (STATIC) ****************************************/
 DACAPI_ttOutputVoltage LSU4X_atDACVoltageQueue[LSU_DEVICE_COUNT][LSU4X_nDACQueueSize];
 GPM6_ttVolts LSU4X_atNernstSenseVoltsDC[LSU_DEVICE_COUNT];
-//ASAM mode=readvalue name="Nernst Sense 1 Volts" type=uint32 offset=0 min=0 max=5 m=0.001 b=0 units="V" format=4.3 help="Nernst Sense Volts Left"
+//ASAMREMOVED!! mode=readvalue name="Nernst Sense 1 Volts" type=uint32 offset=0 min=0 max=5 m=0.001 b=0 units="V" format=4.3 help="Nernst Sense Volts Left"
 GPM6_ttVolts LSU4X_atNernstSenseVoltsACHigh[LSU_DEVICE_COUNT];/*CR1_42*/
 GPM6_ttVolts LSU4X_atNernstSenseVoltsACLow[LSU_DEVICE_COUNT];/*CR1_42*/
 sint32 LSU4X_ai32PumpCurrentADC[LSU_DEVICE_COUNT];
 sint32 LSU4X_ai32PumpCurrentADC[LSU_DEVICE_COUNT];
 sint32 LSU4X_ai32PumpCurrentADCFiltered[LSU_DEVICE_COUNT];
 GPM6_ttMicroAmps LSU4X_atPumpCurrentMicroAmps[LSU_DEVICE_COUNT];/*CR1_42*/
-//ASAM mode=readvalue name="Pump Current 1" type=sint32 offset=0 min=-20000 max=20000 m=0.001 b=0 units="uA" format=4.3 help="Pump 1 Current (uA)" 
+//ASAMREMOVED!! mode=readvalue name="Pump Current 1" type=sint32 offset=0 min=-20000 max=20000 m=0.001 b=0 units="uA" format=4.3 help="Pump 1 Current (uA)"
 GPM6_ttMicroAmps LSU4X_atPumpCurrentMicroAmpsNorm[LSU_DEVICE_COUNT];/*CR1_42*/
 CTRLAPI_ttPIDIDX LSU4X_atPIDLSU4XIDX[LSU_DEVICE_COUNT];
 SPREADAPI_ttSpreadIDX LSU4X_atSpreadLSU4XIDX[LSU_DEVICE_COUNT];

@@ -467,8 +467,16 @@ void EST_vRun(puint32 const pu32Arg)
 		}
 		else
 		{
+			if ((TRUE == TORQUE_boVehicleMovingUS) || (TRUE == TORQUE_boVehicleMovingDS))
+			{
 			EST_u16Timing = ((TORQUE_u32ESTTorqueModifier * EST_u16TimingBase) +
 					((0x100 - TORQUE_u32ESTTorqueModifier) * EST_u16TimingStaged)) / 0x100;
+			}
+			else
+			{
+				/* Just set the base timing without delta limits */
+				EST_u16Timing = EST_u16TimingBase;
+			}
 		}
 	}
 

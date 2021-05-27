@@ -62,7 +62,7 @@
 #endif
 
 EXTERN uint32 LSUH_au32HeaterDuty[LSU_DEVICE_COUNT];
-
+//ASAMREMOVED!! mode=readvalue name="Heater Duty 1" type=uint32 offset=0 min=0 max=100 m=0.1 b=0 units="%" format=4.1 help="Heater Left Duty Cycle"
 
 /* GLOBAL TYPE DEFINITIONS ****************************************************/
 /*******************************************************************************
@@ -86,7 +86,7 @@ EXTERN uint32 LSUH_au32ACADCDeltaFiltered[LSU_DEVICE_COUNT];
 EXTERN uint32 LSUH_aau32ADADCSamples[LSU_DEVICE_COUNT][LSUH_nHeaterOhmsSamples];
 EXTERN uint32 LSUH_au32ACADCDelta[LSU_DEVICE_COUNT];
 EXTERN GPM6_ttOhms LSUH_atHeaterOhms[LSU_DEVICE_COUNT];
-//ASAM mode=readvalue name="Heater Ohms 1" type=uint32 offset=0 min=0 max=10 m=0.001 b=0 units="Ohms" format=5.3 help="Heater 1 Ohms"
+//ASAMREMOVED!! mode=readvalue name="Heater Ohms 1" type=uint32 offset=0 min=0 max=10 m=0.001 b=0 units="Ohms" format=5.3 help="Heater 1 Ohms"
 
 
 /* GLOBAL FUNCTION DECLARATIONS ***********************************************/

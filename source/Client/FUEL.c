@@ -634,7 +634,6 @@ void FUEL_vRun(puint32 const pu32Arg)
 	{
 		FUEL_u32ADSamples[u32SampleCount] = FUEL_u32ADCRaw;
 		u32SampleCount = u32SampleCount % FUEL_nSampleCount;
-		u32SampleCount++;
 
 		if (0 == u32SampleCount)
 		{
@@ -661,6 +660,7 @@ void FUEL_vRun(puint32 const pu32Arg)
 		}
 
 		FUEL_boNewSample = FALSE;
+		u32SampleCount++;
 	}
 
 	boFuelCutsActive = SENSORS_boGetAuxActive(SENSORS_enAUX_LAUNCH_LOW);

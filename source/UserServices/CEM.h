@@ -62,7 +62,7 @@ EXTERN uint32 CEM_u32CrankErrorCounts;
 EXTERN uint32 CEM_u32CamErrorCounts;
 //ASAM mode=readvalue name="Cam Error Counts" type=uint32 offset=0 min=0 max=65535 m=1 b=0 units="counts" format=5.3 help="Cam Error Counts"
 EXTERN uint32 CEM_u32CrankRunningErrorCounts;
-//ASAM mode=readvalue name="Crank Running Error Counts" type=uint32 offset=0 min=0 max=65535 m=1 b=0 units="counts" format=5.3 help="Crank Running Error Counts"
+//ASAMREMOVED!! mode=readvalue name="Crank Running Error Counts" type=uint32 offset=0 min=0 max=65535 m=1 b=0 units="counts" format=5.3 help="Crank Running Error Counts"
 EXTERN uint32 CEM_u32CamRunningErrorCounts;
 //ASAM mode=readvalue name="Cam Running Error Counts" type=uint32 offset=0 min=0 max=65535 m=1 b=0 units="counts" format=5.3 help="Cam Running Error Counts"
 

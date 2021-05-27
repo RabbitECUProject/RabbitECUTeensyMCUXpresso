@@ -33,6 +33,8 @@ SPREADAPI_ttSpreadIDX TORQUE_tSpreadTorquePedalIDX;
 TABLEAPI_ttTableIDX TORQUE_tTableTorquePedalIDX;
 SPREADAPI_ttSpreadIDX TORQUE_tSpreadETCScaleIDX;
 TABLEAPI_ttTableIDX TORQUE_tTableETCScaleIDX;
+SPREADAPI_ttSpreadIDX TORQUE_tSpreadRevMatchIDX;
+TABLEAPI_ttTableIDX TORQUE_tTableRevMatchIDX;
 
 /* LOCAL FUNCTION PROTOTYPES (STATIC) *****************************************/
 
@@ -45,13 +47,24 @@ void TORQUE_vStart(puint32 const pu32Arg)
 
 	/* Request and initialise required Kernel managed table for ETC scale function */
 	TORQUE_tTableETCScaleIDX = SETUP_tSetupTable((void*)&USERCAL_stRAMCAL.aUserETCScaleTable, (void*)&TORQUE_u16ETCScale, TYPE_enUInt16, 17, TORQUE_tSpreadETCScaleIDX, NULL);
+
+	/* Request and initialise required Kernel managed spread for ETC rev match */
+	TORQUE_tSpreadRevMatchIDX = SETUP_tSetupSpread((void*)&TORQUE_u32RevMatchRPM, (void*)&USERCAL_stRAMCAL.aUserETCRPMMatchSpread, TYPE_enUInt32, 17, SPREADAPI_enSpread4ms, NULL);
+
+	/* Request and initialise required Kernel managed table for launch and flat shift fuel cuts */
+	TORQUE_tTableRevMatchIDX = SETUP_tSetupTable((void*)&USERCAL_stRAMCAL.aUserETCRPMMatchTable, (void*)&TORQUE_u16RevMatchPosition, TYPE_enUInt16, 17, TORQUE_tSpreadRevMatchIDX, NULL);
 }
 
 void TORQUE_vRun(puint32 const pu32Arg)
 {
 	uint32 u32Temp;
+	uint16 u16Temp;
 	static uint32 u32DSGCutsCount;
 
+	TORQUE_boVehicleMovingDS = USERCAL_stRAMCAL.u16ATXTorqueOnVSS < SENSORS_u16CANVSS ? TRUE : TORQUE_boVehicleMovingDS;
+	TORQUE_boVehicleMovingDS = USERCAL_stRAMCAL.u16ATXTorqueOffVSS > SENSORS_u16CANVSS ? FALSE : TORQUE_boVehicleMovingDS;
+	TORQUE_boVehicleMovingUS = 150 < SENSORS_u16CANVSS ? TRUE : TORQUE_boVehicleMovingUS;
+	TORQUE_boVehicleMovingUS = 50 > SENSORS_u16CANVSS ? FALSE : TORQUE_boVehicleMovingUS;
 
 	if (10000 < MAP_tKiloPaFiltered)
 	{
@@ -114,7 +127,8 @@ void TORQUE_vRun(puint32 const pu32Arg)
 	TORQUE_u32TorquePedalEstimateScaled = u32Temp;
 
 	/* Apply ATX torque mode */
-	if (EST_nIgnitionReqDSGStage1 == EST_enIgnitionTimingRequest)
+	if ((EST_nIgnitionReqDSGStage1 == EST_enIgnitionTimingRequest)
+			&& (TRUE == TORQUE_boVehicleMovingUS))
 	{
 		TORQUE_u32ESTTorqueModifier = 160;
 		TORQUE_u32FuelTorqueModifier = 220;
@@ -126,8 +140,9 @@ void TORQUE_vRun(puint32 const pu32Arg)
 
 		u32DSGCutsCount = 0;
 	}
-	else if ((EST_nIgnitionReqDSGStage2 == EST_enIgnitionTimingRequest) ||
+	else if (((EST_nIgnitionReqDSGStage2 == EST_enIgnitionTimingRequest) ||
 			(EST_nIgnitionReqDSGCutsStage3 == EST_enIgnitionTimingRequest))
+					&& (TRUE == TORQUE_boVehicleMovingUS))
 	{
 		if (u32DSGCutsCount > USERCAL_stRAMCAL.u16TorqueReductionMaxDuration)
 		{
@@ -157,6 +172,7 @@ void TORQUE_vRun(puint32 const pu32Arg)
 	}
 	else
 	{
+		/* No torque modification if no shift or vehicle not moving */
 		TORQUE_u32OutputTorqueModified = TORQUE_u32OutputTorqueEstimate;
 		TORQUE_u32ESTTorqueModifier = 0x100;
 		TORQUE_u32DBWTorqueModifier = 0x100;
@@ -180,25 +196,50 @@ void TORQUE_vRun(puint32 const pu32Arg)
 	USER_vSVC(SYSAPI_enCalculateTable, (void*)&TORQUE_tTableETCScaleIDX,
 			NULL, NULL);
 
-	/* Compute rev match RPM */
+
+	/* Compute Rev Match RPM */
 	if (0 != TORQUE_u16GearShiftCount)
 	{
-		if (TRUE == TORQUE_boDownShift)
+		if ((TRUE == TORQUE_boDownShift) && (TRUE == TORQUE_boVehicleMovingDS))
 		{
 			if ((6 > TORQUE_u8ATXSelectedGear) && (0 < TORQUE_u8ATXSelectedGear))
 			{
 				u32Temp = 1000 * SENSORS_u16CANVSS;
-				TORQUE_u16RevMatchRPM = (uint16)(u32Temp / USERCAL_stRAMCAL.u16VSSPerRPM[TORQUE_u8ATXSelectedGear - 1]);
+
+				TORQUE_u32RevMatchRPM = (uint16)(u32Temp / USERCAL_stRAMCAL.u16VSSPerRPM[TORQUE_u8ATXSelectedGear - 1]);
+
+				/* Calculate the current spread for Rev Match scale */
+				USER_vSVC(SYSAPI_enCalculateSpread, (void*)&TORQUE_tSpreadRevMatchIDX,
+						NULL, NULL);
+
+				/* Lookup the current Rev Match ETC position */
+				USER_vSVC(SYSAPI_enCalculateTable, (void*)&TORQUE_tTableRevMatchIDX,
+						NULL, NULL);
+
+				if (USERCAL_stRAMCAL.u16ShiftDownCountLimit > USERCAL_stRAMCAL.u16ShiftDownBlipLimit)
+				{
+					/* How long into the down-shift? */
+					u16Temp = USERCAL_stRAMCAL.u16ShiftDownCountLimit - TORQUE_u16GearShiftCount;
+
+					if (u16Temp > USERCAL_stRAMCAL.u16ShiftDownBlipLimit)
+					{
+						TORQUE_u16RevMatchPosition *= TORQUE_u16GearShiftCount;
+						u16Temp = USERCAL_stRAMCAL.u16ShiftDownCountLimit - USERCAL_stRAMCAL.u16ShiftDownBlipLimit;
+						TORQUE_u16RevMatchPosition /= u16Temp;
+					}
+				}
 			}
 		}
 		else
 		{
-			TORQUE_u16RevMatchRPM = 1500;
+			TORQUE_u32RevMatchRPM = 1500;
+			TORQUE_u16RevMatchPosition = 0;
 		}
 	}
 	else
 	{
-		TORQUE_u16RevMatchRPM = 1500;
+		TORQUE_u32RevMatchRPM = 1500;
+		TORQUE_u16RevMatchPosition = 0;
 	}
 }
 

@@ -573,18 +573,20 @@ void USERDIAG_vRun(puint32 const pu32Arg)
 				{
 					u8Temp = (uint8)USERCAL_stRAMCAL.u16ETCOverride;
 				}
-				else if ((0 != TORQUE_u16GearShiftCount) && (TRUE == TORQUE_boDownShift))
+				else if ((0 != TORQUE_u16GearShiftCount) && (TRUE == TORQUE_boDownShift) && (TRUE == TORQUE_boVehicleMovingDS))
 				{
-					u8Temp = (TORQUE_u16RevMatchRPM - 800) / 300;
+					u8Temp = TORQUE_u16RevMatchPosition & 0x1f;
 				}
 				else
 				{
 					if (100000 > MAP_tKiloPaFiltered)//todo chatters here
 					{
+						/* 0x10 <= IAC_u8SlaveTarget < 0x20 */
 						u8Temp = 0x3f & IAC_u8SlaveTarget;
 					}
 					else
 					{
+						/* 0x20 <= MAP_u8PressureThrottleTrim < 0x3f */
 						u8Temp = MAP_u8PressureThrottleTrim;
 					}
 				}

@@ -43,7 +43,10 @@ uint32 IAC_u32IdleEntryTimer;
 uint32 IAC_u32RPMLongAverage;
 SPREADAPI_ttSpreadIDX IAC_tSpreadISCTargetIDX;
 TABLEAPI_ttTableIDX IAC_tTableISCTargetIDX;
+SPREADAPI_ttSpreadIDX IAC_tSpreadOpenLoopPosIDX;
+TABLEAPI_ttTableIDX IAC_tTableOpenLoopPosIDX;
 uint16 IAC_u16ISCTarget;
+uint16 IAC_u16OpenLoopPos;
 uint16 IAC_u16ISCTargetRamp;
 //ASAM mode=readvalue name="IAC Target RPM" type=uint16 offset=0 min=0 max=4095 m=1 b=0 units="RPM" format=4.0 help="IAC Current Target RPM"
 uint16 IAC_u16ISCTargetRampOld;
@@ -108,6 +111,12 @@ void IAC_vStart(puint32 const pu32Arg)
 
 	/* Request and initialise required Kernel managed table for ISC target */
 	IAC_tTableISCTargetIDX = SETUP_tSetupTable((void*)&USERCAL_stRAMCAL.aUserISCSpeedTargetTable, (void*)&IAC_u16ISCTarget, TYPE_enUInt16, 17, IAC_tSpreadISCTargetIDX, NULL);
+
+	/* Request and initialise required Kernel managed spread for ISC open loop position spread*/
+	IAC_tSpreadOpenLoopPosIDX = SETUP_tSetupSpread((void*)&CTS_tTempCFiltered, (void*)&USERCAL_stRAMCAL.aUserISCOpenLoopPosSpread , TYPE_enInt32, 17, SPREADAPI_enSpread4ms, NULL);
+
+	/* Request and initialise required Kernel managed table for ISC open loop position  */
+	IAC_tTableOpenLoopPosIDX = SETUP_tSetupTable((void*)&USERCAL_stRAMCAL.aUserISCOpenLoopPosTable, (void*)&IAC_u16OpenLoopPos, TYPE_enUInt16, 17, IAC_tSpreadOpenLoopPosIDX, NULL);
 }
 
 void IAC_vRun(puint32 const pu32Arg)
@@ -146,8 +155,25 @@ void IAC_vRun(puint32 const pu32Arg)
 		USER_vSVC(SYSAPI_enCalculateTable, (void*)&IAC_tTableISCTargetIDX,
 		NULL, NULL);
 
+		/* Calculate the current spread for ISC target */
+		USER_vSVC(SYSAPI_enCalculateSpread, (void*)&IAC_tSpreadOpenLoopPosIDX,
+		NULL, NULL);
+
+		/* Lookup the current value for ISC target */
+		USER_vSVC(SYSAPI_enCalculateTable, (void*)&IAC_tTableOpenLoopPosIDX,
+		NULL, NULL);
+
+		if ((TRUE == USERCAL_stRAMCAL.u8VehicleStoppedFuelCutEnable) ||
+				((FALSE == USERCAL_stRAMCAL.u8VehicleStoppedFuelCutEnable) &&
+				(TRUE == TORQUE_boVehicleMovingUS)))
+		{
 		IAC_boOverrunCutRPMEnable = (IAC_u16ISCTarget + USERCAL_stRAMCAL.u16OverrunCutEnableRPM) > CAM_u32RPMRaw ? FALSE : IAC_boOverrunCutRPMEnable; 
 		IAC_boOverrunCutRPMEnable = (IAC_u16ISCTarget + USERCAL_stRAMCAL.u16OverrunCutDisableRPM) < CAM_u32RPMRaw ? TRUE : IAC_boOverrunCutRPMEnable; 
+		}
+		else
+		{
+			IAC_boOverrunCutRPMEnable = FALSE;
+		}
 	
 		u32IdleEntryRPM = IAC_u16ISCTarget + USERCAL_stRAMCAL.u16IdleEntryOffset;
 		IAC_u16ISCTargetRamp = IAC_u16ISCTarget + u16TargetRamp + u16AfterStartTargetRamp;
@@ -394,7 +420,10 @@ void IAC_vRun(puint32 const pu32Arg)
 				IAC_u32ISCDuty = u16ISCMax >= IAC_u32ISCDuty ? IAC_u32ISCDuty : u16ISCMax;
 			}
 
-			IAC_u8SlaveTarget = 0x10 + (IAC_u32ISCDuty / 0x100);
+			s32Temp = (IAC_u32ISCDuty - 2048) + 3 * ((sint32)IAC_u16OpenLoopPos << 4);
+			s32Temp /= 4;
+			s32Temp = 0 > s32Temp ? 0 : s32Temp;
+			IAC_u8SlaveTarget = 0x10 + (s32Temp / 0x100);
 
 #endif //BUILD_BSP_IAC_STEPPER
 
@@ -409,7 +438,7 @@ void IAC_vRun(puint32 const pu32Arg)
 			IAC_s32ISCESTTrim[1] = 0;
 
 			/* Open loop duty */
-			IAC_u32ISCDuty = (u16ISCMin +  u16ISCMax) / 2;
+			IAC_u32ISCDuty = IAC_u16OpenLoopPos << 4;
 			IAC_u8SlaveTarget = 0x10 + (IAC_u32ISCDuty / 0x100);
 			u16TargetRamp = USERCAL_stRAMCAL.u16ISCEntryRamp;
 		}

@@ -548,6 +548,7 @@ static void SENSORS_vGetCANSensorData()
 	static uint8 u8OldGear;
 	static uint8 u8OldDistCount;
 	static sint16 s16OldDistance;
+	static uint32 u32VSSTimeout = 0;
 
 	USER_vSVC(SYSAPI_enGetRawCommsBuffer, (void*)&enEHIOResource,	(void*)NULL, (void*)NULL);
 
@@ -596,7 +597,16 @@ static void SENSORS_vGetCANSensorData()
 				TORQUE_u8ATXSelectedGear = 0xf & pu8CANDataBuffer[18];
 				TORQUE_boDownShift = u8OldGear > (0xf & pu8CANDataBuffer[18]) ? TRUE : FALSE;
 				u8OldGear = 0xf & pu8CANDataBuffer[18];
-				TORQUE_u16GearShiftCount = USERCAL_stRAMCAL.u16ShiftCountLimit;
+
+				if (0 == TORQUE_boDownShift)
+				{
+					TORQUE_u16GearShiftCount = USERCAL_stRAMCAL.u16ShiftUpCountLimit;
+				}
+				else
+				{
+					TORQUE_u16GearShiftCount = USERCAL_stRAMCAL.u16ShiftDownCountLimit;
+				}
+
 				TORQUE_u16GearShiftPressureControlCount = USERCAL_stRAMCAL.u16ShiftCountPressureControlLimit;
 			}
 			else
@@ -672,8 +682,16 @@ static void SENSORS_vGetCANSensorData()
 			SENSORS_u16CANVSS = ((uint16)s32Temp / 2) + (SENSORS_u16CANVSS / 2);
 
 			s16OldDistance = s16Temp;
+			u32VSSTimeout = 0;
 		}
-
+		else if (u32VSSTimeout > 125)
+		{
+			SENSORS_u16CANVSS = 0;
+		}
+		else
+		{
+			u32VSSTimeout++;
+		}
 
 
 		/* Calculate gear */

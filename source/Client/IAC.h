@@ -50,6 +50,7 @@ typedef enum
 
 /* GLOBAL VARIABLE DECLARATIONS ***********************************************/
 EXTERN uint32 IAC_u32ISCDuty;
+//ASAM mode=readvalue name="IAC Duty" type=uint32 offset=0 min=0 max=100 m=0.024 b=0 units="%" format=4.1 help="IAC Duty Position"
 EXTERN IAC_tenControlState IAC_enControlState;
 EXTERN bool IAC_boOverrunCutRPMEnable;
 EXTERN sint32 IAC_s32ISCESTTrim[2];

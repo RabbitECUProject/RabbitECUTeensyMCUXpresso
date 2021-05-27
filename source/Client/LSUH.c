@@ -32,7 +32,6 @@
 TEPMAPI_tstTimedEvent LSUH_aastTimedEvents[LSU_DEVICE_COUNT][TEPMAPI_nEventsMax];
 #endif //LSUH_TEPM
 uint32 LSUH_au32TEPMTimeout[LSU_DEVICE_COUNT];
-//ASAM mode=readvalue name="Heater Duty 1" type=uint32 offset=0 min=0 max=100 m=0.001 b=0 units="%" format=6.3 help="Heater Left Duty Cycle"
 uint32 LSUH_u32HeaterDutyMax;
 uint32 LSUH_au32HeaterLowADCOnRaw[LSU_DEVICE_COUNT];
 uint32 LSUH_au32HeaterLowADCOffRaw[LSU_DEVICE_COUNT];

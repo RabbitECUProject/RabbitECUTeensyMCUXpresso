@@ -92,6 +92,7 @@
 #include <string.h>
 #include <SDHC1HA.h>
 #include <SDHCHA.h>
+#include "sdhc.h"
 #include "mk64f12.h"
 #include "sim.h"
 #include "irq.h"

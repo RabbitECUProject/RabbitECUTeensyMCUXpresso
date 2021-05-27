@@ -40,6 +40,7 @@
 #define GOLF_MK6_CAL
 #define TEST_60_M2_off
 #define FIESTA_36_M1_off
+#define FIESTA_36_M1_TEENSY_ADAPT_off
 #define TEENSY_ADAPT_BASEoff
 
 #ifdef TESTCAL
@@ -64,6 +65,9 @@
 
 #ifdef GOLF_MK6_CAL
 #include "Golf_Mk6.h"
+	#ifndef BUILD_SPARKDOG_PF
+		#error "Bad build config"
+	#endif
 #endif
 
 #ifdef TEST_60_M2
@@ -74,8 +78,15 @@
 #include "FIESTA_36_M1.h"
 #endif
 
+#ifdef FIESTA_36_M1_TEENSY_ADAPT
+#include "FIESTA_36_M1_TEENSY_ADAPT.h"
+#endif
+
 #ifdef TEENSY_ADAPT_BASE
 #include "teensy_adapt_base.h"
+	#ifndef BUILD_SPARKDOG_TEENSY_ADAPT
+		#error "Bad build config"
+	#endif
 #endif //TEENSY_ADAPT_BASE
 
 #pragma GCC diagnostic pop
@@ -385,7 +396,7 @@ typedef struct
 	uint32 aUserETCScaleSpread[17];
 	uint16 aUserETCScaleTable[17];
 	uint16 u16TorqueReductionMaxFuelCut;
-	uint16 u16ShiftCountLimit;
+	uint16 u16ShiftUpCountLimit;
 	uint16 au16BoostTarget[6];
 	uint16 u16GDIPressureMin;
 	uint16 u16GDIPressureMax;
@@ -411,6 +422,15 @@ typedef struct
 	uint16 u16ETCOverrideKeys;
 	uint16 u16ETCOverride;
 	uint16 u16DiagType;
+	uint32 aUserETCRPMMatchSpread[17];
+	uint16 aUserETCRPMMatchTable[17];
+	uint16 u16ShiftDownCountLimit;
+	uint16 u16ShiftDownBlipLimit;
+	uint16 u16ATXTorqueOnVSS;
+	uint16 u16ATXTorqueOffVSS;
+	GPM6_ttTempC aUserISCOpenLoopPosSpread[17];
+	uint16 aUserISCOpenLoopPosTable[17];
+	uint8 u8VehicleStoppedFuelCutEnable;
 	uint16 u16CRC16;
 	uint8* offsets;
 } BUILD_PACKING USERCAL_tstCalibration;
@@ -861,7 +881,7 @@ EXTERN USERCAL_tstCalibration BUILD_PACKING USERCAL_stRAMCAL;
 //ASAM mode=writeaxis_pts name="ETC Scale Table_XAXIS" parent="USERCAL_stRAMCAL" type=uint32 offset=10722 min=0 max=10000 m=1 b=0 units="RPM" format=4.0 help="XXXX X Axis HTML=366.HTML" xcount=17 xindexvar="Engine Speed Raw"
 //ASAM mode=writecurve name="ETC Scale Table" parent="USERCAL_stRAMCAL" type=uint16 offset=10790 min=0 max=101 m=1.6 b=0 units="V" format=4.1 help="XXX Curve HTML=367.HTML" xcount=17 xindexvar="Engine Speed Raw"
 //ASAM mode=writevalue name="Torque Reduction Max Fuel Cut" parent="USERCAL_stRAMCAL" type=uint16 offset=10824 min=0 max=100 m=1 b=0 units="%" format=3.2 help="Pressure Control Hyst HTML=368.HTML"
-//ASAM mode=writevalue name="Shift Time Limit" parent="USERCAL_stRAMCAL" type=uint16 offset=10826 min=0 max=1 m=0.008 b=0 units="s" format=3.2 help="Pressure Control Hyst HTML=369.HTML"
+//ASAM mode=writevalue name="Shift Up Time Limit" parent="USERCAL_stRAMCAL" type=uint16 offset=10826 min=0 max=1 m=0.008 b=0 units="s" format=3.2 help="Pressure Control Hyst HTML=369.HTML"
 
 //ASAM mode=writevalue name="Boost Target 1" parent="USERCAL_stRAMCAL" type=uint16 offset=10828 min=0 max=200 m=0.01 b=0 units="kPa" format=4.2 help="Boost Gear 1 HTML=370.HTML"
 //ASAM mode=writevalue name="Boost Target 2" parent="USERCAL_stRAMCAL" type=uint16 offset=10830 min=0 max=200 m=0.01 b=0 units="kPa" format=4.2 help="Boost Gear 2 HTML=371.HTML"
@@ -915,12 +935,25 @@ EXTERN USERCAL_tstCalibration BUILD_PACKING USERCAL_stRAMCAL;
 //ASAM mode=writevalue name="VSS Per 1k RPM G8" parent="USERCAL_stRAMCAL" type=uint16 offset=12197 min=0 max=6555 m=0.1 b=0 units="km/h" format=5.1 help="VSS Per 1000 RPM G8 HTML=408.HTML"
 
 //ASAM mode=writevalue name="VSS CAN Calibration" parent="USERCAL_stRAMCAL" type=uint16 offset=12199 max=65535 m=1 b=0 units="dl" format=5.0 help="VSS CAN Calibration HTML=409.HTML"
+//ASAM mode=writevalue name="ETC Override Keys" parent="USERCAL_stRAMCAL" type=uint16 offset=12201 min=0 max=65535 m=1 b=0 units="dl" format=5.0 help="ETC Override Keys HTML=410.HTML"
+//ASAM mode=writevalue name="ETC Override" parent="USERCAL_stRAMCAL"typ e=uint16 offset=12203 min=0 max=255 m=1 b=0 units="dl" format=5.0 help="ETC Override HTML=411.HTML"
+//ASAM mode=writevalue name="Vehicle Model Diag" parent="USERCAL_stRAMCAL" type=uint16 offset=12205 min=0 max=255 units="ENUMERATION VAG_GTI_DSG_DQ250_Mk6=0 VAG_GTI_MT6_Mk6=1" format=3.0 help="ETC Override HTML=412.HTML"
 
-//ASAM mode=writevalue name="ETC Override Keys" type=uint16 offset=12201 min=0 max=65535 m=1 b=0 units="dl" format=5.0 help="ETC Override Keys"
-//ASAM mode=writevalue name="ETC Override" type=uint16 offset=12203 min=0 max=255 m=1 b=0 units="dl" format=5.0 help="ETC Override"
-//ASAM mode=writevalue name="Vehicle Model Diag" type=uint16 offset=12205 min=0 max=255 units="ENUMERATION VAG_GTI_DSG_DQ250_Mk6=0 VAG_GTI_MT6_Mk6=1" format=3.0 help="ETC Override"
+//ASAM mode=writeaxis_pts name="ETC RPM Match Table_XAXIS" parent="USERCAL_stRAMCAL" type=uint32 offset=12207 min=0 max=10000 m=1 b=0 units="RPM" format=4.0 xcount=17 xindexvar="Rev Match RPM" help="TODO HTML=413.HTML"
+//ASAM mode=writecurve name="ETC RPM Match Table" parent="USERCAL_stRAMCAL" type=uint16 offset=12275 min=0 max=15 m=1 b=0 units="counts" format=3.1 xcount=17 xindexvar="Rev Match RPM" help="TODO HTML=414.HTML"
 
-//ASAM mode=writevalue name="CAL CRC" parent="USERCAL_stRAMCAL" type=uint16 offset=12207 min=0 max=255 m=1 b=0 units="dl" format=3.0 help="CAL CRC16"
+//ASAM mode=writevalue name="Shift Down Time Limit" parent="USERCAL_stRAMCAL" type=uint16 offset=12309 min=0 max=5 m=0.008 b=0 units="s" format=3.2 help="Pressure Control Hyst HTML=415.HTML"
+//ASAM mode=writevalue name="Shift Down Blip Limit" parent="USERCAL_stRAMCAL" type=uint16 offset=12311 min=0 max=5 m=0.008 b=0 units="s" format=3.2 help="Pressure Control Hyst HTML=416.HTML"
+
+//ASAM mode=writevalue name="ATX Torque On VSS" parent="USERCAL_stRAMCAL" type=uint16 offset=12313 min=0 max=50 m=0.1 b=0 units="kph" format=3.2 help="Pressure Control Hyst HTML=417.HTML"
+//ASAM mode=writevalue name="ATX Torque Off VSS" parent="USERCAL_stRAMCAL" type=uint16 offset=12315 min=0 max=50 m=0.1 b=0 units="kph" format=3.2 help="Pressure Control Hyst HTML=418.HTML"
+
+//ASAM mode=writeaxis_pts name="ISC Open Loop Position Table_XAXIS" parent="USERCAL_stRAMCAL" type=sint32 offset=12317 min=0 max=200 m=0.001 b=0 units="degrees C" format=4.3 help="ISC Target X Axis HTML=419.HTML" xcount=17 xindexvar="Coolant Temperature"
+//ASAM mode=writecurve name="ISC Open Loop Position Table" parent="USERCAL_stRAMCAL" type=uint16 offset=12385 min=0 max=100 m=0.4 b=0 units="%" format=4.3 help="ISC Target Curve HTML=420.HTML" xcount=17 xindexvar="Coolant Temperature"
+
+//ASAM mode=writevalue name="Vehicle Stopped Fuel Cut Enable" parent="USERCAL_stRAMCAL" type=uint8 offset=12419 min=0 max=1 m=1 b=0 units="bool" format=1.0 help="Vehicle Stopped Fuel Cut Enable HTML=421.HTML"
+
+//ASAM mode=writevalue name="CAL CRC" parent="USERCAL_stRAMCAL" type=uint16 offset=12420 min=0 max=255 m=1 b=0 units="dl" format=3.0 help="CAL CRC16"
 /* 	NOTE MUST ALWAYS INCLUDE CAL STRUCT ELEMENTS ONE FOR ONE AND IN ORDER */
 
 /* Testing offsets table for ASAM parsing tool here */
@@ -1193,7 +1226,7 @@ EXTERN USERCAL_tstCalibration BUILD_PACKING USERCAL_stRAMCAL;
 	offsetof(USERCAL_tstCalibration, aUserETCScaleSpread[17]),\
 	offsetof(USERCAL_tstCalibration, aUserETCScaleTable[17]),\
 	offsetof(USERCAL_tstCalibration, u16TorqueReductionMaxFuelCut),\
-	offsetof(USERCAL_tstCalibration, u16ShiftCountLimit),\
+	offsetof(USERCAL_tstCalibration, u16ShiftUpCountLimit),\
 	offsetof(USERCAL_tstCalibration, au16BoostTarget),\
 	offsetof(USERCAL_tstCalibration, u16GDIPressureMin),\
 	offsetof(USERCAL_tstCalibration, u16GDIPressureMax),\
@@ -1219,10 +1252,19 @@ EXTERN USERCAL_tstCalibration BUILD_PACKING USERCAL_stRAMCAL;
 	offsetof(USERCAL_tstCalibration, u16ETCOverrideKeys),\
 	offsetof(USERCAL_tstCalibration, u16ETCOverride),\
 	offsetof(USERCAL_tstCalibration, u16DiagType),\
+	offsetof(USERCAL_tstCalibration, aUserETCRPMMatchSpread),\
+    offsetof(USERCAL_tstCalibration, aUserETCRPMMatchTable),\
+	offsetof(USERCAL_tstCalibration, u16ShiftDownCountLimit),\
+	offsetof(USERCAL_tstCalibration, u16ShiftDownBlipLimit),\
+	offsetof(USERCAL_tstCalibration, u16ATXTorqueOnVSS),\
+    offsetof(USERCAL_tstCalibration, u16ATXTorqueOffVSS),\
+    offsetof(USERCAL_tstCalibration, aUserISCOpenLoopPosSpread),\
+	offsetof(USERCAL_tstCalibration, aUserISCOpenLoopPosTable),\
+    offsetof(USERCAL_tstCalibration, u8VehicleStoppedFuelCutEnable),\
 	offsetof(USERCAL_tstCalibration, u16CRC16)}
 
 const uint32 __attribute__((used)) au32Offsets[]=OFFSETS_DATA;
-//ASAM mode=readvalue name="au32Offsets" type=uint32 offset=12209 min=0 max=65535 m=1 b=0 units="dl" format=8.0 help="Internal"
+//ASAM mode=readvalue name="au32Offsets" type=uint32 offset=12422 min=0 max=65535 m=1 b=0 units="dl" format=8.0 help="Internal"
 #endif
 
 /* GLOBAL FUNCTION DECLARATIONS ***********************************************/

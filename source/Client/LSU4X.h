@@ -88,25 +88,25 @@ typedef struct
 EXTERN uint32 LSU4X_au32ACSampleCount[LSU_DEVICE_COUNT];
 EXTERN uint32 LSU4X_au32DCSampleCount[LSU_DEVICE_COUNT];
 EXTERN uint16 LSU4X_u16PWMPeriod;
-//ASAM mode=readvalue name="PWMPeriod" type=uint8 offset=0 min=0 max=5 m=0.001 b=1 units="dl" format=6.0 help="PWM Period"    
+//REMOVED!!ASAMREMOVED!! mode=readvalue name="PWMPeriod" type=uint8 offset=0 min=0 max=5 m=0.001 b=1 units="dl" format=6.0 help="PWM Period"
 EXTERN uint16 LSU4X_u16PWMLastStart;
-//ASAM mode=readvalue name="PWMLastStart" type=uint8 offset=0 min=0 max=5 m=0.001 b=1 units="dl" format=6.0 help="PWM Period Last Origin"    
+//REMOVED!!ASAMREMOVED!! mode=readvalue name="PWMLastStart" type=uint8 offset=0 min=0 max=5 m=0.001 b=1 units="dl" format=6.0 help="PWM Period Last Origin"
 EXTERN GPM6_ttOhms LSU4X_atNernstSenseOhms[LSU_DEVICE_COUNT];
-//ASAM mode=readvalue name="Nernst Rout 1" type=uint32 offset=0 min=0 max=1000 m=0.001 b=0 units="Ohm" format=3.0 help="Nernst 1 output impedence" 
-//ASAM mode=readvalue name="Nernst Rout 2" type=uint32 offset=4 min=0 max=1000 m=0.001 b=0 units="Ohm" format=3.0 help="Nernst 2 output impedence"  
+//REMOVED!!ASAMREMOVED!! mode=readvalue name="Nernst Rout 1" type=uint32 offset=0 min=0 max=1000 m=0.001 b=0 units="Ohm" format=3.0 help="Nernst 1 output impedence"
+//REMOVED!!ASAMREMOVED!! mode=readvalue name="Nernst Rout 2" type=uint32 offset=4 min=0 max=1000 m=0.001 b=0 units="Ohm" format=3.0 help="Nernst 2 output impedence"
 EXTERN GPM6_ttLambda LSU4X_atLambdaRaw[LSU_DEVICE_COUNT];
-//ASAM mode=readvalue name="Lambda 1" type=uint16 offset=0 min=0 max=5 m=0.001 b=0 units="dl" format=4.3 help="Lambda 1 Measurement (dimensionless)" 
-//ASAM mode=readvalue name="AFR 1" type=uint16 offset=0 min=0 max=50 m=0.0147 b=0 units="ARF" format=2.3 help="AFR 1 Measurement (dimensionless)"
-//ASAM mode=readvalue name="Lambda 2" type=uint16 offset=2 min=0 max=5 m=0.001 b=0 units="dl" format=4.3 help="Lambda 2 Measurement (dimensionless)"
+//REMOVED!!ASAMREMOVED!! mode=readvalue name="Lambda 1" type=uint16 offset=0 min=0 max=5 m=0.001 b=0 units="dl" format=4.3 help="Lambda 1 Measurement (dimensionless)"
+//REMOVED!!ASAMREMOVED!! mode=readvalue name="AFR 1" type=uint16 offset=0 min=0 max=50 m=0.0147 b=0 units="ARF" format=2.3 help="AFR 1 Measurement (dimensionless)"
+//REMOVED!!ASAMREMOVED!! mode=readvalue name="Lambda 2" type=uint16 offset=2 min=0 max=5 m=0.001 b=0 units="dl" format=4.3 help="Lambda 2 Measurement (dimensionless)"
 EXTERN uint32 LSU4X_aau32ACSamples[LSU_DEVICE_COUNT][LSU4X_nACSamplesCount];
-//ASAM mode=readvalue name="Samples1" type=uint32 offset=0 min=0 max=5 m=1 b=0 units="n" format=6.0 help="sample 1"  
-//ASAM mode=readvalue name="Samples2" type=uint32 offset=4 min=0 max=5 m=1 b=0 units="n" format=6.0 help="sample 2" 
-//ASAM mode=readvalue name="Samples3" type=uint32 offset=8 min=0 max=5 m=1 b=0 units="n" format=6.0 help="sample 3" 
-//ASAM mode=readvalue name="Samples4" type=uint32 offset=12 min=0 max=5 m=1 b=0 units="n" format=6.0 help="sample 4"
-//ASAM mode=readvalue name="Samples5" type=uint32 offset=16 min=0 max=5 m=1 b=0 units="n" format=6.0 help="sample 5"
-//ASAM mode=readvalue name="Samples6" type=uint32 offset=20 min=0 max=5 m=1 b=0 units="n" format=6.0 help="sample 6" 
-//ASAM mode=readvalue name="Samples7" type=uint32 offset=24 min=0 max=5 m=1 b=0 units="n" format=6.0 help="sample 7" 
-//ASAM mode=readvalue name="Samples8" type=uint32 offset=28 min=0 max=5 m=1 b=0 units="n" format=6.0 help="sample 8" 
+//REMOVED!!ASAMREMOVED!! mode=readvalue name="Samples1" type=uint32 offset=0 min=0 max=5 m=1 b=0 units="n" format=6.0 help="sample 1"
+//REMOVED!!ASAMREMOVED!! mode=readvalue name="Samples2" type=uint32 offset=4 min=0 max=5 m=1 b=0 units="n" format=6.0 help="sample 2"
+//REMOVED!!ASAMREMOVED!! mode=readvalue name="Samples3" type=uint32 offset=8 min=0 max=5 m=1 b=0 units="n" format=6.0 help="sample 3"
+//REMOVED!!ASAMREMOVED!! mode=readvalue name="Samples4" type=uint32 offset=12 min=0 max=5 m=1 b=0 units="n" format=6.0 help="sample 4"
+//REMOVED!!ASAMREMOVED!! mode=readvalue name="Samples5" type=uint32 offset=16 min=0 max=5 m=1 b=0 units="n" format=6.0 help="sample 5"
+//REMOVED!!ASAMREMOVED!! mode=readvalue name="Samples6" type=uint32 offset=20 min=0 max=5 m=1 b=0 units="n" format=6.0 help="sample 6"
+//REMOVED!!ASAMREMOVED!! mode=readvalue name="Samples7" type=uint32 offset=24 min=0 max=5 m=1 b=0 units="n" format=6.0 help="sample 7"
+//REMOVED!!ASAMREMOVED!! mode=readvalue name="Samples8" type=uint32 offset=28 min=0 max=5 m=1 b=0 units="n" format=6.0 help="sample 8"
 EXTERN sint32 LSU4X_aas32DCSamples[LSU_DEVICE_COUNT][LSU4X_nDCSamplesCount];
 EXTERN uint8 LSU4X_au8ACCallBackWait[LSU_DEVICE_COUNT];
 
