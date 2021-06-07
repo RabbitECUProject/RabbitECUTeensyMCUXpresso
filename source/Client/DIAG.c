@@ -579,7 +579,7 @@ void USERDIAG_vRun(puint32 const pu32Arg)
 				}
 				else
 				{
-					if (100000 > MAP_tKiloPaFiltered)//todo chatters here
+					if (FALSE == MAP_boBoostETCCutEnable)
 					{
 						/* 0x10 <= IAC_u8SlaveTarget < 0x20 */
 						u8Temp = 0x3f & IAC_u8SlaveTarget;

@@ -37,7 +37,12 @@ bool USER_vStart(SYSAPI_tstSVCDataStruct* pstSVCDataStructArg)
 	TASKAPI_tenPriority enPriority;
 	TASKAPI_tenRateMs enRateMs;
 	uint32 u32ModuleIDX;
+	IOAPI_tenEHIOResource enEHIOResource;
+	IOAPI_tenEHIOType enEHIOType;
+	IOAPI_tenDriveStrength enDriveStrength;
+	IOAPI_tenTriState enTriState;
 	bool boRetVal = false;
+
 
 #ifdef BUILD_USER_APP
 	memset((void*)USER_nVarsRAMBase, 0, USER_nVarsRAMSize);/*CR1_77*/
@@ -85,6 +90,70 @@ bool USER_vStart(SYSAPI_tstSVCDataStruct* pstSVCDataStructArg)
 	{
 		boRetVal = true;	
 	}
+
+	/* Early set port bits for safety */
+	enEHIOType = IOAPI_enDIOOutput;
+	enDriveStrength = IOAPI_enStrong;
+
+	/* VRA Pullup */
+	enEHIOResource = VRA_nPullupEnablePin;
+    enTriState = IOAPI_enLow;
+
+	USER_vSVC(SYSAPI_enInitialiseIOResource, (void*)&enEHIOResource,
+			(void*)&enEHIOType,	(void*)&enDriveStrength);
+
+    USER_vSVC(SYSAPI_enAssertDIOResource, (void*)&enEHIOResource,
+	    (void*)&enTriState,	(void*)NULL);
+
+	/* VRB Pullup */
+	enEHIOResource = VRB_nPullupEnablePin;
+    enTriState = IOAPI_enLow;
+
+	USER_vSVC(SYSAPI_enInitialiseIOResource, (void*)&enEHIOResource,
+			(void*)&enEHIOType,	(void*)&enDriveStrength);
+
+    USER_vSVC(SYSAPI_enAssertDIOResource, (void*)&enEHIOResource,
+	    (void*)&enTriState,	(void*)NULL);
+
+	/* VRA Enable */
+	enEHIOResource = VRA_nVREnablePin;
+    enTriState = IOAPI_enLow;
+
+	USER_vSVC(SYSAPI_enInitialiseIOResource, (void*)&enEHIOResource,
+			(void*)&enEHIOType,	(void*)&enDriveStrength);
+
+    USER_vSVC(SYSAPI_enAssertDIOResource, (void*)&enEHIOResource,
+	    (void*)&enTriState,	(void*)NULL);
+
+	/* VRB Enable */
+	enEHIOResource = VRB_nVREnablePin;
+    enTriState = IOAPI_enLow;
+
+	USER_vSVC(SYSAPI_enInitialiseIOResource, (void*)&enEHIOResource,
+			(void*)&enEHIOType,	(void*)&enDriveStrength);
+
+    USER_vSVC(SYSAPI_enAssertDIOResource, (void*)&enEHIOResource,
+	    (void*)&enTriState,	(void*)NULL);
+
+	/* VR Hyst High */
+	enEHIOResource = VR_nHystHighPin;
+    enTriState = IOAPI_enHigh;
+
+	USER_vSVC(SYSAPI_enInitialiseIOResource, (void*)&enEHIOResource,
+			(void*)&enEHIOType,	(void*)&enDriveStrength);
+
+    USER_vSVC(SYSAPI_enAssertDIOResource, (void*)&enEHIOResource,
+	    (void*)&enTriState,	(void*)NULL);
+
+	/* VR Hyst Low */
+	enEHIOResource = VR_nHystLowPin;
+    enTriState = IOAPI_enLow;
+
+	USER_vSVC(SYSAPI_enInitialiseIOResource, (void*)&enEHIOResource,
+			(void*)&enEHIOType,	(void*)&enDriveStrength);
+
+    USER_vSVC(SYSAPI_enAssertDIOResource, (void*)&enEHIOResource,
+	    (void*)&enTriState,	(void*)NULL);
 
 	return boRetVal;
 }

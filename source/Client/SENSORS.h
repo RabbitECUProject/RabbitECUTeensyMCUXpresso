@@ -151,8 +151,8 @@ EXTERN uint16 SENSORS_u16CANTPS;
 //ASAM mode=readvalue name="CAN TPS" type=uint16 offset=0 min=0 max=65535 m=1 b=0 units="dl" format=5.0 help="TPS CAN"
 EXTERN uint8 SENSORS_u8CANPPS;
 //ASAM mode=readvalue name="CAN PPS" type=uint8 offset=0 min=0 max=255 m=1 b=0 units="dl" format=3.0 help="PPS CAN"
-EXTERN uint16 SENSORS_u16CANVSS;
-//ASAM mode=readvalue name="CAN VSS" type=uint16 offset=0 min=0 max=65535 m=1 b=0 units="dl" format=3.0 help="VSS CAN"
+//EXTERN uint16 SENSORS_u16CANVSS;
+//ASAMREMOVED mode=readvalue name="CAN VSS" type=uint16 offset=0 min=0 max=65535 m=1 b=0 units="dl" format=3.0 help="VSS CAN"
 EXTERN uint16 SENSORS_au16CANAFR[2];
 //ASAM mode=readvalue name="CAN AFR" type=uint16 offset=0 min=0 max=65535 m=1 b=0 units="dl" format=3.0 help="VSS AFR"
 EXTERN uint8 SENSORS_u8CANSTT[2];

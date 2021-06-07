@@ -32,6 +32,7 @@
 #include "OS.h"
 #include "dll.h"
 #include "PERCAN.h"
+#include "PERSPI.h"
 #include "math.h"
 #include "UDSAL.h"
 #include "timer.h"
@@ -78,6 +79,7 @@ DLL_tstRXDLLData CAN_stRXDLLData;
 bool IRQ_boEnableRTOS = TRUE;
 static void IRQ_vCommonUART(tstUARTModule*, IOAPI_tenEHIOResource, IRQn_Type enIRQType);
 static void IRQ_vCommonCAN(tstCANModule*, IOAPI_tenEHIOResource, IRQn_Type enIRQType);
+static void IRQ_vCommonSPI(tstSPIModule*, IOAPI_tenEHIOResource, IRQn_Type enIRQType);
 static void SVC_Handler_Main(void);
 
 #if defined(BUILD_MK60) || defined(BUILD_SAM3X8E) || defined(BUILD_MK64)
@@ -406,9 +408,14 @@ void ENET_Error_IRQHandler(void)
 
 
 
-
-
-
+/*----------------------------------------------------------------------------
+  SPI2_Handlers
+ *----------------------------------------------------------------------------*/
+void SPI2_IRQHandler(void)
+{
+	SPI_Type* pstSPI = SPI2;
+	IRQ_vCommonSPI(pstSPI, EH_VIO_SPI1, SPI2_IRQn);
+}
 
 
 
@@ -647,6 +654,16 @@ void IRQ_vCommonUART(UART_Type* pstUART, IOAPI_tenEHIOResource enEHIOResource, I
 	{
 		(void)UART_u8GetChar(enEHIOResource);
 	}
+#endif //BUILD_MK6X
+}
+
+
+void IRQ_vCommonSPI(SPI_Type* pstSPI, IOAPI_tenEHIOResource enEHIOResource, IRQn_Type enIRQType)
+{
+	DLL_tstRXDLLData stRXDLLData;
+
+#if defined(BUILD_MK60) || defined(BUILD_MK64)
+	IRQ_apfTXCallBack[enIRQType](enEHIOResource, NULL);
 #endif //BUILD_MK6X
 }
 

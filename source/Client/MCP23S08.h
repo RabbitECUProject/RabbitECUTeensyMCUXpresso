@@ -38,6 +38,7 @@
 #define MCP23S08_nRegOLAT    0x0a
 
 #define MCP23S08_nMaskAllOutput 0
+#define MCP23S08_nInterruptModeOff
 
 typedef void (*MCP23S08_tpfCB)(puint32);
 		

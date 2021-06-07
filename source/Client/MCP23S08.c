@@ -101,7 +101,8 @@ bool MCP23S08_boTransferData(IOAPI_enTransferType enTransferType, void* pvData, 
 		stTransferCB.boBlockingMode = FALSE;
 		
 		USER_vSVC(SYSAPI_enRequestIOBusTransfer, (void*)EH_VIO_SPI1, (void*)&stTransferCB, NULL);	
-	    MCP23S08_boBusy = TRUE;					
+
+	    MCP23S08_boBusy = TRUE;
 	}
 	else
 	{

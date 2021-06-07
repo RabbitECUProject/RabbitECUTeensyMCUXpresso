@@ -72,20 +72,26 @@ void RELAYS_vStart(uint32 * const pu32Arg)
 		(void*)&enEHIOType,	(void*)&stPortConfigCB);
 	}
 
-	enEHIOResource = RELAYS_nSPI_CS_RESOURCE;
+	enEHIOResource = RELAYS_nSPI_RST_RESOURCE;
 	enEHIOType = IOAPI_enDIOOutput;
 	enDriveStrength = IOAPI_enStrong;
 
+	/* Set up the RST line */
+    SETUP_vSetupDigitalIO(enEHIOResource, enEHIOType, enDriveStrength, &u32Flags);
+	SETUP_vSetDigitalIOHigh(RELAYS_nSPI_RST_RESOURCE);
+
+	enEHIOResource = RELAYS_nSPI_CS_RESOURCE;
+
 	/* Set up the CS line */
     SETUP_vSetupDigitalIO(enEHIOResource, enEHIOType, enDriveStrength, &u32Flags);
-	SETUP_vSetDigitalIOHigh(RELAYS_nSPI_CS_RESOURCE);
+	//SETUP_vSetDigitalIOHigh(RELAYS_nSPI_CS_RESOURCE);
 
 	/* Start the SPI I/O expander IC */
 	MCP23S08_vStart(NULL);
 			
 	/* Set MCP23S08 port to output direction */
     (void)MCP23S08_boSetCallback(&RELAYS_vCallBack);
-	SETUP_vSetDigitalIOLow(RELAYS_nSPI_CS_RESOURCE);
+	//SETUP_vSetDigitalIOLow(RELAYS_nSPI_CS_RESOURCE);
 	MCP23S08_vSetDataDirection(0);
 
 
@@ -145,20 +151,20 @@ void RELAYS_vRun(uint32* const pu32Arg)
 	IOAPI_tenEHIOResource enEHIOResource;
 	RELAY_tenBit enBit;
 
-	return;/*TODO*/
-
 	if (false == RELAYS_boInit) return;
 
-	if (511 < u32Count++)
+	if (511 < u32Count)
 	{
-		SETUP_vSetDigitalIOLow(RELAYS_nSPI_CS_RESOURCE);
+		//SETUP_vSetDigitalIOLow(RELAYS_nSPI_CS_RESOURCE);
 		MCP23S08_vSetDataDirection(0);
 		u32Count = 0;
 	}
 	else
 	{
-		SETUP_vSetDigitalIOLow(RELAYS_nSPI_CS_RESOURCE);
+		//SETUP_vSetDigitalIOLow(RELAYS_nSPI_CS_RESOURCE);
 		(void)MCP23S08_boTransferData(IOAPI_IO_TX, (void*)&RELAYS_u8RelayBitState, 1);
+
+		u32Count++;
 	}
 
 	u32VarAddress = USERCAL_stRAMCAL.aLogicBlockVar[u32LogicIDX] & 0xfffff;
@@ -427,11 +433,11 @@ void RELAYS_vOutputBit(RELAY_tenBit enBit, bool boBitOn)
 {
 	if (FALSE == boBitOn)
 	{
-		RELAYS_u8RelayBitState &= ~enBit;
+		RELAYS_u8RelayBitState &= ~(1 << enBit);
 	}
 	else
 	{
-		RELAYS_u8RelayBitState |= enBit;
+		RELAYS_u8RelayBitState |= (1 << enBit);
 	}
 }
 

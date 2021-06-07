@@ -17,7 +17,7 @@ void CAN_vStart(uint32* const u32Stat)
 	
 }
 
-SYSAPI_tenSVCResult CAN_enInitBus(IOAPI_tenEHIOResource enEHIOResource, IOAPI_tstPortConfigCB* pstPortConfigCB)
+SYSAPI_tenSVCResult CAN_u32InitBus(IOAPI_tenEHIOResource enEHIOResource, IOAPI_tstPortConfigCB* pstPortConfigCB)
 {
 	return CANHA_u32InitBus(enEHIOResource, pstPortConfigCB);
 }

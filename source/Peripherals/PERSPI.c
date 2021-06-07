@@ -39,9 +39,14 @@ void SPI_vInitTransfer(IOAPI_tstTransferCB* pstTransferCB)
     SPIHA_vInitTransfer(pstTransferCB);
 }
 
-void SPI_vInterrupt(IOAPI_tenEHIOResource enEHIOResource)
+void SPI_vInterruptTX(IOAPI_tenEHIOResource enEHIOResource, void* pvData)
 {
-	SPIHA_vInterruptHandler(enEHIOResource);
+	SPIHA_vInterruptTX(enEHIOResource);
+}
+
+void SPI_vInterruptRX(IOAPI_tenEHIOResource enEHIOResource, void* pvData)
+{
+	SPIHA_vInterruptRX(enEHIOResource);
 }
 
 

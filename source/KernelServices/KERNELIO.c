@@ -105,7 +105,7 @@ SYSAPI_tenSVCResult IO_enInitCommsResource(IOAPI_tenEHIOResource enEHIOResource,
 #endif
 
 	{
-		u32MuxSel = CAN_enInitBus(enEHIOResource, pstPortConfigCB);
+		u32MuxSel = CAN_u32InitBus(enEHIOResource, pstPortConfigCB);
 
 		if (~0 != u32MuxSel)
 		{
@@ -117,7 +117,32 @@ SYSAPI_tenSVCResult IO_enInitCommsResource(IOAPI_tenEHIOResource enEHIOResource,
 		{
 			enSVCResult = SYSAPI_enFail;
 		}
-	}		
+	}
+
+#ifdef EH_VIO_SPI2
+	else if ((EH_VIO_SPI1 == enEHIOResource)
+				|| (EH_VIO_SPI2 == enEHIOResource))
+#endif
+#ifndef EH_VIO_SPI2
+	else if (EH_VIO_SPI1 == enEHIOResource)
+#endif
+
+	{
+		u32MuxSel = SPI_u32InitBus(enEHIOResource, pstPortConfigCB);
+
+		if (~0 != u32MuxSel)
+		{
+			IO_vSetIOMux(pstPortConfigCB->stPinConfig.uPinInfo.stSPIPinInfo.enMOSIPin, IOAPI_enSPIBus, u32MuxSel);
+			IO_vSetIOMux(pstPortConfigCB->stPinConfig.uPinInfo.stSPIPinInfo.enMISOPin, IOAPI_enSPIBus, u32MuxSel);
+			IO_vSetIOMux(pstPortConfigCB->stPinConfig.uPinInfo.stSPIPinInfo.enSCKPin, IOAPI_enSPIBus, u32MuxSel);
+			enSVCResult = SYSAPI_enOK;
+		}
+		else
+		{
+			enSVCResult = SYSAPI_enFail;
+		}
+	}
+
 	
 #ifdef BUILD_ENET
 	else if ((EH_VIO_ENET_CH1 == enEHIOResource)

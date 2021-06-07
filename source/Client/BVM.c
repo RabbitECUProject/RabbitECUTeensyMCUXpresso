@@ -56,6 +56,7 @@ void BVM_vStart(uint32 * const pu32Arg)
 	
 	BVM_u32ADCFiltered = BVM_nVoltsFilteredInitVal;/*CR1_9*/
 	BVM_u32ADCRaw = 0;/*CR1_9*//*CR1_15*/
+	BVM_tCrankBattVolts = BVM_nVoltsFilteredInitVal;
 	
 	enEHIOResource = BVM_nADInput;
 	enEHIOType = IOAPI_enADSE;
@@ -86,6 +87,7 @@ void BVM_vRun(uint32* const pu32Arg)
 {
 	static uint32 u32SecondDerivativeLimitNeg = 0;
 	static uint32 u32SecondDerivativeLimitPos = 0;
+	static uint32 u32Count;
 	
 	if (TRUE == BVM_boNewSample)
 	{	
@@ -150,6 +152,22 @@ void BVM_vRun(uint32* const pu32Arg)
 	
 		BVM_tBattVolts = CONV_tADCToVolts(BVM_nADInput, BVM_u32ADCFiltered);
 		BVM_boNewSample = FALSE;
+	}
+
+	if (500 > CAM_u32RPMFiltered)
+	{
+		if (BVM_tBattVolts < BVM_tCrankBattVolts)
+		{
+			BVM_tCrankBattVolts = BVM_tBattVolts;
+		}
+		else
+		{
+			BVM_tCrankBattVolts++;
+		}
+	}
+	else
+	{
+		BVM_tCrankBattVolts = 13000 > BVM_tCrankBattVolts ? BVM_tCrankBattVolts + 1 : BVM_tCrankBattVolts;
 	}
 }
 

@@ -143,8 +143,6 @@ void SENSORS_vStart(puint32 const pu32Arg)
 	SETUP_vSetupDigitalIO(enEHIOResource, enEHIOType, enDriveStrength, pu32Arg);
 	enEHIOResource = VRB_nVREnablePin;
 	SETUP_vSetupDigitalIO(enEHIOResource, enEHIOType, enDriveStrength, pu32Arg);
-	enEHIOResource = VR_nHystHighPin;
-	SETUP_vSetupDigitalIO(enEHIOResource, enEHIOType, enDriveStrength, pu32Arg);
 	enEHIOResource = VR_nHystLowPin;
 	SETUP_vSetupDigitalIO(enEHIOResource, enEHIOType, enDriveStrength, pu32Arg);
 	enEHIOResource = VVTAB_nPullupEnablePin;
@@ -153,7 +151,9 @@ void SENSORS_vStart(puint32 const pu32Arg)
 	SETUP_vSetupDigitalIO(enEHIOResource, enEHIOType, enDriveStrength, pu32Arg);
 	enEHIOResource = VR_nPhaseTelltalePin;
 	SETUP_vSetupDigitalIO(enEHIOResource, enEHIOType, enDriveStrength, pu32Arg);
-
+	enEHIOResource = VR_nHystHighPin;
+	SETUP_vSetupDigitalIO(enEHIOResource, enEHIOType, enDriveStrength, pu32Arg);
+	SETUP_vSetDigitalIOHigh(enEHIOResource);
 
 	if (TRUE == USERCAL_stRAMCAL.u8UserPrimaryVREnable)
 	{
@@ -592,6 +592,8 @@ static void SENSORS_vGetCANSensorData()
 
 		if (TRUE == SENSORS_boCANNewTorqueRequestSample)
 		{
+			TORQUE_boManualShiftMode = 0 != (pu8CANDataBuffer[18] & 0x80);
+
 			if ((0xf & pu8CANDataBuffer[18]) != u8OldGear)
 			{
 				TORQUE_u8ATXSelectedGear = 0xf & pu8CANDataBuffer[18];

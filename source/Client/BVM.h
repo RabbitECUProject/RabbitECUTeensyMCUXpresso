@@ -28,7 +28,7 @@
 
 
 /* GLOBAL MACRO DEFINITIONS ***************************************************/
-#define BVM_nVoltsFilteredInitVal	(uint32)(1000 * 12)
+#define BVM_nVoltsFilteredInitVal	(uint32)(1000 * 11)
 #define BVM_nSecondDerivativeChangeLimit	1
 /*CR1_87*/
 
@@ -60,7 +60,7 @@
 /* GLOBAL VARIABLE DECLARATIONS ***********************************************/
 EXTERN GPM6_ttVolts BVM_tBattVolts;/*CR1_88*/
 //ASAM mode=readvalue name="Battery Voltage" type=uint32 offset=0 min=0 max=20 m=0.001 b=0 units="V" format=5.3 help="Battery Voltage" 
-
+EXTERN GPM6_ttVolts BVM_tCrankBattVolts;/*CR1_88*/
 
 /* GLOBAL FUNCTION DECLARATIONS ***********************************************/
 void BVM_vStart(uint32* const pu32Arg);

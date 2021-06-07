@@ -159,22 +159,26 @@ void IAC_vRun(puint32 const pu32Arg)
 		USER_vSVC(SYSAPI_enCalculateSpread, (void*)&IAC_tSpreadOpenLoopPosIDX,
 		NULL, NULL);
 
-		/* Lookup the current value for ISC target */
+		/* Lookup the current value for ISC open loop position */
 		USER_vSVC(SYSAPI_enCalculateTable, (void*)&IAC_tTableOpenLoopPosIDX,
 		NULL, NULL);
+
+		/* Correct open loop position for after start alternator load */
+		IAC_u16OpenLoopPos += ((13000 - BVM_tCrankBattVolts) / 30);
+		IAC_u16OpenLoopPos = 256 > IAC_u16OpenLoopPos ? IAC_u16OpenLoopPos : 255;
 
 		if ((TRUE == USERCAL_stRAMCAL.u8VehicleStoppedFuelCutEnable) ||
 				((FALSE == USERCAL_stRAMCAL.u8VehicleStoppedFuelCutEnable) &&
 				(TRUE == TORQUE_boVehicleMovingUS)))
 		{
-		IAC_boOverrunCutRPMEnable = (IAC_u16ISCTarget + USERCAL_stRAMCAL.u16OverrunCutEnableRPM) > CAM_u32RPMRaw ? FALSE : IAC_boOverrunCutRPMEnable; 
-		IAC_boOverrunCutRPMEnable = (IAC_u16ISCTarget + USERCAL_stRAMCAL.u16OverrunCutDisableRPM) < CAM_u32RPMRaw ? TRUE : IAC_boOverrunCutRPMEnable; 
+			IAC_boOverrunCutRPMEnable = (IAC_u16ISCTarget + USERCAL_stRAMCAL.u16OverrunCutEnableRPM) > CAM_u32RPMRaw ? FALSE : IAC_boOverrunCutRPMEnable;
+			IAC_boOverrunCutRPMEnable = (IAC_u16ISCTarget + USERCAL_stRAMCAL.u16OverrunCutDisableRPM) < CAM_u32RPMRaw ? TRUE : IAC_boOverrunCutRPMEnable;
 		}
 		else
 		{
 			IAC_boOverrunCutRPMEnable = FALSE;
 		}
-	
+
 		u32IdleEntryRPM = IAC_u16ISCTarget + USERCAL_stRAMCAL.u16IdleEntryOffset;
 		IAC_u16ISCTargetRamp = IAC_u16ISCTarget + u16TargetRamp + u16AfterStartTargetRamp;
 	
@@ -420,11 +424,14 @@ void IAC_vRun(puint32 const pu32Arg)
 				IAC_u32ISCDuty = u16ISCMax >= IAC_u32ISCDuty ? IAC_u32ISCDuty : u16ISCMax;
 			}
 
-			s32Temp = (IAC_u32ISCDuty - 2048) + 3 * ((sint32)IAC_u16OpenLoopPos << 4);
-			s32Temp /= 4;
+			/* Weight FF and FB components */
+			s32Temp = (IAC_u32ISCDuty - 2048) * USERCAL_stRAMCAL.u16ISCCLWeight;
+			s32Temp += (IAC_u16OpenLoopPos << 4) * (0x100 - USERCAL_stRAMCAL.u16ISCCLWeight);
+			s32Temp /= 0x100;
+
+			s32Temp = 4096 > s32Temp ? s32Temp : 4095;
 			s32Temp = 0 > s32Temp ? 0 : s32Temp;
 			IAC_u8SlaveTarget = 0x10 + (s32Temp / 0x100);
-
 #endif //BUILD_BSP_IAC_STEPPER
 
 			if ((IAC_u16ISCTargetRamp + 250) > (uint16)CAM_u32RPMRaw)

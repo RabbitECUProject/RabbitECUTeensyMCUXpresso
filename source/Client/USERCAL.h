@@ -42,6 +42,7 @@
 #define FIESTA_36_M1_off
 #define FIESTA_36_M1_TEENSY_ADAPT_off
 #define TEENSY_ADAPT_BASEoff
+#define TEENSY_ADAPT_60M2_off
 
 #ifdef TESTCAL
 #include "TEST_CAL.h"	
@@ -88,6 +89,10 @@
 		#error "Bad build config"
 	#endif
 #endif //TEENSY_ADAPT_BASE
+
+#ifdef TEENSY_ADAPT_60M2
+#include "VW_60_M2_TEENSY_ADAPT.h"
+#endif
 
 #pragma GCC diagnostic pop
 
@@ -345,7 +350,7 @@ typedef struct
 	uint16 u16FuelPressurePGain;
 	uint16 u16FuelPressureIGain;
 	uint8 u8FuelPrimeEnable;
-	uint16 aUserTimingMapStage1[17][17];
+	sint16 aUserTimingMapStage1[17][17];
 	uint32 aUserTorquePedalTransferSpread[17];
 	uint16 aUserTorquePedalTransferTable[17];
 	sint32 aUserPressureValveFeedForwardSpread[17];
@@ -431,6 +436,36 @@ typedef struct
 	GPM6_ttTempC aUserISCOpenLoopPosSpread[17];
 	uint16 aUserISCOpenLoopPosTable[17];
 	uint8 u8VehicleStoppedFuelCutEnable;
+	uint16 u16LaunchStoppedBoostMax;
+	uint16 u16LaunchMidBoostMax;
+	uint16 u16LaunchEndBoostMax;
+	uint16 u16LaunchMidVSS;
+	uint16 u16LaunchEndVSS;
+	uint8 u8LaunchBoostEnable;
+	uint16 u16ColdOffThrottleBlip;
+	uint16 u16HotOffThrottleBlip;
+	uint32 aUserVVTITargetxSpread[17];
+	uint32 aUserVVTITargetySpread[17];
+	uint16 aUserVVTITargetMap[17][17];
+	uint32 aUserVVTETargetxSpread[17];
+	uint32 aUserVVTETargetySpread[17];
+	uint16 aUserVVTETargetMap[17][17];
+	uint16 u16VVTIInput1Config;
+	uint16 u16VVTIInput2Config;
+	uint16 u16VVTEInput1Config;
+	uint16 u16VVTEInput2Config;
+	uint16 u16VVTIPTerm;
+	uint16 u16VVTIITerm;
+	uint16 u16VVTIDTerm;
+	uint16 u16VVTEPTerm;
+	uint16 u16VVTEITerm;
+	uint16 u16VVTEDTerm;
+	uint16 u16CLO2LeftResource;
+	uint16 u16CLO2RightResource;
+	uint16 u16ISCCLWeight;
+	uint8 u8DummyPadding1;
+	uint8 u8DummyPadding2;
+	uint8 u8DummyPadding3;
 	uint16 u16CRC16;
 	uint8* offsets;
 } BUILD_PACKING USERCAL_tstCalibration;
@@ -716,21 +751,21 @@ EXTERN USERCAL_tstCalibration BUILD_PACKING USERCAL_stRAMCAL;
 //ASAM mode=writevalue name="PWM 2D 5 IO Resource" parent="USERCAL_stRAMCAL" type=uint16 offset=5656 min=0 max=255 units="ENUMERATION EH_IO_GPSE1=0 EH_IO_GPSE2=1 EH_IO_GPSE3=2 EH_IO_GPSE4=3 EH_IO_GPSE5=4 EH_IO_GPSE6=5 EH_IO_GPSE7=6 EH_IO_GPSE8=7 EH_IO_UART1_TX=15 EH_IO_UART1_RX=16 EH_IO_UART1_CTS=17 EH_IO_UART1_RTS=18 EH_IO_UART2_TX=19 EH_IO_UART2_RX=20 EH_IO_SPI1_MISO=21 EH_IO_SPI1_MOSI=22 EH_IO_SPI1_CLK=23 EH_IO_SPI1_CS=24 EH_IO_TMR1=25 EH_IO_TMR2=26 EH_IO_TMR3=27 EH_IO_TMR4=28 EH_IO_TMR5=29 EH_IO_TMR6=30 EH_IO_TMR7=31 EH_IO_TMR8=32 EH_IO_TMR9=33 EH_IO_TMR10=34 EH_IO_TMR11=35 EH_IO_TMR12=36 EH_IO_TMR13=37 EH_IO_TMR14=38 EH_IO_TMR15=39 EH_IO_TMR16=40 EH_IO_TMR17=41 EH_IO_TMR18=42 EH_IO_IIC1_SCL=43 EH_IO_IIC1_SDA=44 EH_IO_GP1=47 EH_IO_GP2=48 EH_IO_GP3=49 EH_IO_GP4=50 EH_IO_GP5=51 EH_IO_GP6=52 EH_IO_GP7=53 EH_IO_GP8=54 EH_IO_GP9=55 EH_IO_GP10=56 EH_IO_GP11=57 EH_IO_GP12=58 EH_IO_GP13=59 EH_IO_GP14=60 EH_IO_UNUSED=125" format=3.0 help="PWM 2D 5 IO Resource HTML=240.HTML"
 //ASAM mode=writevalue name="PWM 2D 6 IO Resource" parent="USERCAL_stRAMCAL" type=uint16 offset=5658 min=0 max=255 units="ENUMERATION EH_IO_GPSE1=0 EH_IO_GPSE2=1 EH_IO_GPSE3=2 EH_IO_GPSE4=3 EH_IO_GPSE5=4 EH_IO_GPSE6=5 EH_IO_GPSE7=6 EH_IO_GPSE8=7 EH_IO_UART1_TX=15 EH_IO_UART1_RX=16 EH_IO_UART1_CTS=17 EH_IO_UART1_RTS=18 EH_IO_UART2_TX=19 EH_IO_UART2_RX=20 EH_IO_SPI1_MISO=21 EH_IO_SPI1_MOSI=22 EH_IO_SPI1_CLK=23 EH_IO_SPI1_CS=24 EH_IO_TMR1=25 EH_IO_TMR2=26 EH_IO_TMR3=27 EH_IO_TMR4=28 EH_IO_TMR5=29 EH_IO_TMR6=30 EH_IO_TMR7=31 EH_IO_TMR8=32 EH_IO_TMR9=33 EH_IO_TMR10=34 EH_IO_TMR11=35 EH_IO_TMR12=36 EH_IO_TMR13=37 EH_IO_TMR14=38 EH_IO_TMR15=39 EH_IO_TMR16=40 EH_IO_TMR17=41 EH_IO_TMR18=42 EH_IO_IIC1_SCL=43 EH_IO_IIC1_SDA=44 EH_IO_GP1=47 EH_IO_GP2=48 EH_IO_GP3=49 EH_IO_GP4=50 EH_IO_GP5=51 EH_IO_GP6=52 EH_IO_GP7=53 EH_IO_GP8=54 EH_IO_GP9=55 EH_IO_GP10=56 EH_IO_GP11=57 EH_IO_GP12=58 EH_IO_GP13=59 EH_IO_GP14=60 EH_IO_UNUSED=125" format=3.0 help="PWM 2D 6 IO Resource HTML=241.HTML"
 //ASAM mode=writevalue name="PWM 2D 7 IO Resource" parent="USERCAL_stRAMCAL" type=uint16 offset=5660 min=0 max=255 units="ENUMERATION EH_IO_GPSE1=0 EH_IO_GPSE2=1 EH_IO_GPSE3=2 EH_IO_GPSE4=3 EH_IO_GPSE5=4 EH_IO_GPSE6=5 EH_IO_GPSE7=6 EH_IO_GPSE8=7 EH_IO_UART1_TX=15 EH_IO_UART1_RX=16 EH_IO_UART1_CTS=17 EH_IO_UART1_RTS=18 EH_IO_UART2_TX=19 EH_IO_UART2_RX=20 EH_IO_SPI1_MISO=21 EH_IO_SPI1_MOSI=22 EH_IO_SPI1_CLK=23 EH_IO_SPI1_CS=24 EH_IO_TMR1=25 EH_IO_TMR2=26 EH_IO_TMR3=27 EH_IO_TMR4=28 EH_IO_TMR5=29 EH_IO_TMR6=30 EH_IO_TMR7=31 EH_IO_TMR8=32 EH_IO_TMR9=33 EH_IO_TMR10=34 EH_IO_TMR11=35 EH_IO_TMR12=36 EH_IO_TMR13=37 EH_IO_TMR14=38 EH_IO_TMR15=39 EH_IO_TMR16=40 EH_IO_TMR17=41 EH_IO_TMR18=42 EH_IO_IIC1_SCL=43 EH_IO_IIC1_SDA=44 EH_IO_GP1=47 EH_IO_GP2=48 EH_IO_GP3=49 EH_IO_GP4=50 EH_IO_GP5=51 EH_IO_GP6=52 EH_IO_GP7=53 EH_IO_GP8=54 EH_IO_GP9=55 EH_IO_GP10=56 EH_IO_GP11=57 EH_IO_GP12=58 EH_IO_GP13=59 EH_IO_GP14=60 EH_IO_UNUSED=125" format=3.0 help="PWM 2D 7 IO Resource HTML=242.HTML"
-//ASAM mode=writevalue name="PWM 2D 8 IO Resource" parent="USERCAL_stRAMCAL" type=uint16 offset=5662 min=0 max=255 units="ENUMERATION EH_IO_GPSE1=0 EH_IO_GPSE2=1 EH_IO_GPSE3=2 EH_IO_GPSE4=3 EH_IO_GPSE5=4 EH_IO_GPSE6=5 EH_IO_GPSE7=6 EH_IO_GPSE8=7 EH_IO_UART1_TX=15 EH_IO_UART1_RX=16 EH_IO_UART1_CTS=17 EH_IO_UART1_RTS=18 EH_IO_UART2_TX=19 EH_IO_UART2_RX=20 EH_IO_SPI1_MISO=21 EH_IO_SPI1_MOSI=22 EH_IO_SPI1_CLK=23 EH_IO_SPI1_CS=24 EH_IO_TMR1=25 EH_IO_TMR2=26 EH_IO_TMR3=27 EH_IO_TMR4=28 EH_IO_TMR5=29 EH_IO_TMR6=30 EH_IO_TMR7=31 EH_IO_TMR8=32 EH_IO_TMR9=33 EH_IO_TMR10=34 EH_IO_TMR11=35 EH_IO_TMR12=36 EH_IO_TMR13=37 EH_IO_TMR14=38 EH_IO_TMR15=39 EH_IO_TMR16=40 EH_IO_TMR17=41 EH_IO_TMR18=42 EH_IO_IIC1_SCL=43 EH_IO_IIC1_SDA=44 EH_IO_GP1=47 EH_IO_GP2=48 EH_IO_GP3=49 EH_IO_GP4=50 EH_IO_GP5=51 EH_IO_GP6=52 EH_IO_GP7=53 EH_IO_GP8=54 EH_IO_GP9=55 EH_IO_GP10=56 EH_IO_GP11=57 EH_IO_GP12=58 EH_IO_GP13=59 EH_IO_GP14=60 EH_IO_UNUSED=125" format=3.0 help="PWM 2D 8 IO Resourc HTML=243.HTML"
+//ASAM mode=writevalue name="PWM 2D 8 IO Resource" parent="USERCAL_stRAMCAL" type=uint16 offset=5662 min=0 max=255 units="ENUMERATION EH_IO_GPSE1=0 EH_IO_GPSE2=1 EH_IO_GPSE3=2 EH_IO_GPSE4=3 EH_IO_GPSE5=4 EH_IO_GPSE6=5 EH_IO_GPSE7=6 EH_IO_GPSE8=7 EH_IO_UART1_TX=15 EH_IO_UART1_RX=16 EH_IO_UART1_CTS=17 EH_IO_UART1_RTS=18 EH_IO_UART2_TX=19 EH_IO_UART2_RX=20 EH_IO_SPI1_MISO=21 EH_IO_SPI1_MOSI=22 EH_IO_SPI1_CLK=23 EH_IO_SPI1_CS=24 EH_IO_TMR1=25 EH_IO_TMR2=26 EH_IO_TMR3=27 EH_IO_TMR4=28 EH_IO_TMR5=29 EH_IO_TMR6=30 EH_IO_TMR7=31 EH_IO_TMR8=32 EH_IO_TMR9=33 EH_IO_TMR10=34 EH_IO_TMR11=35 EH_IO_TMR12=36 EH_IO_TMR13=37 EH_IO_TMR14=38 EH_IO_TMR15=39 EH_IO_TMR16=40 EH_IO_TMR17=41 EH_IO_TMR18=42 EH_IO_IIC1_SCL=43 EH_IO_IIC1_SDA=44 EH_IO_GP1=47 EH_IO_GP2=48 EH_IO_GP3=49 EH_IO_GP4=50 EH_IO_GP5=51 EH_IO_GP6=52 EH_IO_GP7=53 EH_IO_GP8=54 EH_IO_GP9=55 EH_IO_GP10=56 EH_IO_GP11=57 EH_IO_GP12=58 EH_IO_GP13=59 EH_IO_GP14=60 EH_IO_UNUSED=125" format=3.0 help="PWM 2D 8 IO Resource HTML=243.HTML"
 
 //ASAM mode=writevalue name="PWM 3D 1 IO Resource" parent="USERCAL_stRAMCAL" type=uint16 offset=5664 min=0 max=255 units="ENUMERATION EH_IO_GPSE1=0 EH_IO_GPSE2=1 EH_IO_GPSE3=2 EH_IO_GPSE4=3 EH_IO_GPSE5=4 EH_IO_GPSE6=5 EH_IO_GPSE7=6 EH_IO_GPSE8=7 EH_IO_UART1_TX=15 EH_IO_UART1_RX=16 EH_IO_UART1_CTS=17 EH_IO_UART1_RTS=18 EH_IO_UART2_TX=19 EH_IO_UART2_RX=20 EH_IO_SPI1_MISO=21 EH_IO_SPI1_MOSI=22 EH_IO_SPI1_CLK=23 EH_IO_SPI1_CS=24 EH_IO_TMR1=25 EH_IO_TMR2=26 EH_IO_TMR3=27 EH_IO_TMR4=28 EH_IO_TMR5=29 EH_IO_TMR6=30 EH_IO_TMR7=31 EH_IO_TMR8=32 EH_IO_TMR9=33 EH_IO_TMR10=34 EH_IO_TMR11=35 EH_IO_TMR12=36 EH_IO_TMR13=37 EH_IO_TMR14=38 EH_IO_TMR15=39 EH_IO_TMR16=40 EH_IO_TMR17=41 EH_IO_TMR18=42 EH_IO_IIC1_SCL=43 EH_IO_IIC1_SDA=44 EH_IO_GP1=47 EH_IO_GP2=48 EH_IO_GP3=49 EH_IO_GP4=50 EH_IO_GP5=51 EH_IO_GP6=52 EH_IO_GP7=53 EH_IO_GP8=54 EH_IO_GP9=55 EH_IO_GP10=56 EH_IO_GP11=57 EH_IO_GP12=58 EH_IO_GP13=59 EH_IO_GP14=60 EH_IO_UNUSED=125" format=3.0 help="PWM 3D 1 IO Resource HTML=244.HTML"
 //ASAM mode=writevalue name="PWM 3D 2 IO Resource" parent="USERCAL_stRAMCAL" type=uint16 offset=5666 min=0 max=255 units="ENUMERATION EH_IO_GPSE1=0 EH_IO_GPSE2=1 EH_IO_GPSE3=2 EH_IO_GPSE4=3 EH_IO_GPSE5=4 EH_IO_GPSE6=5 EH_IO_GPSE7=6 EH_IO_GPSE8=7 EH_IO_UART1_TX=15 EH_IO_UART1_RX=16 EH_IO_UART1_CTS=17 EH_IO_UART1_RTS=18 EH_IO_UART2_TX=19 EH_IO_UART2_RX=20 EH_IO_SPI1_MISO=21 EH_IO_SPI1_MOSI=22 EH_IO_SPI1_CLK=23 EH_IO_SPI1_CS=24 EH_IO_TMR1=25 EH_IO_TMR2=26 EH_IO_TMR3=27 EH_IO_TMR4=28 EH_IO_TMR5=29 EH_IO_TMR6=30 EH_IO_TMR7=31 EH_IO_TMR8=32 EH_IO_TMR9=33 EH_IO_TMR10=34 EH_IO_TMR11=35 EH_IO_TMR12=36 EH_IO_TMR13=37 EH_IO_TMR14=38 EH_IO_TMR15=39 EH_IO_TMR16=40 EH_IO_TMR17=41 EH_IO_TMR18=42 EH_IO_IIC1_SCL=43 EH_IO_IIC1_SDA=44 EH_IO_GP1=47 EH_IO_GP2=48 EH_IO_GP3=49 EH_IO_GP4=50 EH_IO_GP5=51 EH_IO_GP6=52 EH_IO_GP7=53 EH_IO_GP8=54 EH_IO_GP9=55 EH_IO_GP10=56 EH_IO_GP11=57 EH_IO_GP12=58 EH_IO_GP13=59 EH_IO_GP14=60 EH_IO_UNUSED=125" format=3.0 help="PWM 3D 2 IO Resource HTML=245.HTML"
 //ASAM mode=writevalue name="PWM 3D 3 IO Resource" parent="USERCAL_stRAMCAL" type=uint16 offset=5668 min=0 max=255 units="ENUMERATION EH_IO_GPSE1=0 EH_IO_GPSE2=1 EH_IO_GPSE3=2 EH_IO_GPSE4=3 EH_IO_GPSE5=4 EH_IO_GPSE6=5 EH_IO_GPSE7=6 EH_IO_GPSE8=7 EH_IO_UART1_TX=15 EH_IO_UART1_RX=16 EH_IO_UART1_CTS=17 EH_IO_UART1_RTS=18 EH_IO_UART2_TX=19 EH_IO_UART2_RX=20 EH_IO_SPI1_MISO=21 EH_IO_SPI1_MOSI=22 EH_IO_SPI1_CLK=23 EH_IO_SPI1_CS=24 EH_IO_TMR1=25 EH_IO_TMR2=26 EH_IO_TMR3=27 EH_IO_TMR4=28 EH_IO_TMR5=29 EH_IO_TMR6=30 EH_IO_TMR7=31 EH_IO_TMR8=32 EH_IO_TMR9=33 EH_IO_TMR10=34 EH_IO_TMR11=35 EH_IO_TMR12=36 EH_IO_TMR13=37 EH_IO_TMR14=38 EH_IO_TMR15=39 EH_IO_TMR16=40 EH_IO_TMR17=41 EH_IO_TMR18=42 EH_IO_IIC1_SCL=43 EH_IO_IIC1_SDA=44 EH_IO_GP1=47 EH_IO_GP2=48 EH_IO_GP3=49 EH_IO_GP4=50 EH_IO_GP5=51 EH_IO_GP6=52 EH_IO_GP7=53 EH_IO_GP8=54 EH_IO_GP9=55 EH_IO_GP10=56 EH_IO_GP11=57 EH_IO_GP12=58 EH_IO_GP13=59 EH_IO_GP14=60 EH_IO_UNUSED=125" format=3.0 help="PWM 3D 3 IO Resource HTML=246.HTML"
 //ASAM mode=writevalue name="PWM 3D 4 IO Resource" parent="USERCAL_stRAMCAL" type=uint16 offset=5670 min=0 max=255 units="ENUMERATION EH_IO_GPSE1=0 EH_IO_GPSE2=1 EH_IO_GPSE3=2 EH_IO_GPSE4=3 EH_IO_GPSE5=4 EH_IO_GPSE6=5 EH_IO_GPSE7=6 EH_IO_GPSE8=7 EH_IO_UART1_TX=15 EH_IO_UART1_RX=16 EH_IO_UART1_CTS=17 EH_IO_UART1_RTS=18 EH_IO_UART2_TX=19 EH_IO_UART2_RX=20 EH_IO_SPI1_MISO=21 EH_IO_SPI1_MOSI=22 EH_IO_SPI1_CLK=23 EH_IO_SPI1_CS=24 EH_IO_TMR1=25 EH_IO_TMR2=26 EH_IO_TMR3=27 EH_IO_TMR4=28 EH_IO_TMR5=29 EH_IO_TMR6=30 EH_IO_TMR7=31 EH_IO_TMR8=32 EH_IO_TMR9=33 EH_IO_TMR10=34 EH_IO_TMR11=35 EH_IO_TMR12=36 EH_IO_TMR13=37 EH_IO_TMR14=38 EH_IO_TMR15=39 EH_IO_TMR16=40 EH_IO_TMR17=41 EH_IO_TMR18=42 EH_IO_IIC1_SCL=43 EH_IO_IIC1_SDA=44 EH_IO_GP1=47 EH_IO_GP2=48 EH_IO_GP3=49 EH_IO_GP4=50 EH_IO_GP5=51 EH_IO_GP6=52 EH_IO_GP7=53 EH_IO_GP8=54 EH_IO_GP9=55 EH_IO_GP10=56 EH_IO_GP11=57 EH_IO_GP12=58 EH_IO_GP13=59 EH_IO_GP14=60 EH_IO_UNUSED=125" format=3.0 help="PWM 3D 4 IO Resource HTML=247.HTML"
 
-//ASAM mode=writeaxis_pts name="PWM 2D Table 1_XAXIS" parent="USERCAL_stRAMCAL" type=sint32 offset=5672 min=0 max=65535 m=1 b=0 units="%" format=4.3 help="PWM 2D 1 X Axis HTML=248.HTML" xcount=17 xindexvar="Generic Source IDX1"
-//ASAM mode=writeaxis_pts name="PWM 2D Table 2_XAXIS" parent="USERCAL_stRAMCAL" type=sint32 offset=5740 min=0 max=65535 m=1 b=0 units="%" format=4.3 help="PWM 2D 2 X Axis HTML=249.HTML" xcount=17 xindexvar="Generic Source IDX2"
-//ASAM mode=writeaxis_pts name="PWM 2D Table 3_XAXIS" parent="USERCAL_stRAMCAL" type=sint32 offset=5808 min=0 max=65535 m=1 b=0 units="%" format=4.3 help="PWM 2D 3 X Axis HTML=250.HTML" xcount=17 xindexvar="Generic Source IDX3"
-//ASAM mode=writeaxis_pts name="PWM 2D Table 4_XAXIS" parent="USERCAL_stRAMCAL" type=sint32 offset=5876 min=0 max=65535 m=1 b=0 units="%" format=4.3 help="PWM 2D 4 X Axis HTML=251.HTML" xcount=17 xindexvar="Generic Source IDX4"
-//ASAM mode=writeaxis_pts name="PWM 2D Table 5_XAXIS" parent="USERCAL_stRAMCAL" type=sint32 offset=5944 min=0 max=65535 m=1 b=0 units="%" format=4.3 help="PWM 2D 5 X Axis HTML=252.HTML" xcount=17 xindexvar="Generic Source IDX5"
-//ASAM mode=writeaxis_pts name="PWM 2D Table 6_XAXIS" parent="USERCAL_stRAMCAL" type=sint32 offset=6012 min=0 max=65535 m=1 b=0 units="%" format=4.3 help="PWM 2D 6 X Axis HTML=253.HTML" xcount=17 xindexvar="Generic Source IDX6"
-//ASAM mode=writeaxis_pts name="PWM 2D Table 7_XAXIS" parent="USERCAL_stRAMCAL" type=sint32 offset=6080 min=0 max=65535 m=1 b=0 units="%" format=4.3 help="PWM 2D 7 X Axis HTML=254.HTML" xcount=17 xindexvar="Generic Source IDX7"
-//ASAM mode=writeaxis_pts name="PWM 2D Table 8_XAXIS" parent="USERCAL_stRAMCAL" type=sint32 offset=6148 min=0 max=65535 m=1 b=0 units="%" format=4.3 help="PWM 2D 8 X Axis HTML=255.HTML" xcount=17 xindexvar="Generic Source IDX8"
+//ASAM mode=writeaxis_pts name="PWM 2D Table 1_XAXIS" parent="USERCAL_stRAMCAL" type=sint32 offset=5672 min=0 max=65535 m=1 b=0 units="%" format=4.3 help="PWM 2D 1 X Axis HTML=248.HTML" xcount=17 xindexvar="Generic Source IDX1 HTML=248.HTML"
+//ASAM mode=writeaxis_pts name="PWM 2D Table 2_XAXIS" parent="USERCAL_stRAMCAL" type=sint32 offset=5740 min=0 max=65535 m=1 b=0 units="%" format=4.3 help="PWM 2D 2 X Axis HTML=249.HTML" xcount=17 xindexvar="Generic Source IDX2 HTML=249.HTML"
+//ASAM mode=writeaxis_pts name="PWM 2D Table 3_XAXIS" parent="USERCAL_stRAMCAL" type=sint32 offset=5808 min=0 max=65535 m=1 b=0 units="%" format=4.3 help="PWM 2D 3 X Axis HTML=250.HTML" xcount=17 xindexvar="Generic Source IDX3 HTML=250.HTML"
+//ASAM mode=writeaxis_pts name="PWM 2D Table 4_XAXIS" parent="USERCAL_stRAMCAL" type=sint32 offset=5876 min=0 max=65535 m=1 b=0 units="%" format=4.3 help="PWM 2D 4 X Axis HTML=251.HTML" xcount=17 xindexvar="Generic Source IDX4 HTML=251.HTML"
+//ASAM mode=writeaxis_pts name="PWM 2D Table 5_XAXIS" parent="USERCAL_stRAMCAL" type=sint32 offset=5944 min=0 max=65535 m=1 b=0 units="%" format=4.3 help="PWM 2D 5 X Axis HTML=252.HTML" xcount=17 xindexvar="Generic Source IDX5 HTML=252.HTML"
+//ASAM mode=writeaxis_pts name="PWM 2D Table 6_XAXIS" parent="USERCAL_stRAMCAL" type=sint32 offset=6012 min=0 max=65535 m=1 b=0 units="%" format=4.3 help="PWM 2D 6 X Axis HTML=253.HTML" xcount=17 xindexvar="Generic Source IDX6 HTML=253.HTML"
+//ASAM mode=writeaxis_pts name="PWM 2D Table 7_XAXIS" parent="USERCAL_stRAMCAL" type=sint32 offset=6080 min=0 max=65535 m=1 b=0 units="%" format=4.3 help="PWM 2D 7 X Axis HTML=254.HTML" xcount=17 xindexvar="Generic Source IDX7 HTML=254.HTML"
+//ASAM mode=writeaxis_pts name="PWM 2D Table 8_XAXIS" parent="USERCAL_stRAMCAL" type=sint32 offset=6148 min=0 max=65535 m=1 b=0 units="%" format=4.3 help="PWM 2D 8 X Axis HTML=255.HTML" xcount=17 xindexvar="Generic Source IDX8 HTML=255.HTML"
 		
 //ASAM mode=writecurve name="PWM 2D Table 1" parent="USERCAL_stRAMCAL" type=uint16 offset=6216 min=0 max=100 m=0.00152 b=0 units="%" format=4.3 help="PWM 2D Curve 1 HTML=256.HTML" xcount=17 xindexvar="Generic Source IDX1"
 //ASAM mode=writecurve name="PWM 2D Table 2" parent="USERCAL_stRAMCAL" type=uint16 offset=6250 min=0 max=100 m=0.00152 b=0 units="%" format=4.3 help="PWM 2D Curve 2 HTML=257.HTML" xcount=17 xindexvar="Generic Source IDX2"
@@ -753,9 +788,9 @@ EXTERN USERCAL_tstCalibration BUILD_PACKING USERCAL_stRAMCAL;
 //ASAM mode=writemap name="PWM 3D Map 1" parent="USERCAL_stRAMCAL" type=uint16 offset=7032 min=0 max=100 m=0.00152 b=0 units="%" format=4.3 help="PWM 3D Map 1 HTML=272.HTML" xcount=17 xindexvar="Generic Source IDX9" ycount=17 yindexvar="Generic Source IDX13"
 //ASAM mode=writemap name="PWM 3D Map 2" parent="USERCAL_stRAMCAL" type=uint16 offset=7610 min=0 max=100 m=0.00152 b=0 units="%" format=4.3 help="PWM 3D Map 2 HTML=273.HTML" xcount=17 xindexvar="Generic Source IDX10" ycount=17 yindexvar="Generic Source IDX14"
 //ASAM mode=writemap name="PWM 3D Map 3" parent="USERCAL_stRAMCAL" type=uint16 offset=8188 min=0 max=100 m=0.00152 b=0 units="%" format=4.3 help="PWM 3D Map 3 HTML=274.HTML" xcount=17 xindexvar="Generic Source IDX11" ycount=17 yindexvar="Generic Source IDX15"
-//ASAM mode=writemap name="PWM 3D Map 4" parent="USERCAL_stRAMCAL" type=uint16 offset=8766 min=0 max=100 m=0.00152 b=0 units="%" format=4.3 help="PWM 3D Map 4 HTML=275.HTML" xcount=17 xindexvar="Generic Source IDX12" ycount=17 yindexvar="Generic Source IDX16"
+//ASAM mode=writemap name="PWM 3D Map 4" parent="USERCAL_stRAMCAL" type=uint16 offset=8766 min=0 max=100 m=0.00152 b=0 units="%" format=4.3 help="PWM 3D Map 4 HTML=275.HTML" xcount=17 xindexvar="Generic Source IDX12" ycount=17 yindexvar="Generic Source IDX1"
 
-//ASAM mode=writevalue name="Fuel Pressure Solenoid Resource" parent="USERCAL_stRAMCAL" type=uint16 offset=9344 min=0 max=255 m=1 b=0 units="ENUMERATION EH_IO_TMR1=25 EH_IO_TMR2=26 EH_IO_TMR3=27 EH_IO_TMR4=28 EH_IO_TMR5=29 EH_IO_TMR6=30 EH_IO_TMR7=31 EH_IO_TMR8=32 EH_IO_TMR9=33 EH_IO_TMR10=34 EH_IO_TMR11=35 EH_IO_TMR12=36 EH_IO_TMR13=37 EH_IO_TMR14=38 EH_IO_TMR15=39 EH_IO_TMR16=40 EH_IO_TMR17=41 EH_IO_TMR18=42" format=3.0 help="Fuel Pressure Solenoid IO Resource HTML=276.HTML"
+//ASAM mode=writevalue name="Fuel Pressure Solenoid Resource" parent="USERCAL_stRAMCAL" type=uint16 offset=9344 min=0 max=255 m=1 b=0 units="ENUMERATION EH_IO_TMR1=25 EH_IO_TMR2=26 EH_IO_TMR3=27 EH_IO_TMR4=28 EH_IO_TMR5=29 EH_IO_TMR6=30 EH_IO_TMR7=31 EH_IO_TMR8=32 EH_IO_TMR9=33 EH_IO_TMR10=34 EH_IO_TMR11=35 EH_IO_TMR12=36 EH_IO_TMR13=37 EH_IO_TMR14=38 EH_IO_TMR15=39 EH_IO_TMR16=40 EH_IO_TMR17=41 EH_IO_TMR18=42" format=3.0 help="Fuel Pressure Solenoid IO Resource HTML=278.HTML"
 //ASAM mode=writevalue name="VCT AB Input Pullup Enable" parent="USERCAL_stRAMCAL" type=uint8 offset=9346 min=0 max=1 m=1 b=0 units="bool" format=1.0 help="VCT AB Input Pullup Enable HTML=277.HTML"
 //ASAM mode=writevalue name="VCT CD Input Pullup Enable" parent="USERCAL_stRAMCAL" type=uint8 offset=9347 min=0 max=1 m=1 b=0 units="bool" format=1.0 help="VCT AB Input Pullup Enable HTML=278.HTML"
 
@@ -782,7 +817,7 @@ EXTERN USERCAL_tstCalibration BUILD_PACKING USERCAL_stRAMCAL;
 //ASAM mode=writevalue name="Fuel Pressure I Gain" parent="USERCAL_stRAMCAL" type=uint16 offset=9475 min=0 max=65535 m=1 b=0 units="dl" format=3.0 help="TBC HTML=294.HTML"
 
 //ASAM mode=writevalue name="Fuel Prime Enable" parent="USERCAL_stRAMCAL" type=uint8 offset=9477 min=0 max=1 m=1 b=0 units="bool" format=1.0 help="TBC HTML=295.HTML"
-//ASAM mode=writemap name="Secondary Timing Map 1" parent="USERCAL_stRAMCAL" type=uint16 offset=9478 min=0 max=50 m=0.1 b=0 units="Degrees" format=3.1 help="Timing Map Stage 1 HTML=296.HTML" xcount=17 xindexvar="Engine Speed Raw" ycount=17 yindexvar="MAP kPa"
+//ASAM mode=writemap name="Secondary Timing Map 1" parent="USERCAL_stRAMCAL" type=sint16 offset=9478 min=-50 max=50 m=0.1 b=0 units="Degrees" format=3.1 help="Timing Map Stage 1 HTML=296.HTML" xcount=17 xindexvar="Engine Speed Raw" ycount=17 yindexvar="MAP kPa"
 
 //ASAM mode=writeaxis_pts name="Torque Pedal Transfer Table_XAXIS" parent="USERCAL_stRAMCAL" type=uint32 offset=10056 min=0 max=20000 m=1 b=0 units="kPa" format=4.3 help="Pedal torque transfer curve x-axis points array HTML=297.HTML" xcount=17 xindexvar="Output Torque Estimate"
 //ASAM mode=writecurve name="Torque Pedal Transfer Table" parent="USERCAL_stRAMCAL" type=uint16 offset=10124 min=0 max=20000 m=1 b=0 units="mg/s" format=4.0 help="Pedal Torque transfer data points array HTML=298.HTML" xcount=17 xindexvar="Output Torque Estimate"
@@ -890,8 +925,8 @@ EXTERN USERCAL_tstCalibration BUILD_PACKING USERCAL_stRAMCAL;
 //ASAM mode=writevalue name="Boost Target 5" parent="USERCAL_stRAMCAL" type=uint16 offset=10836 min=0 max=200 m=0.01 b=0 units="kPa" format=4.2 help="Boost Gear 5 HTML=374.HTML"
 //ASAM mode=writevalue name="Boost Target 6" parent="USERCAL_stRAMCAL" type=uint16 offset=10838 min=0 max=200 m=0.01 b=0 units="kPa" format=4.2 help="Boost Gear 6 HTML=375.HTML"
 
-//ASAM mode=writevalue name="GDI Pressure Min" parent="USERCAL_stRAMCAL" type=uint16 offset=10840 min=0 max=25 m=1 b=0 units="kPa" format=4.2 help="Boost Gear 6 HTML=376.HTML"
-//ASAM mode=writevalue name="GDI Pressure Max" parent="USERCAL_stRAMCAL" type=uint16 offset=10842 min=0 max=25 m=1 b=0 units="kPa" format=4.2 help="Boost Gear 6 HTML=377.HTML"
+//ASAM mode=writevalue name="GDI Pressure Min" parent="USERCAL_stRAMCAL" type=uint16 offset=10840 min=0 max=25000 m=1 b=0 units="kPa" format=4.2 help="Boost Gear 6 HTML=376.HTML"
+//ASAM mode=writevalue name="GDI Pressure Max" parent="USERCAL_stRAMCAL" type=uint16 offset=10842 min=0 max=50000 m=1 b=0 units="kPa" format=4.2 help="Boost Gear 6 HTML=377.HTML"
 //ASAM mode=writevalue name="GDI MAP Min" parent="USERCAL_stRAMCAL" type=uint32 offset=10844 min=0 max=200 m=0.001 b=0 units="kPa" format=4.2 help="Boost Gear 6 HTML=378.HTML"
 //ASAM mode=writevalue name="GDI MAP Max" parent="USERCAL_stRAMCAL" type=uint32 offset=10848 min=0 max=200 m=0.001 b=0 units="kPa" format=4.2 help="Boost Gear 6 HTML=379.HTML"
 
@@ -953,7 +988,42 @@ EXTERN USERCAL_tstCalibration BUILD_PACKING USERCAL_stRAMCAL;
 
 //ASAM mode=writevalue name="Vehicle Stopped Fuel Cut Enable" parent="USERCAL_stRAMCAL" type=uint8 offset=12419 min=0 max=1 m=1 b=0 units="bool" format=1.0 help="Vehicle Stopped Fuel Cut Enable HTML=421.HTML"
 
-//ASAM mode=writevalue name="CAL CRC" parent="USERCAL_stRAMCAL" type=uint16 offset=12420 min=0 max=255 m=1 b=0 units="dl" format=3.0 help="CAL CRC16"
+//ASAM mode=writevalue name="Launch Boost Max Stopped" parent="USERCAL_stRAMCAL" type=uint16 offset=12420 min=0 max=300 m=0.01 b=0 units="kPa" format=4.1 help="Launch Max Boost Stopped HTML=422.HTML"
+//ASAM mode=writevalue name="Launch Boost Max Mid" parent="USERCAL_stRAMCAL" type=uint16 offset=12422 min=0 max=300 m=0.01 b=0 units="kPa" format=4.1 help="Launch Max Boost Mid HTML=423.HTML"
+//ASAM mode=writevalue name="Launch Boost Max End" parent="USERCAL_stRAMCAL" type=uint16 offset=12424 min=0 max=300 m=0.01 b=0 units="kPa" format=4.1 help="Launch Max Boost End HTML=424.HTML"
+//ASAM mode=writevalue name="Launch VSS Mid" parent="USERCAL_stRAMCAL" type=uint16 offset=12426 min=0 max=100 m=0.1 b=0 units="kPh" format=4.1 help="Launch VSS Mid HTML=425.HTML"
+//ASAM mode=writevalue name="Launch VSS End" parent="USERCAL_stRAMCAL" type=uint16 offset=12428 min=0 max=100 m=0.1 b=0 units="kPh" format=4.1 help="Launch VSS End HTML=425.HTML"
+//ASAM mode=writevalue name="Launch Boost Enable" parent="USERCAL_stRAMCAL" type=uint8 offset=12430 min=0 max=1 m=1 b=0 units="bool" format=1.0 help="Launch Boost Enable HTML=426.HTML"
+
+//ASAM mode=writevalue name="Cold Closed Throttle Blip" parent="USERCAL_stRAMCAL" type=uint16 offset=12431 min=0 max=15 m=1 b=0 units="dl" format=2.0 help="Cold Off Throttle Blip HTML=427.HTML"
+//ASAM mode=writevalue name="Hot Closed Throttle Blip" parent="USERCAL_stRAMCAL" type=uint16 offset=12433 min=0 max=15 m=1 b=0 units="dl" format=2.0 help="Hot Off Throttle Blip HTML=428.HTML"
+
+
+//ASAM mode=writeaxis_pts name="VVTI Map_XAXIS" parent="USERCAL_stRAMCAL" type=uint32 offset=12435 min=0 max=8000 m=1 b=0 units="RPM" format=4.0 help="Pseudo Manifold Pressure MAP X Axis HTML=429.HTML" xcount=17 xindexvar="Engine Speed Raw"
+//ASAM mode=writeaxis_pts name="VVTI Map_YAXIS" parent="USERCAL_stRAMCAL" type=uint32 offset=12503 min=0 max=90 m=0.001 b=0 units="Degrees" format=3.1 help="Pseudo Manifold Pressure MAP Y Axis HTML=430.HTML" xcount=17 xindexvar="Throttle Angle"
+//ASAM mode=writemap name="VVTI Map" parent="USERCAL_stRAMCAL" type=uint16 offset=12571 min=0 max=101 m=0.001 b=0 units="kPa" format=4.1 help="Pseudo Manifold Pressure Map HTML=431.HTML" xcount=17 xindexvar="Engine Speed Raw" ycount=17 yindexvar="MAP kPa"
+
+//ASAM mode=writeaxis_pts name="VVTE Map_XAXIS" parent="USERCAL_stRAMCAL" type=uint32 offset=13149 min=0 max=8000 m=1 b=0 units="RPM" format=4.0 help="Pseudo Manifold Pressure MAP X Axis HTML=432.HTML" xcount=17 xindexvar="Engine Speed Raw"
+//ASAM mode=writeaxis_pts name="VVTE Map_YAXIS" parent="USERCAL_stRAMCAL" type=uint32 offset=13217 min=0 max=90 m=0.001 b=0 units="Degrees" format=3.1 help="Pseudo Manifold Pressure MAP Y Axis HTML=433.HTML" xcount=17 xindexvar="Throttle Angle"
+//ASAM mode=writemap name="VVTE Map" parent="USERCAL_stRAMCAL" type=uint16 offset=13285 min=0 max=101 m=0.001 b=0 units="kPa" format=4.1 help="Pseudo Manifold Pressure Map HTML=434.HTML" xcount=17 xindexvar="Engine Speed Raw" ycount=17 yindexvar="MAP kPa"
+
+//ASAM mode=writevalue name="VVTI Input 1 Config" parent="USERCAL_stRAMCAL" type=uint16 offset=13863 min=0 max=15 m=1 b=0 units="dl" format=2.0 help="Cold Off Throttle Blip HTML=435.HTML"
+//ASAM mode=writevalue name="VVTI Input 2 Config" parent="USERCAL_stRAMCAL" type=uint16 offset=13865 min=0 max=15 m=1 b=0 units="dl" format=2.0 help="Cold Off Throttle Blip HTML=436.HTML"
+//ASAM mode=writevalue name="VVTE Input 1 Config" parent="USERCAL_stRAMCAL" type=uint16 offset=13867 min=0 max=15 m=1 b=0 units="dl" format=2.0 help="Cold Off Throttle Blip HTML=437.HTML"
+//ASAM mode=writevalue name="VVTE Input 2 Config" parent="USERCAL_stRAMCAL" type=uint16 offset=13869 min=0 max=15 m=1 b=0 units="dl" format=2.0 help="Cold Off Throttle Blip HTML=438.HTML"
+//ASAM mode=writevalue name="VVTI P Term" parent="USERCAL_stRAMCAL" type=uint16 offset=13871 min=0 max=15 m=1 b=0 units="dl" format=2.0 help="Cold Off Throttle Blip HTML=439.HTML"
+//ASAM mode=writevalue name="VVTI I Term" parent="USERCAL_stRAMCAL" type=uint16 offset=13873 min=0 max=15 m=1 b=0 units="dl" format=2.0 help="Cold Off Throttle Blip HTML=440.HTML"
+//ASAM mode=writevalue name="VVTI D Term" parent="USERCAL_stRAMCAL" type=uint16 offset=13875 min=0 max=15 m=1 b=0 units="dl" format=2.0 help="Cold Off Throttle Blip HTML=441.HTML"
+//ASAM mode=writevalue name="VVTE P Term" parent="USERCAL_stRAMCAL" type=uint16 offset=13877 min=0 max=15 m=1 b=0 units="dl" format=2.0 help="Cold Off Throttle Blip HTML=442.HTML"
+//ASAM mode=writevalue name="VVTE I Term" parent="USERCAL_stRAMCAL" type=uint16 offset=13879 min=0 max=15 m=1 b=0 units="dl" format=2.0 help="Cold Off Throttle Blip HTML=443.HTML"
+//ASAM mode=writevalue name="VVTE D Term" parent="USERCAL_stRAMCAL" type=uint16 offset=13881 min=0 max=15 m=1 b=0 units="dl" format=2.0 help="Cold Off Throttle Blip HTML=444.HTML"
+
+
+//ASAM mode=writevalue name="CLO2 Left Resource" parent="USERCAL_stRAMCAL" type=uint16 offset=13883 min=0 max=255 units="ENUMERATION EH_IO_GPSE1=0 EH_IO_GPSE2=1 EH_IO_GPSE3=2 EH_IO_GPSE4=3 EH_IO_GPSE5=4 EH_IO_GPSE6=5 EH_IO_GPSE7=6 EH_IO_GPSE8=7 EH_I_ADD1=8 EH_I_ADD2=9 EH_I_CMP1=10 EH_I_CMP2=11 EH_IO_UART1_CTS=17 EH_IO_UART1_RTS=18 EH_IO_TMR2=26 EH_IO_TMR3=27 EH_IO_TMR10=34 EH_IO_TMR11=35 EH_IO_TMR12=36 EH_IO_TMR15=39 EH_IO_TMR16=40 EH_IO_TMR17=41 EH_IO_TMR18=42 EH_IO_IIC1_SCL=43 EH_IO_IIC1_SDA=44 EH_IO_UNUSED=125" format=3.0 help="AFR AD Resource HTML=445.HTML"
+//ASAM mode=writevalue name="CLO2 Right Resource" parent="USERCAL_stRAMCAL" type=uint16 offset=13885 min=0 max=255 units="ENUMERATION EH_IO_GPSE1=0 EH_IO_GPSE2=1 EH_IO_GPSE3=2 EH_IO_GPSE4=3 EH_IO_GPSE5=4 EH_IO_GPSE6=5 EH_IO_GPSE7=6 EH_IO_GPSE8=7 EH_I_ADD1=8 EH_I_ADD2=9 EH_I_CMP1=10 EH_I_CMP2=11 EH_IO_UART1_CTS=17 EH_IO_UART1_RTS=18 EH_IO_TMR2=26 EH_IO_TMR3=27 EH_IO_TMR10=34 EH_IO_TMR11=35 EH_IO_TMR12=36 EH_IO_TMR15=39 EH_IO_TMR16=40 EH_IO_TMR17=41 EH_IO_TMR18=42 EH_IO_IIC1_SCL=43 EH_IO_IIC1_SDA=44 EH_IO_UNUSED=125" format=3.0 help="AFR AD Resource HTML=446.HTML"
+//ASAM mode=writevalue name="ISC Closed Loop Weight" parent="USERCAL_stRAMCAL" type=uint16 offset=13887 min=0 max=255 m=1 b=0 units="dl" format=2.0 help="Hot Off Throttle Blip HTML=447.HTML"
+
+//ASAM mode=writevalue name="CAL CRC" parent="USERCAL_stRAMCAL" type=uint16 offset=13892 min=0 max=255 m=1 b=0 units="dl" format=3.0 help="CAL CRC16"
 /* 	NOTE MUST ALWAYS INCLUDE CAL STRUCT ELEMENTS ONE FOR ONE AND IN ORDER */
 
 /* Testing offsets table for ASAM parsing tool here */
@@ -1261,10 +1331,40 @@ EXTERN USERCAL_tstCalibration BUILD_PACKING USERCAL_stRAMCAL;
     offsetof(USERCAL_tstCalibration, aUserISCOpenLoopPosSpread),\
 	offsetof(USERCAL_tstCalibration, aUserISCOpenLoopPosTable),\
     offsetof(USERCAL_tstCalibration, u8VehicleStoppedFuelCutEnable),\
+    offsetof(USERCAL_tstCalibration, u16LaunchStoppedBoostMax),\
+	offsetof(USERCAL_tstCalibration, u16LaunchMidBoostMax),\
+	offsetof(USERCAL_tstCalibration, u16LaunchEndBoostMax),\
+	offsetof(USERCAL_tstCalibration, u16LaunchMidVSS),\
+	offsetof(USERCAL_tstCalibration, u16LaunchEndVSS),\
+	offsetof(USERCAL_tstCalibration, u8LaunchBoostEnable),\
+	offsetof(USERCAL_tstCalibration, u16ColdOffThrottleBlip),\
+	offsetof(USERCAL_tstCalibration, u16HotOffThrottleBlip),\
+	offsetof(USERCAL_tstCalibration, aUserVVTITargetxSpread),\
+	offsetof(USERCAL_tstCalibration, aUserVVTITargetySpread),\
+	offsetof(USERCAL_tstCalibration, aUserVVTITargetMap),\
+	offsetof(USERCAL_tstCalibration, aUserVVTETargetxSpread),\
+	offsetof(USERCAL_tstCalibration, aUserVVTETargetySpread),\
+	offsetof(USERCAL_tstCalibration, aUserVVTETargetMap),\
+	offsetof(USERCAL_tstCalibration, u16VVTIInput1Config),\
+	offsetof(USERCAL_tstCalibration, u16VVTIInput2Config),\
+	offsetof(USERCAL_tstCalibration, u16VVTEInput1Config),\
+	offsetof(USERCAL_tstCalibration, u16VVTEInput2Config),\
+	offsetof(USERCAL_tstCalibration, u16VVTIPTerm),\
+	offsetof(USERCAL_tstCalibration, u16VVTIITerm),\
+	offsetof(USERCAL_tstCalibration, u16VVTIDTerm),\
+	offsetof(USERCAL_tstCalibration, u16VVTEPTerm),\
+	offsetof(USERCAL_tstCalibration, u16VVTEITerm),\
+	offsetof(USERCAL_tstCalibration, u16VVTEDTerm),\
+	offsetof(USERCAL_tstCalibration, u16CLO2LeftResource),\
+	offsetof(USERCAL_tstCalibration, u16CLO2RightResource),\
+	offsetof(USERCAL_tstCalibration, u16ISCCLWeight),\
+	offsetof(USERCAL_tstCalibration, u8DummyPadding1),\
+	offsetof(USERCAL_tstCalibration, u8DummyPadding2),\
+	offsetof(USERCAL_tstCalibration, u8DummyPadding3),\
 	offsetof(USERCAL_tstCalibration, u16CRC16)}
 
 const uint32 __attribute__((used)) au32Offsets[]=OFFSETS_DATA;
-//ASAM mode=readvalue name="au32Offsets" type=uint32 offset=12422 min=0 max=65535 m=1 b=0 units="dl" format=8.0 help="Internal"
+//ASAM mode=readvalue name="au32Offsets" type=uint32 offset=13894 min=0 max=65535 m=1 b=0 units="dl" format=8.0 help="Internal"
 #endif
 
 /* GLOBAL FUNCTION DECLARATIONS ***********************************************/

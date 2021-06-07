@@ -298,7 +298,38 @@ void MAP_vRun(puint32 const pu32Arg)
 	MAP_boHighVacuum = USERCAL_stRAMCAL.u16HighVacuumEnableKpa > MAP_tKiloPaFiltered ? TRUE : MAP_boHighVacuum;
 	MAP_boHighVacuum = USERCAL_stRAMCAL.u16HighVacuumDisableKpa < MAP_tKiloPaFiltered ? FALSE : MAP_boHighVacuum;
 
-	s32Temp = MAP_tKiloPaFiltered - (USERCAL_stRAMCAL.au16BoostTarget[5] * 10);
+	MAP_boBoostETCCutEnable = 140000 < MAP_tKiloPaFiltered ? TRUE : MAP_boBoostETCCutEnable;
+	MAP_boBoostETCCutEnable = 101300 > MAP_tKiloPaFiltered ? FALSE : MAP_boBoostETCCutEnable;
+
+
+	if (TRUE == USERCAL_stRAMCAL.u8LaunchBoostEnable)
+	{
+		if (USERCAL_stRAMCAL.u16LaunchMidVSS > SENSORS_u16CANVSS)
+		{
+			u32Temp = SENSORS_u16CANVSS * USERCAL_stRAMCAL.u16LaunchMidBoostMax;
+			u32Temp += (USERCAL_stRAMCAL.u16LaunchMidVSS - SENSORS_u16CANVSS) * USERCAL_stRAMCAL.u16LaunchStoppedBoostMax;
+			u32Temp /= USERCAL_stRAMCAL.u16LaunchMidVSS;
+			s32Temp = MAP_tKiloPaFiltered - (10 * u32Temp);
+		}
+		else if (USERCAL_stRAMCAL.u16LaunchEndVSS > SENSORS_u16CANVSS)
+		{
+			u32Temp = (SENSORS_u16CANVSS - USERCAL_stRAMCAL.u16LaunchMidVSS) * USERCAL_stRAMCAL.u16LaunchEndBoostMax;
+			u32Temp += (USERCAL_stRAMCAL.u16LaunchEndVSS - SENSORS_u16CANVSS) * USERCAL_stRAMCAL.u16LaunchMidBoostMax;
+			u32Temp /= (USERCAL_stRAMCAL.u16LaunchEndVSS - USERCAL_stRAMCAL.u16LaunchMidVSS);
+			s32Temp = MAP_tKiloPaFiltered - (10 * u32Temp);
+		}
+		else
+		{
+			/* Simple boost error based on gear boost target */
+			s32Temp = MAP_tKiloPaFiltered - (USERCAL_stRAMCAL.au16BoostTarget[5] * 10);
+		}
+	}
+	else
+	{
+		/* Simple boost error based on gear boost target */
+		s32Temp = MAP_tKiloPaFiltered - (USERCAL_stRAMCAL.au16BoostTarget[5] * 10);
+	}
+
 
 	if (s32Temp > (MAP_tKiloPaTargetError + USERCAL_stRAMCAL.u16PressureControlHyst))
 	{

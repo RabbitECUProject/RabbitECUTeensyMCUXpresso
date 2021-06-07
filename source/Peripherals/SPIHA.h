@@ -34,6 +34,7 @@
 
 #ifdef BUILD_MK64
 #include "mk64f12.h"
+#include "MCP23S08.h"
 #endif
 
 #include "SRLTFR.h"
@@ -44,13 +45,13 @@
 #define SPIHA_nDeviceID 0
 #define SPIHA_xSPIBaudRateDivider(b) spi_calc_baudrate_div(b, SYS_FREQ_BUS)
 
-#if defined(BUILD_MK60) || defined(BUILD_MK64)
+#if defined(BUILD_MK60)
 #define SPIHA_nReg8SetSPI0 																																												\
 {																																																								\
-	{ (volatile uint8*)(I2C0_BASE + offsetof(I2C_Type, C1)), (uint8)I2C_C1_IICEN_MASK, REGSET_enOverwrite }, 	\
+	{ (volatile uint8*)(SPI0_BASE + offsetof(SPI_Type, C1)), (uint8)SPI_C1_SPIEN_MASK, REGSET_enOverwrite }, 	\
 	{ NULL, 0, REGSET_enOverwrite }																																								\
 };
-#endif //BUILD_MK6X
+#endif //BUILD_MK60
 
 #ifdef BUILD_SAM3X8E
 #define SPIHA_nReg8SetSPI0           \
@@ -142,14 +143,23 @@
 	{3840, 513}						\
 }
 
+#ifdef BUILD_MK60
 #define SPI_xRequestPortClock(x)	\
 /* turn on  clock */                \
 SIM_vSetReg32(SIM_SCGC4, x);        \
 SPI_u32PortClockRequested |= x	
+#endif //BUILD_MK60
+
+#ifdef BUILD_MK64
+#define SPI_xRequestPortClock(x)	\
+/* turn on  clock */                \
+SIM_vSetReg32(SIM_SCGC3, x);        \
+SPI_u32PortClockRequested |= x
+#endif //BUILD_MK64
 
 #define SPI_xCalcDivisor                                                                \
 for (u32DivMapIDX = 0;                                                                  \
-			 u32DivMapIDX < (sizeof(SPI_rastDivisorMap) / sizeof(SPI_tstDivisorMap));	\
+			 u32DivMapIDX < (sizeof(SPIHA_rastDivisorMap) / sizeof(SPIHA_tstDivisorMap));	\
 			 u32DivMapIDX++)                                                            \
 {                                                                                       \
 	u32Div = u32DivMapIDX;                                                              \
@@ -176,7 +186,8 @@ void SPIHA_vRun(puint32 const);
 void SPIHA_vTerminate(puint32 const);
 uint32 SPIHA_u32InitBus(IOAPI_tenEHIOResource, IOAPI_tstPortConfigCB*);
 void SPIHA_vInitTransfer(IOAPI_tstTransferCB*);
-void SPIHA_vInterruptHandler(IOAPI_tenEHIOResource);
+void SPIHA_vInterruptTX(IOAPI_tenEHIOResource enEHIOResource);
+void SPIHA_vInterruptRX(IOAPI_tenEHIOResource enEHIOResource);
 
 #endif //SPIHA_H
 

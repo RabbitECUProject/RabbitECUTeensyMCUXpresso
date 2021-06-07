@@ -32,7 +32,7 @@
 	{ 4u , enTaskFunction	, 5u                    , enTaskReady, TASKAPI_enTaskCycNot	, &TABLES_vStart		, NULL,	NULL, 0u   		, 0u     		 , 0u 			 ,	 0u		, enTaskPrivileged	},\
 	{ 5u , enTaskFunction	, 5u                    , enTaskReady, TASKAPI_enTaskCycNot	, &UART_vStart			, NULL,	NULL, 0u   		, 0u     		 , 0u 			 ,	 0u		, enTaskPrivileged	},\
 	{ 6u , enTaskFunction	, 15u                   , enTaskReady, TASKAPI_enTaskCycNot	, &UDSAL_vStart			, NULL,	NULL, 0u   		, 0u     		 , 0u 			 ,	 0u		, enTaskPrivileged	},\
-	{ 7u , enTaskFunction	, 3u                    , enTaskReady, TASKAPI_enTaskCycNot	, &PIM_vStart				, NULL,	NULL, 0u   		, 0u     		 , 0u 			 ,	 0u		, enTaskPrivileged	},\
+	{ 7u , enTaskFunction	, TASKAPI_enTaskPrMaxAll, enTaskReady, TASKAPI_enTaskCycNot	, &PIM_vStart				, NULL,	NULL, 0u   		, 0u     		 , 0u 			 ,	 0u		, enTaskPrivileged	},\
 	{ 8u , enTaskFunction	, TASKAPI_enTaskPrMaxAll, enTaskReady, TASKAPI_enTaskCycNot	, &FEE_vStart				, NULL,	NULL, 0u   		, 0u     		 , 0u 			 ,	 0u		, enTaskPrivileged	},\
 	{ 9u , enTaskFunction	, TASKAPI_enTaskPrMaxAll, enTaskReady, TASKAPI_enTaskCycNot	, &CRC16_vStart			, NULL,	NULL, 0u   		, 0u     		 , 0u 			 ,	 0u		, enTaskPrivileged	},\
 	{ 10u, enTaskFunction	, 200u                  , enTaskReady, TASKAPI_enTaskCycNot	, &ADC_vStart				, NULL,	NULL, 0u   		, 0u     		 , 0u 			 ,	 0u		, enTaskPrivileged	},\

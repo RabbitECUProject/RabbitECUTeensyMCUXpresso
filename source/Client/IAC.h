@@ -55,7 +55,7 @@ EXTERN IAC_tenControlState IAC_enControlState;
 EXTERN bool IAC_boOverrunCutRPMEnable;
 EXTERN sint32 IAC_s32ISCESTTrim[2];
 EXTERN uint8 IAC_u8SlaveTarget;
-
+//ASAM mode=readvalue name="IAC Slave Target" type=uint8 offset=0 min=0 max=255 m=1 b=-16 units="dl" format=3.0 help="Slave IAC Position"
 		
 /* GLOBAL FUNCTION DECLARATIONS ***********************************************/
 void IAC_vStart(uint32 * const pu32Arg);

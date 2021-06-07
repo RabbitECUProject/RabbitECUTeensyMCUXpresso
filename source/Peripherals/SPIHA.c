@@ -11,10 +11,12 @@
 /******************************************************************************/
 #include "SPIHA.h"
 
-
+#if defined(BUILD_MK60)
 const REGSET_tstReg8Val SPIHA_rastPIMReg8ValSPI0[] = SPIHA_nReg8SetSPI0;
 const REGSET_tstReg8Val SPIHA_rastPIMReg8ValSPI1[] = SPIHA_nReg8SetSPI1;
 const SPIHA_tstDivisorMap SPIHA_rastDivisorMap[] = SPIHA_nDivisorMap;
+#endif //BUILD_MK60
+
 IOAPI_tstTransferCB* SPIHA_pstTransferCB;
 uint32 SPIHA_u32BytesToTransfer;
 void* SPIHA_pvData;
@@ -46,11 +48,12 @@ void SPIHA_vTerminate(puint32 const pu32Stat)
 uint32 SPIHA_u32InitBus(IOAPI_tenEHIOResource enEHIOResource, IOAPI_tstPortConfigCB* pstPortConfigCB)
 {
     uint32 u32MuxSel = ~0;
+	IRQn_Type nSPIIRQ;
 	sint32 i32IDX = SPIHA_u32GetSPIIndex(enEHIOResource);	
 	
 	if ((-1 != i32IDX) && (TRUE == DLL_boInitDLLChannel(enEHIOResource, pstPortConfigCB)))	
 	{
-#ifdef BUILD_MK60
+#if defined(BUILD_MK60)
 		tstSPIModule* pstSPI;
 		IRQn_Type enIRQType;
 		REGSET_tstReg32Val SPI_astSPIReg32Val[3];
@@ -62,50 +65,50 @@ uint32 SPIHA_u32InitBus(IOAPI_tenEHIOResource enEHIOResource, IOAPI_tstPortConfi
 		switch (enEHIOResource)
 		{
 			case EH_VIO_SPI1:
-			{				
+			{
 				SPI_xRequestPortClock(SIM_SCGC4_SPI0_MASK);
-				
+
 				SPI_astSPIReg32Val[0].reg = (vpuint32)(PORTD_BASE + offsetof(PORT_Type, PCR[8]));
 				SPI_astSPIReg32Val[0].val = (uint32)(PORT_PCR_MUX(2) | PORT_PCR_PE_MASK | PORT_PCR_PS_MASK);
 				SPI_astSPIReg32Val[0].writeMode = REGSET_enOverwrite;
-			
+
 				SPI_astSPIReg32Val[1].reg = (vpuint32)(PORTD_BASE + offsetof(PORT_Type, PCR[9]));
 				SPI_astSPIReg32Val[1].val = (uint32)(PORT_PCR_MUX(2) | PORT_PCR_PE_MASK | PORT_PCR_PS_MASK);
-				SPI_astSPIReg32Val[1].writeMode = REGSET_enOverwrite;			
-			
-				SPI_astSPIReg32Val[2].reg = NULL;			
-				REGSET_vInitReg32(&SPI_astSPIReg32Val[0]);			
-			
+				SPI_astSPIReg32Val[1].writeMode = REGSET_enOverwrite;
+
+				SPI_astSPIReg32Val[2].reg = NULL;
+				REGSET_vInitReg32(&SPI_astSPIReg32Val[0]);
+
 				enSVCResult = SYSAPI_enBaudRateUnavailable;
 				pstSPI = I2C0;
-			
+
 				SPI_xRequestPortClock(SIM_SCGC4_SPI0_MASK);
 				u32Mul = pstPortConfigCB->u32BaudRateHz / (SYS_FREQ_BUS / SPI_rastDivisorMap[0].u32SCLDivider);
 				u32Mul = (4 < u32Mul) ? 4 : u32Mul;
-			
+
 				switch (u32Mul)
 				{
 					case 0: u32Mul = 1; break;
 					case 3: u32Mul = 2; break;
 					default: u32Mul = 4; break;
 				}
-			
+
 				u32DivCalc = SYS_FREQ_BUS / (u32Mul * pstPortConfigCB->u32BaudRateHz);
-			
+
 				if (SPI_rastDivisorMap[63].u32SCLDivider < u32DivCalc) break;
-				enSVCResult = SYSAPI_enOK;			
-			
+				enSVCResult = SYSAPI_enOK;
+
 				SPI_xCalcDivisor;
 				enIRQType = I2C0_IRQn;
 
-		        pstSPI->F = (I2C_F_MULT(u32Mul) | I2C_F_ICR(u32Div));	
-	            pstSPI->C1 |= I2C_C1_SPIEN_MASK;		
+		        pstSPI->F = (I2C_F_MULT(u32Mul) | I2C_F_ICR(u32Div));
+	            pstSPI->C1 |= I2C_C1_SPIEN_MASK;
 	            IRQ_vEnableIRQ(enIRQType);
-				break;			
+				break;
 			}
 			case EH_VIO_SPI2:
 			{
-				SPI_xRequestPortClock(SIM_SCGC4_SPI1_MASK);			
+				SPI_xRequestPortClock(SIM_SCGC4_SPI1_MASK);
 				break;
 			}
 			default:
@@ -114,6 +117,49 @@ uint32 SPIHA_u32InitBus(IOAPI_tenEHIOResource enEHIOResource, IOAPI_tstPortConfi
 			}
 		}
 #endif //BUILD_MK60
+
+#if defined(BUILD_MK64)
+		tstSPIModule* pstSPI;
+		uint32 u32Mul;
+		uint32 u32BR = 0;
+		uint32 u32Temp = 2;
+
+		switch (enEHIOResource)
+		{
+			case EH_VIO_SPI1:
+			{				
+				SPI_xRequestPortClock(SIM_SCGC3_SPI2_MASK);
+				pstSPI = SPI2;
+			
+				u32Mul = SYS_FREQ_BUS / pstPortConfigCB->u32BaudRateHz;
+
+				while (u32Temp < u32Mul)
+				{
+					u32Temp *= 2;
+					u32BR++;
+				}
+			
+				/* 8 bit words */
+				pstSPI->CTAR[0] = SPI_CTAR_BR(u32BR) + SPI_CTAR_FMSZ(7) + SPI_CTAR_PDT(3);
+				pstSPI->MCR = SPI_MCR_MSTR(1);
+
+				nSPIIRQ = SPI2_IRQn;
+				IRQ_vEnableIRQ(nSPIIRQ, IRQ_enPRIO_7, &SPI_vInterruptRX, &SPI_vInterruptTX);
+	            u32MuxSel = 2;
+				break;			
+			}
+			case EH_VIO_SPI2:
+			{
+				/* TODO */
+				SPI_xRequestPortClock(SIM_SCGC6_SPI1_MASK);
+				break;
+			}
+			default:
+			{
+				break;
+			}
+		}
+#endif //BUILD_MK64
 
 #ifdef BUILD_SAM3X8E
 		Spi* pstSPIModule = NULL;
@@ -173,13 +219,6 @@ void SPIHA_vInitTransfer(IOAPI_tstTransferCB* pstTransferCB)
 		case EH_VIO_SPI1:
 		{
 			/* TODO */
-			//SPIHA_pstSPI = I2C0;
-			//SPIHA_u32BytesToTransfer = pstTransferCB->u32ByteCount - 1;
-			//SPIHA_pfCB = pstTransferCB->pfCB;
-			//SPIHA_pvData = pstTransferCB->pvData;
-			//SPIHA_pstSPI->C1 |= (I2C_C1_TX_MASK | I2C_C1_SPIIE_MASK | I2C_C1_MST_MASK);
-			//SPIHA_pstSPI->D = *(uint8*)SPI_pvData;
-			//SPIHA_pvData = (void*)((uint32)SPI_pvData + 1);
 		}
 		default:
 		{
@@ -187,6 +226,28 @@ void SPIHA_vInitTransfer(IOAPI_tstTransferCB* pstTransferCB)
 		}
 	}
 #endif  //BUILD_MK60
+
+#ifdef BUILD_MK64
+	SPIHA_pstTransferCB = pstTransferCB;
+
+	switch (pstTransferCB->enEHIOResource)
+	{
+		case EH_VIO_SPI1:
+		{
+			SPIHA_pstSPI = SPI2;
+
+			SPIHA_pstSPI->PUSHR = (uint32)*(puint8)pstTransferCB->pvData;
+			pstTransferCB->pvData++;
+			pstTransferCB->u32ByteCount--;
+			SPIHA_pstSPI->RSER |= SPI_RSER_TFFF_RE_MASK;
+			SPIHA_pfCB = NULL;
+		}
+		default:
+		{
+		    break;
+		}
+	}
+#endif //BUILD_MK64
 
 #ifdef BUILD_SAM3X8E
     switch (pstTransferCB->enEHIOResource)
@@ -246,7 +307,13 @@ void SPIHA_vInitTransfer(IOAPI_tstTransferCB* pstTransferCB)
 #endif //BUILD_SAM3X8E
 }
 
-void SPIHA_vInterruptHandler(IOAPI_tenEHIOResource enEHIOResource)
+void SPIHA_vInterruptRX(IOAPI_tenEHIOResource enEHIOResource)
+{
+
+
+}
+
+void SPIHA_vInterruptTX(IOAPI_tenEHIOResource enEHIOResource)
 {
 #ifdef BUILD_MK60
 	IOAPI_tenPortMode enMode;
@@ -277,6 +344,38 @@ void SPIHA_vInterruptHandler(IOAPI_tenEHIOResource enEHIOResource)
 		}		
 	}
 #endif  //BUILD_MK60
+
+#if defined(BUILD_MK64)
+	IOAPI_tenPortMode enMode;
+
+	SPIHA_pstSPI->SR |= SPI_SR_EOQF_MASK;
+	SPIHA_pstSPI->RSER &= ~SPI_RSER_EOQF_RE_MASK;
+
+	while ((0 < SPIHA_pstTransferCB->u32ByteCount) && (SPIHA_pstSPI->SR & SPI_SR_TFFF_MASK))
+	{
+		SPIHA_pstSPI->PUSHR = (uint32)*(puint8)SPIHA_pstTransferCB->pvData;
+		SPIHA_pstTransferCB->pvData++;
+		SPIHA_pstTransferCB->u32ByteCount--;
+		SPIHA_pstSPI->SR |= SPI_SR_TFFF_MASK;
+	}
+
+	if (0 == SPIHA_pstTransferCB->u32ByteCount)
+	{
+		enMode = DLL_enGetChannelMode(enEHIOResource);
+
+		if (IOAPI_enPortSerialTransfer == enMode)
+		{
+			SRLTFR_vNotifyCB(EH_VIO_SPI1);
+		}
+		else if (IOAPI_enPortComms == enMode)
+		{
+			//DLL_vFrameRXCB(enEHIOResource, &CAN_stRXDLLData);
+		}
+
+		SPIHA_pstSPI->RSER &= ~SPI_RSER_TFFF_RE_MASK;
+	}
+
+#endif  //BUILD_MK64
 
 #ifdef BUILD_SAM3X8E
     uint16 u16Data;

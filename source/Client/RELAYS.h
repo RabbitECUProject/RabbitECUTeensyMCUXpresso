@@ -24,8 +24,17 @@
 
 
 /* GLOBAL MACRO DEFINITIONS ***************************************************/
-#define RELAYS_nSPIFrequency 2000000u
-#define RELAYS_nSPI_CS_RESOURCE EH_IO_GP6
+#define RELAYS_nSPIFrequency 4000000u
+
+#ifndef BUILD_SPARKDOG_TEENSY_ADAPT
+#define RELAYS_nSPI_CS_RESOURCE EH_IO_GP7
+#define RELAYS_nSPI_RST_RESOURCE EH_IO_GP14
+#else
+#define RELAYS_nSPI_CS_RESOURCE EH_IO_GP4
+#define RELAYS_nSPI_RST_RESOURCE EH_IO_GP14
+#endif
+
+
 #define RELAYS_TELLTALE_1 EH_IO_GPSE2
 #define RELAYS_TELLTALE_2 EH_IO_GPSE3
 

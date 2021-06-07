@@ -204,28 +204,61 @@ void TORQUE_vRun(puint32 const pu32Arg)
 		{
 			if ((6 > TORQUE_u8ATXSelectedGear) && (0 < TORQUE_u8ATXSelectedGear))
 			{
-				u32Temp = 1000 * SENSORS_u16CANVSS;
-
-				TORQUE_u32RevMatchRPM = (uint16)(u32Temp / USERCAL_stRAMCAL.u16VSSPerRPM[TORQUE_u8ATXSelectedGear - 1]);
-
-				/* Calculate the current spread for Rev Match scale */
-				USER_vSVC(SYSAPI_enCalculateSpread, (void*)&TORQUE_tSpreadRevMatchIDX,
-						NULL, NULL);
-
-				/* Lookup the current Rev Match ETC position */
-				USER_vSVC(SYSAPI_enCalculateTable, (void*)&TORQUE_tTableRevMatchIDX,
-						NULL, NULL);
-
-				if (USERCAL_stRAMCAL.u16ShiftDownCountLimit > USERCAL_stRAMCAL.u16ShiftDownBlipLimit)
+				if (TRUE == TORQUE_boManualShiftMode)
 				{
-					/* How long into the down-shift? */
-					u16Temp = USERCAL_stRAMCAL.u16ShiftDownCountLimit - TORQUE_u16GearShiftCount;
+					u32Temp = 1000 * SENSORS_u16CANVSS;
 
-					if (u16Temp > USERCAL_stRAMCAL.u16ShiftDownBlipLimit)
+					TORQUE_u32RevMatchRPM = (uint16)(u32Temp / USERCAL_stRAMCAL.u16VSSPerRPM[TORQUE_u8ATXSelectedGear - 1]);
+
+					/* Calculate the current spread for Rev Match scale */
+					USER_vSVC(SYSAPI_enCalculateSpread, (void*)&TORQUE_tSpreadRevMatchIDX,
+							NULL, NULL);
+
+					/* Lookup the current Rev Match ETC position */
+					USER_vSVC(SYSAPI_enCalculateTable, (void*)&TORQUE_tTableRevMatchIDX,
+							NULL, NULL);
+
+					if (USERCAL_stRAMCAL.u16ShiftDownCountLimit > USERCAL_stRAMCAL.u16ShiftDownBlipLimit)
 					{
-						TORQUE_u16RevMatchPosition *= TORQUE_u16GearShiftCount;
-						u16Temp = USERCAL_stRAMCAL.u16ShiftDownCountLimit - USERCAL_stRAMCAL.u16ShiftDownBlipLimit;
-						TORQUE_u16RevMatchPosition /= u16Temp;
+						/* How long into the down-shift? */
+						u16Temp = USERCAL_stRAMCAL.u16ShiftDownCountLimit - TORQUE_u16GearShiftCount;
+
+						if (u16Temp > USERCAL_stRAMCAL.u16ShiftDownBlipLimit)
+						{
+							TORQUE_u16RevMatchPosition *= TORQUE_u16GearShiftCount;
+							u16Temp = USERCAL_stRAMCAL.u16ShiftDownCountLimit - USERCAL_stRAMCAL.u16ShiftDownBlipLimit;
+							TORQUE_u16RevMatchPosition /= u16Temp;
+						}
+					}
+				}
+				else
+				{
+					if (0 > CTS_tTempCFiltered)
+					{
+						TORQUE_u16RevMatchPosition = USERCAL_stRAMCAL.u16ColdOffThrottleBlip;
+					}
+					else if (50000 < CTS_tTempCFiltered)
+					{
+						TORQUE_u16RevMatchPosition = USERCAL_stRAMCAL.u16HotOffThrottleBlip;
+					}
+					else
+					{
+						u32Temp = USERCAL_stRAMCAL.u16HotOffThrottleBlip * CTS_tTempCFiltered;
+						u32Temp += (USERCAL_stRAMCAL.u16ColdOffThrottleBlip * (50000 - CTS_tTempCFiltered));
+						TORQUE_u16RevMatchPosition = u32Temp / 50000;
+					}
+
+					if (USERCAL_stRAMCAL.u16ShiftDownCountLimit > USERCAL_stRAMCAL.u16ShiftDownBlipLimit)
+					{
+						/* How long into the down-shift? */
+						u16Temp = USERCAL_stRAMCAL.u16ShiftDownCountLimit - TORQUE_u16GearShiftCount;
+
+						if (u16Temp > USERCAL_stRAMCAL.u16ShiftDownBlipLimit)
+						{
+							TORQUE_u16RevMatchPosition *= TORQUE_u16GearShiftCount;
+							u16Temp = USERCAL_stRAMCAL.u16ShiftDownCountLimit - USERCAL_stRAMCAL.u16ShiftDownBlipLimit;
+							TORQUE_u16RevMatchPosition /= u16Temp;
+						}
 					}
 				}
 			}

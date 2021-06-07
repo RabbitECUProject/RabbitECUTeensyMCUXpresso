@@ -57,6 +57,8 @@ void CAM_vRun(puint32 const pu32Arg)
 
 	if (0 == CAM_u32RPMRaw)
 	{
+		CAM_u32RPMFiltered = 0;
+
 		if (USERCAL_stRAMCAL.u8FuelPumpPrimerTime <= CAM_u32EngineStoppedTimer)
 		{
 			FUEL_boFuelPumpOn = FALSE;

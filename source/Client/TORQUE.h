@@ -63,6 +63,9 @@ EXTERN bool TORQUE_boVehicleMovingUS;
 //ASAM mode=readvalue name="ATX Vehicle Moving Upshifts" type=uint8 offset=0 min=0 max=1 m=1 b=0 units="dl" format=1.0 help="ATX Vehicle Moving Upshifts"
 EXTERN bool TORQUE_boVehicleMovingDS;
 //ASAM mode=readvalue name="ATX Vehicle Moving Downshifts" type=uint8 offset=0 min=0 max=1 m=1 b=0 units="dl" format=1.0 help="ATX Vehicle Moving Downshifts"
+EXTERN bool TORQUE_boManualShiftMode;
+//ASAM mode=readvalue name="ATX Manual Shift Mode" type=uint8 offset=0 min=0 max=1 m=1 b=0 units="dl" format=1.0 help="ATX Manual Shift Mode"
+
 
 /* GLOBAL FUNCTION DECLARATIONS ***********************************************/
 void TORQUE_vStart(uint32 * const pu32Arg);

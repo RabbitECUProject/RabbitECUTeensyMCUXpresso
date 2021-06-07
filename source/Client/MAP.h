@@ -51,6 +51,7 @@ EXTERN GPM6_ttUg MAP_tManChargeMassUg;
 EXTERN sint32 MAP_s32ManDeltaChargeMassPerSUg;
 EXTERN uint16 MAP_u16VE;
 EXTERN bool MAP_boHighVacuum;
+EXTERN bool MAP_boBoostETCCutEnable;
 EXTERN uint16 MAP_u16PressureValveFeedForward;
 EXTERN uint16 MAP_u16PressureValveDuty;
 EXTERN uint8 MAP_u8PressureThrottleTrim;

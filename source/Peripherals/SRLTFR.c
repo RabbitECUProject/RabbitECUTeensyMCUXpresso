@@ -38,14 +38,18 @@ void SRLTFR_vRun(puint32 const pu32Arg)
 			case EH_VIO_IIC1:
 			case EH_VIO_IIC2:	
 			{
+				/* Caveat here see SPI */
 				IIC_vInitTransfer(&SRLTFR_astTransferInfo[SRLTFR_stTransferQueue.u32Head]);
 				SRLTFR_enActiveEHIOResource = SRLTFR_astTransferInfo[SRLTFR_stTransferQueue.u32Head].enEHIOResource;
 			}
 			case EH_VIO_SPI1:
 			case EH_VIO_SPI2:
 			{
-				SPI_vInitTransfer(&SRLTFR_astTransferInfo[SRLTFR_stTransferQueue.u32Head]);
-				SRLTFR_enActiveEHIOResource = SRLTFR_astTransferInfo[SRLTFR_stTransferQueue.u32Head].enEHIOResource;
+				if (0 != SRLTFR_astTransferInfo[SRLTFR_stTransferQueue.u32Head].u32ByteCount)
+				{
+					SRLTFR_enActiveEHIOResource = SRLTFR_astTransferInfo[SRLTFR_stTransferQueue.u32Head].enEHIOResource;
+					SPI_vInitTransfer(&SRLTFR_astTransferInfo[SRLTFR_stTransferQueue.u32Head]);
+				}
 			}
 			default:
 			{
