@@ -130,7 +130,37 @@ void TORQUE_vRun(puint32 const pu32Arg)
 	if ((EST_nIgnitionReqDSGStage1 == EST_enIgnitionTimingRequest)
 			&& (TRUE == TORQUE_boVehicleMovingUS))
 	{
-		TORQUE_u32ESTTorqueModifier = 160;
+		if (0 == TORQUE_boDownShift)
+		{
+			u16Temp = (3 * USERCAL_stRAMCAL.u16ShiftUpCountLimit) / 4;
+		}
+		else
+		{
+			u16Temp = (3 * USERCAL_stRAMCAL.u16ShiftDownCountLimit) / 4;
+		}
+
+		if (u16Temp < TORQUE_u16GearShiftCount)
+		{
+			/* Early in the shift */
+			TORQUE_u32ESTTorqueModifier = 10;
+		}
+		else
+		{
+			if (100 > SENSORS_u16VSSCalcGearRPMSlip)
+			{
+				/* OK slip is low, ramp up modifier */
+				TORQUE_u32ESTTorqueModifier = 240 > TORQUE_u32ESTTorqueModifier ?
+						TORQUE_u32ESTTorqueModifier + 10 : 0x100;
+			}
+			else if (200 < SENSORS_u16VSSCalcGearRPMSlip)
+			{
+				/* Uh oh slip is high */
+				TORQUE_u32ESTTorqueModifier = 30 < TORQUE_u32ESTTorqueModifier ?
+						TORQUE_u32ESTTorqueModifier - 20 : 10;
+			}
+		}
+
+
 		TORQUE_u32FuelTorqueModifier = 220;
 
 		TORQUE_u32OutputTorqueModified = (TORQUE_u32OutputTorqueEstimate *

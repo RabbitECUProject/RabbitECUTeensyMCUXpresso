@@ -74,8 +74,8 @@ EXTERN TEPMAPI_ttEventTime EST_tStartFractionA;
 EXTERN TEPMAPI_ttEventTime EST_tDwellUs;	
 //ASAM mode=readvalue name="EST Dwell Fraction" type=uint16 offset=0 min=0 max=1 m=0.00001526 b=0 units="dl" format=6.0 help="EST Dwell Fraction" 
 EXTERN GPM6_ttMTheta EST_tIgnitionAdvanceMtheta;
-EXTERN GPM6_ttMTheta EST_tIgnitionAdvanceMthetaBTDC;
-//ASAM mode=readvalue name="EST Ignition Advance" type=uint32 offset=0 min=0 max=50 m=0.001 b=0 units="degrees" format=5.3 help="EST Ignition Advance" 
+EXTERN sint32 EST_tIgnitionAdvanceMthetaReport;
+//ASAM mode=readvalue name="EST Ignition Advance" type=sint32 offset=0 min=-50 max=50 m=0.001 b=0 units="degrees" format=5.3 help="EST Ignition Advance"
 
 EXTERN EST_tenIgnitionTimingRequest EST_enIgnitionTimingRequest;
 //ASAM mode=readvalue name="EST Timing Request Mode" type=uint16 offset=0 min=0 max=10 units="ENUMERATION PRIMARY=0 STAGE1=1 STAGE2=2 STAGE3=3 STAGE4=4" format=1.0 help="EST Dwell Start Fraction"

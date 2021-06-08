@@ -33,8 +33,8 @@ TABLEAPI_ttTableIDX EST_tMapTimingIDX;
 TABLEAPI_ttTableIDX EST_tMapTimingStage1IDX;
 TABLEAPI_ttTableIDX EST_tTableDwellIDX;
 uint16 EST_u16TimingBase;
-uint16 EST_u16TimingStaged;
-uint16 EST_u16Timing;
+sint16 EST_s16TimingStaged;
+sint16 EST_s16Timing;
 uint16 EST_u16Dwell;
 
 
@@ -262,7 +262,7 @@ void EST_vStart(puint32 const pu32Arg)
 	EST_tMapTimingIDX = SETUP_tSetupMap((void*)&USERCAL_stRAMCAL.aUserTimingMap, (void*)&EST_u16TimingBase, TYPE_enUInt16, 17, 17, EST_tSpreadTimingxIDX, EST_tSpreadTimingyIDX, NULL);
 
 	/* Request and initialise required Kernel managed table for Timing*/
-	EST_tMapTimingStage1IDX = SETUP_tSetupMap((void*)&USERCAL_stRAMCAL.aUserTimingMapStage1, (void*)&EST_u16TimingStaged, TYPE_enUInt16, 17, 17, EST_tSpreadTimingxIDX, EST_tSpreadTimingyIDX, NULL);
+	EST_tMapTimingStage1IDX = SETUP_tSetupMap((void*)&USERCAL_stRAMCAL.aUserTimingMapStage1, (void*)&EST_s16TimingStaged, TYPE_enUInt16, 17, 17, EST_tSpreadTimingxIDX, EST_tSpreadTimingyIDX, NULL);
 
 	/* Request and initialise required Kernel managed spread for Dwell */
 	EST_tSpreadDwellIDX = SETUP_tSetupSpread((void*)&BVM_tBattVolts, (void*)&USERCAL_stRAMCAL.aUserDwellSpread, TYPE_enUInt32, 17, SPREADAPI_enSpread4ms, NULL);
@@ -386,6 +386,7 @@ void EST_vRun(puint32 const pu32Arg)
 	uint32 u32DwellUs;
 	uint32 u32Temp;
 	sint32 s32ESTTrims[2];
+	sint32 s32Temp;
 	static uint32 u32CrankDwell;
 	static uint32 u32BypassCount;
 	uint32 u32Dwell;
@@ -414,33 +415,33 @@ void EST_vRun(puint32 const pu32Arg)
 		USER_vSVC(SYSAPI_enCalculateMap, (void*)&EST_tMapTimingIDX,
 			NULL, NULL);
 
-		if (EST_u16Timing > EST_u16TimingBase)
+		if (EST_s16Timing > EST_u16TimingBase)
 		{
-			if ((EST_u16Timing - EST_u16TimingBase) >= USERCAL_stRAMCAL.u16ESTNegRateMax)
+			if ((EST_s16Timing - EST_u16TimingBase) >= USERCAL_stRAMCAL.u16ESTNegRateMax)
 			{
-				if (EST_u16Timing >= USERCAL_stRAMCAL.u16ESTNegRateMax)
+				if (EST_s16Timing >= USERCAL_stRAMCAL.u16ESTNegRateMax)
 				{
-					EST_u16Timing -= USERCAL_stRAMCAL.u16ESTNegRateMax;
+					EST_s16Timing -= USERCAL_stRAMCAL.u16ESTNegRateMax;
 				}
 				else
 				{
-					EST_u16Timing = 0;
+					EST_s16Timing = 0;
 				}
 			}
 			else
 			{
-				EST_u16Timing = EST_u16TimingBase;
+				EST_s16Timing = EST_u16TimingBase;
 			}
 		}
-		else if (EST_u16Timing < EST_u16TimingBase)
+		else if (EST_s16Timing < EST_u16TimingBase)
 		{
-			if ((EST_u16TimingBase - EST_u16Timing) >= USERCAL_stRAMCAL.u16ESTPosRateMax)
+			if ((EST_u16TimingBase - EST_s16Timing) >= USERCAL_stRAMCAL.u16ESTPosRateMax)
 			{
-				EST_u16Timing += USERCAL_stRAMCAL.u16ESTNegRateMax;
+				EST_s16Timing += USERCAL_stRAMCAL.u16ESTNegRateMax;
 			}
 			else
 			{
-				EST_u16Timing = EST_u16TimingBase;
+				EST_s16Timing = EST_u16TimingBase;
 			}
 		}
 	}
@@ -463,19 +464,19 @@ void EST_vRun(puint32 const pu32Arg)
 
 		if (TRUE == boESTAltMapRequestActive)
 		{
-			EST_u16Timing = EST_u16TimingStaged;
+			EST_s16Timing = EST_s16TimingStaged;
 		}
 		else
 		{
 			if ((TRUE == TORQUE_boVehicleMovingUS) || (TRUE == TORQUE_boVehicleMovingDS))
 			{
-				EST_u16Timing = ((TORQUE_u32ESTTorqueModifier * EST_u16TimingBase) +
-						((0x100 - TORQUE_u32ESTTorqueModifier) * EST_u16TimingStaged)) / 0x100;
+				EST_s16Timing = ((TORQUE_u32ESTTorqueModifier * EST_u16TimingBase) +
+						((0x100 - TORQUE_u32ESTTorqueModifier) * EST_s16TimingStaged)) / 0x100;//!!!!!!!!!!!!
 			}
 			else
 			{
 				/* Just set the base timing without delta limits */
-				EST_u16Timing = EST_u16TimingBase;
+				EST_s16Timing = EST_u16TimingBase;
 			}
 		}
 	}
@@ -511,7 +512,7 @@ void EST_vRun(puint32 const pu32Arg)
 		}
 		else
 		{
-			EST_tIgnitionAdvanceMtheta = 100 * EST_u16Timing + USERCAL_stRAMCAL.u16TimingMainOffset;
+			EST_tIgnitionAdvanceMtheta = 100 * EST_s16Timing + USERCAL_stRAMCAL.u16TimingMainOffset;
 		}
 	}
 	else
@@ -519,33 +520,16 @@ void EST_vRun(puint32 const pu32Arg)
 		s32ESTTrims[0] = CLO2_s32ISCESTTrim[0] + IAC_s32ISCESTTrim[0];
 		s32ESTTrims[1] = CLO2_s32ISCESTTrim[1] + IAC_s32ISCESTTrim[1];
 
-		if (0 <= s32ESTTrims[1])
-		{
-			EST_tIgnitionAdvanceMtheta = 100 * EST_u16Timing + USERCAL_stRAMCAL.u16TimingMainOffset + (uint16)s32ESTTrims[1];
-		}
-		else
-		{
-			EST_tIgnitionAdvanceMtheta = 100 * EST_u16Timing + USERCAL_stRAMCAL.u16TimingMainOffset;
+		s32Temp = 100 * EST_s16Timing + USERCAL_stRAMCAL.u16TimingMainOffset + s32ESTTrims[1];
 
-			if (0 < (s32ESTTrims[1] + (sint32)EST_tIgnitionAdvanceMtheta))
-			{
-				EST_tIgnitionAdvanceMtheta = (uint16)(s32ESTTrims[1] + (sint32)EST_tIgnitionAdvanceMtheta);
-			}
-			else
-			{
-				EST_tIgnitionAdvanceMtheta = 0;
-			}
-		}
+		/* Here the ignition advance angle can not be negative, but can be effectively
+          negative */
+
+		EST_tIgnitionAdvanceMtheta = 0 < s32Temp ? s32Temp : 0;
+
 	}
 
-	if (USERCAL_stRAMCAL.u16TimingMainOffset <= EST_tIgnitionAdvanceMtheta)
-	{
-		EST_tIgnitionAdvanceMthetaBTDC = EST_tIgnitionAdvanceMtheta - USERCAL_stRAMCAL.u16TimingMainOffset;
-	}
-	else
-	{
-		EST_tIgnitionAdvanceMthetaBTDC = 0;
-	}
+	EST_tIgnitionAdvanceMthetaReport = EST_tIgnitionAdvanceMtheta - USERCAL_stRAMCAL.u16TimingMainOffset;
 
 	CPU_xExitCritical();
 
