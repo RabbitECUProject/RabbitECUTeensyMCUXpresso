@@ -24,10 +24,10 @@
 
 
 /* GLOBAL MACRO DEFINITIONS ***************************************************/
-#define RELAYS_nSPIFrequency 4000000u
+#define RELAYS_nSPIFrequency 1000000u
 
 #ifndef BUILD_SPARKDOG_TEENSY_ADAPT
-#define RELAYS_nSPI_CS_RESOURCE EH_IO_GP7
+#define RELAYS_nSPI_CS_RESOURCE EH_IO_SPI1_CS
 #define RELAYS_nSPI_RST_RESOURCE EH_IO_GP14
 #else
 #define RELAYS_nSPI_CS_RESOURCE EH_IO_GP4
@@ -127,7 +127,7 @@ void RELAYS_vStart(uint32 * const pu32Arg );
 void RELAYS_vRun(uint32* const pu32Arg );
 void RELAYS_vTerminate(uint32* const pu32Arg );
 void RELAYS_vCallBack(uint32* const pu32Arg );
-void RELAYS_vOutputBit(RELAY_tenBit enBit, bool boBitOn);
+void RELAYS_vOutputBit(uint32 u32Bit, bool boBitOn);
 void RELAYS_vThread(void);
 
 #endif // RELAYS_H

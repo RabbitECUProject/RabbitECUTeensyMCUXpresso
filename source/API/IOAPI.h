@@ -230,6 +230,14 @@ typedef enum
 	EH_VIO_ADC1 = 121,
 	EH_VIO_ADC2 = 122,
 	EH_VIO_ADC3 = 123,
+	EH_VIO_REL1 = 124,
+	EH_VIO_REL2 = 125,
+	EH_VIO_REL3 = 126,
+	EH_VIO_REL4 = 127,
+	EH_VIO_REL5 = 128,
+	EH_VIO_REL6 = 129,
+	EH_VIO_REL7 = 130,
+	EH_VIO_REL8 = 131,
 	IO_Total_Count,
 	EH_IO_Invalid
 } IOAPI_tenEHIOResource;

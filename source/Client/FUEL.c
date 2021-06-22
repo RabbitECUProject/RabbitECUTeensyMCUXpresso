@@ -110,7 +110,7 @@ void FUEL_vStart(puint32 const pu32Arg)
 
 
 	/* Setup fuel pump relay */
-	if (EH_IO_Invalid != USERCAL_stRAMCAL.enFuelPumpRelay)
+	if ((EH_IO_Invalid != USERCAL_stRAMCAL.enFuelPumpRelay) && (EH_VIO_REL1 > USERCAL_stRAMCAL.enFuelPumpRelay))
 	{
 		enEHIOResource = USERCAL_stRAMCAL.enFuelPumpRelay;
 		enEHIOType = IOAPI_enDIOOutput;
@@ -606,9 +606,9 @@ void FUEL_vRun(puint32 const pu32Arg)
 				USER_vSVC(SYSAPI_enAssertDIOResource, (void*)&enEHIOResource,
 				(void*)&enTriState,	(void*)NULL);
 			}
-			else
+			else if ((EH_VIO_REL1 <= enEHIOResource) && (EH_VIO_REL8 >= enEHIOResource))
 			{
-				enBit = 1 << (enEHIOResource - EH_IO_IIC1_SDA);
+				enBit = enEHIOResource - EH_VIO_REL1;
 				RELAYS_vOutputBit(enBit, IOAPI_enHigh == enTriState);
 			}
 		}
@@ -622,9 +622,9 @@ void FUEL_vRun(puint32 const pu32Arg)
 				USER_vSVC(SYSAPI_enAssertDIOResource, (void*)&enEHIOResource,
 				(void*)&enTriState,	(void*)NULL);
 			}
-			else
+			else if ((EH_VIO_REL1 <= enEHIOResource) && (EH_VIO_REL8 >= enEHIOResource))
 			{
-				enBit = 1 << (enEHIOResource - EH_IO_IIC1_SDA);
+				enBit = enEHIOResource - EH_VIO_REL1;
 				RELAYS_vOutputBit(enBit, IOAPI_enHigh == enTriState);
 			}
 		}

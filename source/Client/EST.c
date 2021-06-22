@@ -75,6 +75,25 @@ void EST_vStart(puint32 const pu32Arg)
 	EST_tStartFractionD = (0x10000 * 120) / EST_nDegreesPerCycle;				
 	EST_tDwellUs = 5000u;
 
+	/* Request and initialise FTM for missing tooth interrupt */
+	enEHIOResource = EH_VIO_FTM1;
+	enEHIOType = IOAPI_enTEPM;
+	USER_vSVC(SYSAPI_enRequestIOResource, (void*)&enEHIOResource,	(void*)NULL, (void*)NULL);
+
+	/* ONLY CONFIGURE THE FTM1 MODULE ONCE PER PROJECT! */
+	if (SYSAPI_enOK == pstSVCDataStruct->enSVCResult)
+	{
+		stTEPMResourceCB.enEHIOResource = EH_VIO_FTM1;
+		stTEPMResourceCB.enPreScalar = SENSORS_nFastFTMDivisor;
+		stTEPMResourceCB.enCountType = TEPMAPI_enCountUp;
+
+		USER_vSVC(SYSAPI_enInitialiseIOResource, (void*)&enEHIOResource,
+		(void*)&enEHIOType,	(void*)&stTEPMResourceCB);
+	}
+
+	/* Configure the missing tooth interrupt channel */
+	USER_vSVC(SYSAPI_enConfigureMissingToothInterrupt, (void*)NULL, (void*)NULL, (void*)NULL);
+
 	/* Request and initialise FTM for igniters */
 	enEHIOResource = EH_VIO_FTM0;
 	enEHIOType = IOAPI_enTEPM;
@@ -132,12 +151,14 @@ void EST_vStart(puint32 const pu32Arg)
 		EST_astTimedKernelEvents[0].enMethod = TEPMAPI_enGlobalLinkedFraction;
 		EST_astTimedKernelEvents[0].ptEventTime = &EST_tStartFractionA;
 		EST_astTimedKernelEvents[0].enEHIOBitMirrorResource = USERCAL_stRAMCAL.aESTIOMuxResource[0];
+		EST_astTimedKernelEvents[0].boToothScheduled = TRUE;
 	
 		/* Switch igniter off at timer ms */
 		EST_astTimedKernelEvents[1].enAction = TEPMAPI_enSetLow;
-		EST_astTimedKernelEvents[1].enMethod = TEPMAPI_enHardLinkedTimeStep;
-		EST_astTimedKernelEvents[1].ptEventTime = &EST_tDwellUs;	
+		EST_astTimedKernelEvents[1].enMethod = TEPMAPI_enGlobalLinkedFraction;
+		EST_astTimedKernelEvents[1].ptEventTime = &EST_tEndFractionA;
 		EST_astTimedKernelEvents[1].enEHIOBitMirrorResource = USERCAL_stRAMCAL.aESTIOMuxResource[0];
+		EST_astTimedKernelEvents[1].boToothScheduled = TRUE;
 	
 		USER_vSVC(SYSAPI_enConfigureKernelTEPMOutput, (void*)&enEHIOResource, 
 			(void*)&EST_astTimedKernelEvents[0], (void*)&tEventCount);	
@@ -168,12 +189,14 @@ void EST_vStart(puint32 const pu32Arg)
 		EST_astTimedKernelEvents[0].enMethod = TEPMAPI_enGlobalLinkedFraction;
 		EST_astTimedKernelEvents[0].ptEventTime = &EST_tStartFractionB;
 		EST_astTimedKernelEvents[0].enEHIOBitMirrorResource = USERCAL_stRAMCAL.aESTIOMuxResource[1];
+		EST_astTimedKernelEvents[0].boToothScheduled = TRUE;
 	
 		/* Switch igniter off at timer ms */
 		EST_astTimedKernelEvents[1].enAction = TEPMAPI_enSetLow;
-		EST_astTimedKernelEvents[1].enMethod = TEPMAPI_enHardLinkedTimeStep;
-		EST_astTimedKernelEvents[1].ptEventTime = &EST_tDwellUs;	
+		EST_astTimedKernelEvents[1].enMethod = TEPMAPI_enGlobalLinkedFraction;
+		EST_astTimedKernelEvents[1].ptEventTime = &EST_tEndFractionB;
 		EST_astTimedKernelEvents[1].enEHIOBitMirrorResource = USERCAL_stRAMCAL.aESTIOMuxResource[1];
+		EST_astTimedKernelEvents[1].boToothScheduled = TRUE;
 	
 		USER_vSVC(SYSAPI_enConfigureKernelTEPMOutput, (void*)&enEHIOResource, 
 			(void*)&EST_astTimedKernelEvents[0], (void*)&tEventCount);	
@@ -204,12 +227,14 @@ void EST_vStart(puint32 const pu32Arg)
 		EST_astTimedKernelEvents[0].enMethod = TEPMAPI_enGlobalLinkedFraction;
 		EST_astTimedKernelEvents[0].ptEventTime = &EST_tStartFractionC;
 		EST_astTimedKernelEvents[0].enEHIOBitMirrorResource = USERCAL_stRAMCAL.aESTIOMuxResource[2];
+		EST_astTimedKernelEvents[0].boToothScheduled = TRUE;
 	
 		/* Switch igniter off at timer ms */
 		EST_astTimedKernelEvents[1].enAction = TEPMAPI_enSetLow;
-		EST_astTimedKernelEvents[1].enMethod = TEPMAPI_enHardLinkedTimeStep;
-		EST_astTimedKernelEvents[1].ptEventTime = &EST_tDwellUs;
+		EST_astTimedKernelEvents[1].enMethod = TEPMAPI_enGlobalLinkedFraction;
+		EST_astTimedKernelEvents[1].ptEventTime = &EST_tEndFractionC;
 		EST_astTimedKernelEvents[1].enEHIOBitMirrorResource = USERCAL_stRAMCAL.aESTIOMuxResource[2];
+		EST_astTimedKernelEvents[1].boToothScheduled = TRUE;
 	
 		USER_vSVC(SYSAPI_enConfigureKernelTEPMOutput, (void*)&enEHIOResource,
 		(void*)&EST_astTimedKernelEvents[0], (void*)&tEventCount);
@@ -241,12 +266,14 @@ void EST_vStart(puint32 const pu32Arg)
 		EST_astTimedKernelEvents[0].enMethod = TEPMAPI_enGlobalLinkedFraction;
 		EST_astTimedKernelEvents[0].ptEventTime = &EST_tStartFractionD;
 		EST_astTimedKernelEvents[0].enEHIOBitMirrorResource = USERCAL_stRAMCAL.aESTIOMuxResource[3];
+		EST_astTimedKernelEvents[0].boToothScheduled = TRUE;
 	
 		/* Switch igniter off at timer ms */
 		EST_astTimedKernelEvents[1].enAction = TEPMAPI_enSetLow;
-		EST_astTimedKernelEvents[1].enMethod = TEPMAPI_enHardLinkedTimeStep;
-		EST_astTimedKernelEvents[1].ptEventTime = &EST_tDwellUs;
+		EST_astTimedKernelEvents[1].enMethod = TEPMAPI_enGlobalLinkedFraction;
+		EST_astTimedKernelEvents[1].ptEventTime = &EST_tEndFractionD;
 		EST_astTimedKernelEvents[1].enEHIOBitMirrorResource = USERCAL_stRAMCAL.aESTIOMuxResource[3];
+		EST_astTimedKernelEvents[1].boToothScheduled = TRUE;
 	
 		USER_vSVC(SYSAPI_enConfigureKernelTEPMOutput, (void*)&enEHIOResource,
 		(void*)&EST_astTimedKernelEvents[0], (void*)&tEventCount);
@@ -337,7 +364,7 @@ void EST_vStart(puint32 const pu32Arg)
 
 
 	/* Set up EST active output */
-	if (EH_IO_Invalid != USERCAL_stRAMCAL.enESTBypass)
+	if ((EH_IO_Invalid != USERCAL_stRAMCAL.enESTBypass) && (EH_VIO_REL1 > USERCAL_stRAMCAL.enESTBypass))
 	{
 		enEHIOResource = USERCAL_stRAMCAL.enESTBypass;
 		enEHIOType = IOAPI_enDIOOutput;
@@ -393,6 +420,7 @@ void EST_vRun(puint32 const pu32Arg)
 	IOAPI_tenTriState enTriState;
 	IOAPI_tenEHIOResource enEHIOResource;
 	bool boESTAltMapRequestActive;
+	RELAY_tenBit enBit;
 	
 	boESTAltMapRequestActive = SENSORS_boGetAuxActive(SENSORS_enAUX_LAUNCH_LOW);
 	boESTAltMapRequestActive |= SENSORS_boGetAuxActive(SENSORS_enAUX_LAUNCH_HIGH);
@@ -555,10 +583,19 @@ void EST_vRun(puint32 const pu32Arg)
 		{
 			if (0 == USERCAL_stRAMCAL.u8WastedSparkEnable)
 			{
+				CPU_xEnterCritical();
+
 				EST_tStartFractionA = (6554 * u32DelayDegrees) / (2 * EST_nDegreesPerCycle);
 				EST_tStartFractionB = ((6554 * u32DelayDegrees) / (2 * EST_nDegreesPerCycle));
 				EST_tStartFractionC = ((6554 * u32DelayDegrees) / (2 * EST_nDegreesPerCycle));
 				EST_tStartFractionD = ((6554 * u32DelayDegrees) / (2 * EST_nDegreesPerCycle));
+
+				EST_tEndFractionA = (2000000 * EST_nDegreesPerCycle - 1000 * EST_tIgnitionAdvanceMtheta) / 10986;
+				EST_tEndFractionB = (2000000 * EST_nDegreesPerCycle - 1000 * EST_tIgnitionAdvanceMtheta) / 10986;
+				EST_tEndFractionC = (2000000 * EST_nDegreesPerCycle - 1000 * EST_tIgnitionAdvanceMtheta) / 10986;
+				EST_tEndFractionD = (2000000 * EST_nDegreesPerCycle - 1000 * EST_tIgnitionAdvanceMtheta) / 10986;
+
+				CPU_xExitCritical();
 			}
 			else
 			{
@@ -616,15 +653,33 @@ void EST_vRun(puint32 const pu32Arg)
 		{
 			enEHIOResource = USERCAL_stRAMCAL.enESTBypass;
 			enTriState = IOAPI_enLow;
-			USER_vSVC(SYSAPI_enAssertDIOResource, (void*)&enEHIOResource,
-			(void*)&enTriState,	(void*)NULL);
+
+			if (EH_IO_IIC1_SDA > enEHIOResource)
+			{
+				USER_vSVC(SYSAPI_enAssertDIOResource, (void*)&enEHIOResource,
+				(void*)&enTriState,	(void*)NULL);
+			}
+			else if ((EH_VIO_REL1 <= enEHIOResource) && (EH_VIO_REL8 >= enEHIOResource))
+			{
+				enBit = enEHIOResource - EH_VIO_REL1;
+				RELAYS_vOutputBit(enBit, IOAPI_enHigh == enTriState);
+			}
 		}
 		else
 		{
 			enEHIOResource = USERCAL_stRAMCAL.enESTBypass;
 			enTriState = IOAPI_enHigh;
-			USER_vSVC(SYSAPI_enAssertDIOResource, (void*)&enEHIOResource,
-			(void*)&enTriState,	(void*)NULL);
+
+			if (EH_IO_IIC1_SDA > enEHIOResource)
+			{
+				USER_vSVC(SYSAPI_enAssertDIOResource, (void*)&enEHIOResource,
+				(void*)&enTriState,	(void*)NULL);
+			}
+			else if ((EH_VIO_REL1 <= enEHIOResource) && (EH_VIO_REL8 >= enEHIOResource))
+			{
+				enBit = enEHIOResource - EH_VIO_REL1;
+				RELAYS_vOutputBit(enBit, IOAPI_enHigh == enTriState);
+			}
 		}
 	}
 }

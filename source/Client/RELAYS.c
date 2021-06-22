@@ -84,14 +84,14 @@ void RELAYS_vStart(uint32 * const pu32Arg)
 
 	/* Set up the CS line */
     SETUP_vSetupDigitalIO(enEHIOResource, enEHIOType, enDriveStrength, &u32Flags);
-	//SETUP_vSetDigitalIOHigh(RELAYS_nSPI_CS_RESOURCE);
+	SETUP_vSetDigitalIOHigh(RELAYS_nSPI_CS_RESOURCE);
 
 	/* Start the SPI I/O expander IC */
 	MCP23S08_vStart(NULL);
 			
 	/* Set MCP23S08 port to output direction */
     (void)MCP23S08_boSetCallback(&RELAYS_vCallBack);
-	//SETUP_vSetDigitalIOLow(RELAYS_nSPI_CS_RESOURCE);
+	SETUP_vSetDigitalIOLow(RELAYS_nSPI_CS_RESOURCE);
 	MCP23S08_vSetDataDirection(0);
 
 
@@ -152,17 +152,21 @@ void RELAYS_vRun(uint32* const pu32Arg)
 	RELAY_tenBit enBit;
 
 	if (false == RELAYS_boInit) return;
+	return;
 
 	if (511 < u32Count)
 	{
-		//SETUP_vSetDigitalIOLow(RELAYS_nSPI_CS_RESOURCE);
-		MCP23S08_vSetDataDirection(0);
+		SETUP_vSetDigitalIOLow(RELAYS_nSPI_CS_RESOURCE);
+		//MCP23S08_vSetDataDirection(0);
 		u32Count = 0;
 	}
 	else
 	{
-		//SETUP_vSetDigitalIOLow(RELAYS_nSPI_CS_RESOURCE);
-		(void)MCP23S08_boTransferData(IOAPI_IO_TX, (void*)&RELAYS_u8RelayBitState, 1);
+		if (0 == (u32Count % 4))
+		{
+			SETUP_vSetDigitalIOLow(RELAYS_nSPI_CS_RESOURCE);
+			//(void)MCP23S08_boTransferData(IOAPI_IO_TX, (void*)&RELAYS_u8RelayBitState, 1);
+		}
 
 		u32Count++;
 	}
@@ -402,11 +406,20 @@ void RELAYS_vRun(uint32* const pu32Arg)
 						USER_vSVC(SYSAPI_enAssertDIOResource, (void*)&enEHIOResource,
 						(void*)&enTriState,	(void*)NULL);
 					}
-					else
+					else if ((EH_VIO_REL1 <= enEHIOResource) && (EH_VIO_REL8 >= enEHIOResource))
 					{
-						enBit = RELAY_raenMAP[enEHIOResource - EH_IO_IIC1_SDA];
+						enBit = RELAY_raenMAP[enEHIOResource - EH_VIO_REL1];
 						boResult = IOAPI_enHigh == enTriState;
-						RELAYS_vOutputBit(enBit, boResult);
+
+						/* Yuk repeat code but the re-mapping screw this up */
+						if (FALSE == boResult)
+						{
+							RELAYS_u8RelayBitState &= ~enBit;
+						}
+						else
+						{
+							RELAYS_u8RelayBitState |= enBit;
+						}
 					}
 
 					break;
@@ -429,15 +442,19 @@ void RELAYS_vTerminate(uint32* const pu32Arg)
 }
 
 
-void RELAYS_vOutputBit(RELAY_tenBit enBit, bool boBitOn)
+void RELAYS_vOutputBit(uint32 u32Bit, bool boBitOn)
 {
+	RELAY_tenBit enBit;
+
+	enBit = RELAY_raenMAP[u32Bit];
+
 	if (FALSE == boBitOn)
 	{
-		RELAYS_u8RelayBitState &= ~(1 << enBit);
+		RELAYS_u8RelayBitState &= ~enBit;
 	}
 	else
 	{
-		RELAYS_u8RelayBitState |= (1 << enBit);
+		RELAYS_u8RelayBitState |= enBit;
 	}
 }
 

@@ -25,8 +25,6 @@
 /* LOCAL VARIABLE DEFINITIONS (STATIC) ****************************************/
 const USERDIAG_tstIdentifierIB USERDIAG_rastIdentifierIB[] = USER_DIAG_nCIDInfo;
 DIAGAPI_tenDiagSecurityLevel USERDIAG_enSecLevel;
-uint32 USERDIAG_u32GlobalTimeTick;
-//ASAM mode=readvalue name="DIAGGlobalTimeTick" type=uint32 offset=0 min=0 max=10000 m=1 b=0 units="dl" format=6.0 help="Data Logging Global Time Tick"   
 puint8 USERDIAG_pu8Mode1Data;
 puint8 USERDIAG_pu8Mode2Data;
 puint8 USERDIAG_pu8Mode3Data;

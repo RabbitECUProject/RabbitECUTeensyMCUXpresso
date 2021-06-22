@@ -107,7 +107,7 @@ void CTS_vStart(puint32 const pu32Arg)
 	CTS_tTablePrimerIDX = SETUP_tSetupTable((void*)&USERCAL_stRAMCAL.aUserPrimerTable, (void*)&CTS_u32Primer, TYPE_enUInt32, 11, CTS_tSpreadPrimerIDX, NULL);
 
 	/* Setup thermofan relay */
-	if (EH_IO_Invalid != USERCAL_stRAMCAL.enThermoFanRelay)
+	if ((EH_IO_Invalid != USERCAL_stRAMCAL.enThermoFanRelay) && (EH_VIO_REL1 > USERCAL_stRAMCAL.enThermoFanRelay))
 	{
 		enEHIOResource = USERCAL_stRAMCAL.enThermoFanRelay;
 		enEHIOType = IOAPI_enDIOOutput;
@@ -341,9 +341,9 @@ void CTS_vRun(puint32 const pu32Arg)
 			USER_vSVC(SYSAPI_enAssertDIOResource, (void*)&enEHIOResource,
 			(void*)&enTriState,	(void*)NULL);
 		}
-		else
+		else if ((EH_VIO_REL1 <= enEHIOResource) && (EH_VIO_REL8 >= enEHIOResource))
 		{
-			enBit = 1 << (enEHIOResource - EH_IO_IIC1_SDA);
+			enBit = enEHIOResource - EH_VIO_REL1;
 			RELAYS_vOutputBit(enBit, IOAPI_enHigh == enTriState);
 		}
 	}

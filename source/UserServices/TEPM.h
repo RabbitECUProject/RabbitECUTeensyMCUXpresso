@@ -264,13 +264,17 @@ void TEPM_vConfigureUserTEPMInput(IOAPI_tenEHIOResource, TEPMAPI_tstTimedUserEve
 void TEPM_vInitiateUserCallBack(IOAPI_tenEHIOResource, TEPMAPI_ttEventTime);
 void TEPM_vGetTimerVal(IOAPI_tenEHIOResource, puint32);
 void TEPM_vInterruptHandler(IOAPI_tenEHIOResource, void*);
+void TEPM_vMissingToothInterruptHandler(IOAPI_tenEHIOResource, void*);
 uint32 TEPM_u32GetFTMTableIndex(IOAPI_tenEHIOResource);
 void TEPM_vStartEventProgramKernelQueues(bool, uint32);
+void TEPM_vRunEventToothProgramKernelQueues(bool, uint32, uint32);
 void TEPM_vSynchroniseEventProgramKernelQueues(void);
 IOAPI_tenTriState TEPM_enGetTimerDigitalState(IOAPI_tenEHIOResource);
 void TEPM_vEnableSequences(bool boEnable);
 uint32 TEPM_u32GetTimerVal(IOAPI_tenEHIOResource, void*);
 void TEPM_vSetFuelCutsMask(uint32, uint32, uint32);
 void TEPM_vSetSparkCutsMask(uint32, uint32, uint32);
+void TEPM_vConfigureMissingToothInterrupt(void);
+void TEPM_vSetNextMissingToothInterrupt(IOAPI_tenEHIOResource, TEPMAPI_ttEventTime, uint32);
 #endif // TEPM_H
 

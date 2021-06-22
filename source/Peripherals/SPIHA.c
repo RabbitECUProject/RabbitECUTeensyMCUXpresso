@@ -144,7 +144,7 @@ uint32 SPIHA_u32InitBus(IOAPI_tenEHIOResource enEHIOResource, IOAPI_tstPortConfi
 				pstSPI->MCR = SPI_MCR_MSTR(1);
 
 				nSPIIRQ = SPI2_IRQn;
-				IRQ_vEnableIRQ(nSPIIRQ, IRQ_enPRIO_7, &SPI_vInterruptRX, &SPI_vInterruptTX);
+				IRQ_vEnableIRQ(nSPIIRQ, IRQ_enPRIO_4, &SPI_vInterruptRX, &SPI_vInterruptTX);
 	            u32MuxSel = 2;
 				break;			
 			}

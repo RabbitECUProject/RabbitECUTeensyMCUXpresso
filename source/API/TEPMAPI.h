@@ -94,10 +94,12 @@ typedef struct
 	TEPMAPI_tenAction enAction;
 	TEPMAPI_tenMethod enMethod;
 	TEPMAPI_ttEventTime* ptEventTime;
+	TEPMAPI_ttEventTime tFractionalEventTime[2];
 	TEPMAPI_tpfEventCB pfEventCB;	
 	TEPMAPI_ttEventTime tAccumulate;
 	TEPMAPI_ttEventTime* ptAccumulate;
 	IOAPI_tenEHIOResource enEHIOBitMirrorResource;
+	bool boToothScheduled;
 } TEPMAPI_tstTimedKernelEvent;/*CR1_122*/
 
 typedef struct

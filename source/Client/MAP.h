@@ -43,6 +43,8 @@ EXTERN uint32 MAP_u32ADCRaw;
 EXTERN uint32 MAP_u32ADCFiltered;
 EXTERN GPM6_ttVolts MAP_tSensorVolts;/*CR1_88*/
 //ASAM mode=readvalue name="MAP Sensor Voltage" type=uint32 offset=0 min=0 max=5 m=0.001 b=0 units="V" format=5.3 help="MAP Sensor Voltage"
+EXTERN GPM6_ttPa MAP_tBoostTarget;
+//ASAM mode=readvalue name="Boost Target" type=uint32 offset=0 min=0 max=500 m=0.001 b=0 units="kPa" format=5.3 help="Boost Target"
 EXTERN GPM6_ttPa MAP_tKiloPaRaw;
 EXTERN volatile GPM6_ttPa MAP_tKiloPaFiltered;
 //ASAM mode=readvalue name="MAP kPa" type=uint32 offset=0 min=0 max=500 m=0.001 b=0 units="kPa" format=5.3 help="Manifold Pressure"
@@ -56,6 +58,8 @@ EXTERN uint16 MAP_u16PressureValveFeedForward;
 EXTERN uint16 MAP_u16PressureValveDuty;
 EXTERN uint8 MAP_u8PressureThrottleTrim;
 EXTERN uint32 MAP_u32PseudoMAP;
+
+#define MAP_BOOST_POS_DELTA_PER_MS 50
 		
 /* GLOBAL FUNCTION DECLARATIONS ***********************************************/
 void MAP_vStart(uint32 * const pu32Arg);

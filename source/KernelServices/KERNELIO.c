@@ -21,6 +21,7 @@
 #include "DACAPI.h"
 #include "IOAPI.h"
 #include "IICAPI.h"
+#include "PERSPI.h"
 #include "PERADC.h"
 #include "TEPM.h"
 #include "RESM.h"

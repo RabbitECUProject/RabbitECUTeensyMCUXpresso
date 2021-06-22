@@ -60,8 +60,8 @@ typedef enum
 #define SENSORS_nFastFTMFreq                (SYS_FREQ_BUS / (1 << SENSORS_nFastFTMDivisor))
 #define SENSORS_nSlowFTMDivisor             TEPMAPI_enDiv128
 #define SENSORS_nSlowFTMFreq                (SYS_FREQ_BUS / (1 << SENSORS_nSlowFTMDivisor))
-#define SENSORS_nAFMHertzSamples			(5)
 #define SENSORS_nSENSORADMAX                (2850)
+#define SENSORS_nHertzSamplesMax            16
 
 #ifdef BUILD_SPARKDOG_PF
 #define VRA_nPullupEnablePin                EH_IO_GP2
@@ -212,6 +212,7 @@ void SENSORS_vCallBack(puint32 const pu32Arg);
 bool SENSORS_boSetupADSE(IOAPI_tenEHIOResource enEHIOResource, IOAPI_tenEHIOType enEHIOType, ADCAPI_tenSamplesAv enSamplesAv, ADCAPI_tpfResultCB pfResultCB, ADCAPI_tenTrigger enTrigger, puint32 pu32Arg);
 void SENSORS_vInvalidateCAN16Data(uint32 u32MSGIDX, uint32 u32DataOffset);
 bool SENSORS_boGetAuxActive(SENSORS_tenAUXConfig enAUXConfig);
+void SENSORS_vCycleUpdate(void);
 
 #endif // CTS_H
 

@@ -87,7 +87,6 @@ void BVM_vRun(uint32* const pu32Arg)
 {
 	static uint32 u32SecondDerivativeLimitNeg = 0;
 	static uint32 u32SecondDerivativeLimitPos = 0;
-	static uint32 u32Count;
 	
 	if (TRUE == BVM_boNewSample)
 	{	

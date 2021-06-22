@@ -313,6 +313,9 @@ EXTERN uint8 DIAG_u8PedalPositionReport;
 EXTERN uint8 DIAG_u8GearSelectorReport;
 //ASAM mode=readvalue name="Gear Selector Report" type=uint8 offset=0 min=0 max=10 m=1 b=0 units="dl" format=1.0 help="Gear Selector Report"
 
+EXTERN uint32 USERDIAG_u32GlobalTimeTick;
+//ASAM mode=readvalue name="DIAGGlobalTimeTick" type=uint32 offset=0 min=0 max=10000 m=1 b=0 units="dl" format=6.0 help="Data Logging Global Time Tick"
+
 EXTERN uint8 DIAG_u8PowerModeActive;
 EXTERN uint16 DIAG_u16PowerModeActiveCount;
 EXTERN uint16 DIAG_u16PowerModeCode;

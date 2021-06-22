@@ -42,6 +42,7 @@
 const TEPM_tstTEPMChannel TEPMHA_rastTEPMChannel[] = TEPMHA_nChannelInfo;
 const TEPM_tstTEPMReverseChannel TEPMHA_rastTEPMReverseChannel[] = TEPMHA_nChannelReverseInfo;
 TEPMAPI_ttEventTime* TEPMHA_ptMasterClock;
+uint32 TEPMHA_u32MissingRepeats;
 
 #define TEPM_nTableCount sizeof(TEPMHA_rastTEPMChannel) / sizeof(TEPM_tstTEPMChannel)
 
@@ -1405,6 +1406,66 @@ uint32 TEPMHA_u32GetModulePhaseCorrect(TEPMHA_tenTimerModule enTimerModule, uint
 #endif
 
   return u32PhaseCorrect;
+}
+
+void TEPMHA_vConfigureMissingToothInterrupt(void)
+{
+#if defined(BUILD_MK60) || defined(BUILD_MK64)
+	vpuint32 vpuFTMReg;
+	uint32 u32ControlWord;
+	tstTimerModule* pstTimerModule = FTM1;
+	vpuFTMReg = (vpuint32)((uint32)pstTimerModule + (uint32)offsetof(tstTimerModule, CONTROLS[0]));
+
+	u32ControlWord = (FTM_CnSC_MSA_MASK | FTM_CnSC_ELSB_MASK | FTM_CnSC_ELSA_MASK);
+	u32ControlWord |= FTM_CnSC_CHIE_MASK;
+	*vpuFTMReg = u32ControlWord;
+
+	IRQ_vEnableIRQ(FTM1_IRQn, IRQ_enPRIO_15, TEPM_vMissingToothInterruptHandler, NULL);
+#endif //BUILD_MK6X
+}
+
+uint32 TEPMHA_u32SetNextMissingToothInterrupt(TEPMAPI_ttEventTime tReference, TEPMAPI_ttEventTime tLastGap, uint32 u32Repeats)
+{
+#if defined(BUILD_MK60) || defined(BUILD_MK64)
+	static uint32 u32Gap = 0;
+	uint32 u32TimerVal;
+	uint32 u32Temp;
+
+	if (0 != u32Repeats)
+	{
+		u32TimerVal = tReference;
+		u32Gap = tLastGap;
+		TEPMHA_u32MissingRepeats = u32Repeats;
+	}
+	else
+	{
+		u32TimerVal = FTM1->CONTROLS[0].CnV;
+	}
+
+	if (0 != TEPMHA_u32MissingRepeats)
+	{
+		u32TimerVal += u32Gap;
+		u32TimerVal &= TEPMHA_nCounterMask;
+		u32Temp =  FTM1->CONTROLS[0].CnSC | FTM_CnSC_ELSA_MASK | FTM_CnSC_ELSB_MASK | FTM_CnSC_CHIE_MASK;
+		u32Temp &= ~FTM_CnSC_CHF_MASK;
+		FTM1->CONTROLS[0].CnSC = u32Temp;
+
+		while (FTM1->CONTROLS[0].CnV != u32TimerVal)
+		{
+			FTM1->CONTROLS[0].CnV = u32TimerVal;
+		}
+
+		TEPMHA_u32MissingRepeats--;
+	}
+	else
+	{
+		u32Temp =  FTM1->CONTROLS[0].CnSC & ~FTM_CnSC_CHIE_MASK;
+		u32Temp &= ~FTM_CnSC_CHF_MASK;
+		FTM1->CONTROLS[0].CnSC = u32Temp;
+	}
+#endif //BUILD_MK6X
+
+	return u32Gap;
 }
 
 //#pragma GCC optimize ("O1")

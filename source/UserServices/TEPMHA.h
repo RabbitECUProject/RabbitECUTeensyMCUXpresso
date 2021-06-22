@@ -56,7 +56,7 @@ typedef Pwm tstPWMModule;
 
 
 #define TEPMHA_nUserEventsMax       4u
-#define TEPMHA_nKernelEventsMax     100u
+#define TEPMHA_nKernelEventsMax     50u
 #define TEPMHA_nMastersMax		    1u
 
 
@@ -533,6 +533,8 @@ IOAPI_tenEHIOResource TEPMHA_enGetTimerResourceFromVIOAndIndex(IOAPI_tenEHIOReso
 TEPMAPI_ttEventTime TEPMHA_u32GetTimerVal(IOAPI_tenEHIOResource);
 bool TEPMHA_boCheckFalseAlarm(void* pvModule, uint32 u32ChannelIDX, uint32 u32SubChannelIDX);
 uint32 TEPMHA_u32GetModulePhaseCorrect(TEPMHA_tenTimerModule enTimerModule, uint32 u32ChannelIDX);
+void TEPMHA_vConfigureMissingToothInterrupt(void);
+uint32 TEPMHA_u32SetNextMissingToothInterrupt(TEPMAPI_ttEventTime tReference, TEPMAPI_ttEventTime, uint32);
 
 #endif //TEPMHA_H
 

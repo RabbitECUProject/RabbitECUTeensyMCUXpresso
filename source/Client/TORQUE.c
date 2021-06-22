@@ -37,7 +37,7 @@ SPREADAPI_ttSpreadIDX TORQUE_tSpreadRevMatchIDX;
 TABLEAPI_ttTableIDX TORQUE_tTableRevMatchIDX;
 
 /* LOCAL FUNCTION PROTOTYPES (STATIC) *****************************************/
-
+static uint16 TORQUE_u16GetAutoRevMatch(void);
 
 /* GLOBAL FUNCTION DEFINITIONS ************************************************/
 void TORQUE_vStart(puint32 const pu32Arg)
@@ -59,6 +59,8 @@ void TORQUE_vRun(puint32 const pu32Arg)
 {
 	uint32 u32Temp;
 	uint16 u16Temp;
+	uint16 u16AutoRevMatch;
+	uint16 u16PostBlipDuration;
 	static uint32 u32DSGCutsCount;
 
 	TORQUE_boVehicleMovingDS = USERCAL_stRAMCAL.u16ATXTorqueOnVSS < SENSORS_u16CANVSS ? TRUE : TORQUE_boVehicleMovingDS;
@@ -136,7 +138,7 @@ void TORQUE_vRun(puint32 const pu32Arg)
 		}
 		else
 		{
-			u16Temp = (3 * USERCAL_stRAMCAL.u16ShiftDownCountLimit) / 4;
+			u16Temp = USERCAL_stRAMCAL.u16ShiftDownCountLimit / 2;
 		}
 
 		if (u16Temp < TORQUE_u16GearShiftCount)
@@ -149,14 +151,14 @@ void TORQUE_vRun(puint32 const pu32Arg)
 			if (100 > SENSORS_u16VSSCalcGearRPMSlip)
 			{
 				/* OK slip is low, ramp up modifier */
-				TORQUE_u32ESTTorqueModifier = 240 > TORQUE_u32ESTTorqueModifier ?
-						TORQUE_u32ESTTorqueModifier + 10 : 0x100;
+				TORQUE_u32ESTTorqueModifier = 215 > TORQUE_u32ESTTorqueModifier ?
+						TORQUE_u32ESTTorqueModifier + 40 : 0x100;
 			}
 			else if (200 < SENSORS_u16VSSCalcGearRPMSlip)
 			{
 				/* Uh oh slip is high */
-				TORQUE_u32ESTTorqueModifier = 30 < TORQUE_u32ESTTorqueModifier ?
-						TORQUE_u32ESTTorqueModifier - 20 : 10;
+				TORQUE_u32ESTTorqueModifier = 40 < TORQUE_u32ESTTorqueModifier ?
+						TORQUE_u32ESTTorqueModifier - 40 : 10;
 			}
 		}
 
@@ -255,28 +257,35 @@ void TORQUE_vRun(puint32 const pu32Arg)
 
 						if (u16Temp > USERCAL_stRAMCAL.u16ShiftDownBlipLimit)
 						{
-							TORQUE_u16RevMatchPosition *= TORQUE_u16GearShiftCount;
-							u16Temp = USERCAL_stRAMCAL.u16ShiftDownCountLimit - USERCAL_stRAMCAL.u16ShiftDownBlipLimit;
-							TORQUE_u16RevMatchPosition /= u16Temp;
+							/* Only proceed to modify TORQUE_u16RevMatchPosition AFTER the blip */
+							u16Temp -= USERCAL_stRAMCAL.u16ShiftDownBlipLimit;
+							u16PostBlipDuration = USERCAL_stRAMCAL.u16ShiftDownCountLimit - USERCAL_stRAMCAL.u16ShiftDownBlipLimit;
+							u16PostBlipDuration = 60 > u16PostBlipDuration ? 60 : u16PostBlipDuration;
+
+							if (30 > u16Temp)
+							{
+								TORQUE_u16RevMatchPosition *= (30 - u16Temp);
+								TORQUE_u16RevMatchPosition /= 30;
+							}
+							else if ((30 <= u16Temp) && (50 > u16Temp))
+							{
+								TORQUE_u16RevMatchPosition = 0;
+							}
+							else
+							{
+								u16AutoRevMatch = TORQUE_u16GetAutoRevMatch();
+								u16Temp -= 50;
+								u16PostBlipDuration -= 50;
+
+								TORQUE_u16RevMatchPosition *= u16Temp;
+								TORQUE_u16RevMatchPosition /= u16PostBlipDuration;
+							}
 						}
 					}
 				}
 				else
 				{
-					if (0 > CTS_tTempCFiltered)
-					{
-						TORQUE_u16RevMatchPosition = USERCAL_stRAMCAL.u16ColdOffThrottleBlip;
-					}
-					else if (50000 < CTS_tTempCFiltered)
-					{
-						TORQUE_u16RevMatchPosition = USERCAL_stRAMCAL.u16HotOffThrottleBlip;
-					}
-					else
-					{
-						u32Temp = USERCAL_stRAMCAL.u16HotOffThrottleBlip * CTS_tTempCFiltered;
-						u32Temp += (USERCAL_stRAMCAL.u16ColdOffThrottleBlip * (50000 - CTS_tTempCFiltered));
-						TORQUE_u16RevMatchPosition = u32Temp / 50000;
-					}
+					TORQUE_u16RevMatchPosition = TORQUE_u16GetAutoRevMatch();
 
 					if (USERCAL_stRAMCAL.u16ShiftDownCountLimit > USERCAL_stRAMCAL.u16ShiftDownBlipLimit)
 					{
@@ -314,6 +323,29 @@ void TORQUE_vTerminate(puint32 const pu32Arg)
 void TORQUE_vCallBack(puint32 const pu32Arg)
 {
 
+}
+
+static uint16 TORQUE_u16GetAutoRevMatch(void)
+{
+	uint32 u32Temp;
+	uint16 u16Ret;
+
+	if (0 > CTS_tTempCFiltered)
+	{
+		u16Ret = USERCAL_stRAMCAL.u16ColdOffThrottleBlip;
+	}
+	else if (50000 < CTS_tTempCFiltered)
+	{
+		u16Ret = USERCAL_stRAMCAL.u16HotOffThrottleBlip;
+	}
+	else
+	{
+		u32Temp = USERCAL_stRAMCAL.u16HotOffThrottleBlip * CTS_tTempCFiltered;
+		u32Temp += (USERCAL_stRAMCAL.u16ColdOffThrottleBlip * (50000 - CTS_tTempCFiltered));
+		u16Ret = u32Temp / 50000;
+	}
+
+	return u16Ret;
 }
 
 

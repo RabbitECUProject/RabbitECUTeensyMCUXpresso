@@ -20,6 +20,7 @@
 #define SRLTFR_nTransfersMax 5u
 
 #ifdef _SRLTFR_C
+    #undef EXTERN
 	#define EXTERN
 #else
     #undef EXTERN

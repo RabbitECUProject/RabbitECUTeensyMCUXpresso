@@ -26,7 +26,9 @@ bool CEM_aboSyncEdge[160];
 uint16 CEM_au16SyncPoints[36];
 uint8 CEM_u8RisingEdgesCount;
 uint8 CEM_u8FallingEdgesCount;
-uint32 CEM_u8CrankEdgeCounter;
+uint32 CEM_u32CrankEdgeCounter;
+uint32 CEM_u32ToothEdgeCounter;
+uint32 CEM_u32CycleToothEdgeCounter;
 bool CEM_boCrankEdgeFirstRising;
 uint32 CEM_u32CrankEdgeTimeoutCount;
 uint8 CEM_au8AutocorrPeak[4];
@@ -37,6 +39,9 @@ bool CEM_boEdgesReady;
 uint32 CEM_au32TimerOffsets[9];
 CEM_tenTriggerType CEM_enTriggerType;
 uint8 CEM_u8SimpleMissingSync;
+uint8 CEM_u8MissingToothCount;
+uint8 CEM_u8MissingToothCountMax;
+uint32 CEM_u32SmallestToothTime;
 TEPMAPI_tstSimpleCamSync stSimpleCamSync;
 extern IOAPI_tenEHIOResource TEPM_astTEPMVVTInputs[];
 TEPMAPI_ttEventTime CEM_atLastVVTTimer[4];
@@ -56,7 +61,7 @@ void CEM_vStart(uint32* const u32Stat)
 	CEM_u32GlobalCycleOriginCount = 0;
 	CEM_u32CrankEdgeTimeoutCount = 0;
 	CEM_tEventTimeLast = ~0;
-	CEM_u8CrankEdgeCounter = 0xff;
+	CEM_u32CrankEdgeCounter = 0xff;
 	CEM_boEdgesReady = FALSE;
 	CTS_boCTSReady = FALSE;
 	CEM_u8SimpleMissingSync = 0;
@@ -203,6 +208,8 @@ static void CEM_vProcessAllEdges(void)
         {
             u32DeltaCount++;
 			CEM_u8SimpleMissingSync = (u32ArrayIDX + 1) % CEM_xEdgesCount;
+			CEM_u8MissingToothCountMax = (CEM_au16AllEdge[u32ArrayIDX] + 10) / CEM_au16AllEdge[u32ArrayIDX - 1];
+			CEM_u8MissingToothCountMax--;
         }
 
 		CEM_aboSyncEdge[u32ArrayIDX] = TRUE;
@@ -252,7 +259,7 @@ void CEM_vPrimaryEventCB(IOAPI_tenEHIOResource enEHIOResource, TEPMAPI_ttEventTi
 
 	if (FALSE == CEM_boEdgesReady) return;
 
-	u8PhasePrev = CEM_u8CrankEdgeCounter;
+	u8PhasePrev = CEM_u32CrankEdgeCounter;
 
 	/* Sanity check the edges count */
 	if (CEM_xEdgesCount > CEM_nEdgesMax) return;
@@ -327,8 +334,8 @@ void CEM_vPrimaryEventCB(IOAPI_tenEHIOResource enEHIOResource, TEPMAPI_ttEventTi
 		}
 	}
 
-    u16LastGapFraction = CEM_au16AllEdge[(CEM_u8CrankEdgeCounter - 1) % CEM_xEdgesCount] / CEM_u8PhaseRepeats;
-	tLastGapTime = CEM_tCalculateGlobalTime(tEventTime, u16LastGapFraction, CEM_aboSyncEdge[CEM_u8CrankEdgeCounter]);
+    u16LastGapFraction = CEM_au16AllEdge[(CEM_u32CrankEdgeCounter - 1) % CEM_xEdgesCount] / CEM_u8PhaseRepeats;
+	tLastGapTime = CEM_tCalculateGlobalTime(tEventTime, u16LastGapFraction, CEM_aboSyncEdge[CEM_u32CrankEdgeCounter]);
 
 	if	(CEM_enAutocorrelationMode == CEM_enTriggerType)
 	{
@@ -337,13 +344,14 @@ void CEM_vPrimaryEventCB(IOAPI_tenEHIOResource enEHIOResource, TEPMAPI_ttEventTi
 		{
 			if (TRUE == aboConfirmedFlags[u8ArrayIDX])
 			{
-				CEM_u8CrankEdgeCounter = (CEM_u8CrankEdgeCounter + 1) % CEM_xEdgesCount;
+				CEM_u32CrankEdgeCounter = (CEM_u32CrankEdgeCounter + 1) % CEM_xEdgesCount;
 				break;
 			}
 		}
 	}
 
 	CEM_tEventTimeLast = tEventTime;
+	CEM_tToothEventTimeLast = tEventTime;
 	CEM_u32CrankEdgeTimeoutCount = 0;
 
 	/* Shift the input array */
@@ -435,9 +443,9 @@ void CEM_vPrimaryEventCB(IOAPI_tenEHIOResource enEHIOResource, TEPMAPI_ttEventTi
 							{
 								CEM_au8ConfirmedAutocorrPeak[u8ArrayIDX] = CEM_au8AutocorrPeak[u8ArrayIDX];
 	
-								if (0xff == CEM_u8CrankEdgeCounter)
+								if (0xff == CEM_u32CrankEdgeCounter)
 								{
-									CEM_u8CrankEdgeCounter = CEM_au8AutocorrPeak[u8ArrayIDX];
+									CEM_u32CrankEdgeCounter = CEM_au8AutocorrPeak[u8ArrayIDX];
 								}
 							}
 						}
@@ -480,7 +488,7 @@ void CEM_vPrimaryEventCB(IOAPI_tenEHIOResource enEHIOResource, TEPMAPI_ttEventTi
 				/* Check for phase lock on any index */
 				for (uint8 u8ArrayIDX = 0; u8ArrayIDX < 4; u8ArrayIDX++)
 				{
-					if (CEM_u8CrankEdgeCounter == CEM_au8ConfirmedAutocorrPeak[u8ArrayIDX]) {boPhaseLocked = TRUE;}
+					if (CEM_u32CrankEdgeCounter == CEM_au8ConfirmedAutocorrPeak[u8ArrayIDX]) {boPhaseLocked = TRUE;}
 				}
 	
 				/* Buffer and edge count if we are phase locked */
@@ -490,15 +498,15 @@ void CEM_vPrimaryEventCB(IOAPI_tenEHIOResource enEHIOResource, TEPMAPI_ttEventTi
 					{
 						if (TRUE == aboConfirmedFlags[u8ArrayIDX])
 						{
-							CEM_u8CrankEdgeCounter = CEM_au8ConfirmedAutocorrPeak[u8ArrayIDX];
+							CEM_u32CrankEdgeCounter = CEM_au8ConfirmedAutocorrPeak[u8ArrayIDX];
 						}
 					}
 				}
 
-				CEM_u32GlobalCycleFraction += CEM_au16AllEdge[(CEM_u8CrankEdgeCounter - 1) % CEM_xEdgesCount];
+				CEM_u32GlobalCycleFraction += CEM_au16AllEdge[(CEM_u32CrankEdgeCounter - 1) % CEM_xEdgesCount];
 	
 				/* Are we at a calculation edge? */
-				if (0 == CEM_u8CrankEdgeCounter)
+				if (0 == CEM_u32CrankEdgeCounter)
 				{
 				    CEM_vSequenceReset(enEHIOResource, tEventTime, 0, boLatePhase);
 				    TEPM_vSynchroniseEventProgramKernelQueues();
@@ -527,18 +535,45 @@ void CEM_vPrimaryEventCB(IOAPI_tenEHIOResource enEHIOResource, TEPMAPI_ttEventTi
 			case CEM_enOneGroupMissing:
 			case CEM_enTypeWVEA888:
 			{
-				CEM_u32GlobalCycleFraction += CEM_au16AllEdge[(CEM_u8CrankEdgeCounter - 1) % CEM_xEdgesCount];
+				CEM_u32GlobalCycleFraction += CEM_au16AllEdge[(CEM_u32CrankEdgeCounter - 1) % CEM_xEdgesCount];
 
 		        if (au32InputArray[CEM_nEdgesMax - 1] > au32InputArray[CEM_nEdgesMax - 2] * 2)
 				{
-					if ((CEM_u8CrankEdgeCounter != CEM_u8SimpleMissingSync) &&
+					if ((CEM_u32CrankEdgeCounter != CEM_u8SimpleMissingSync) &&
 						(100 < u32EdgeCount))
 					{
-						CEM_vPhaseError(CEM_u8CrankEdgeCounter);
+						CEM_vPhaseError(CEM_u32CrankEdgeCounter);
 					} 
 
-			        CEM_u8CrankEdgeCounter = CEM_u8SimpleMissingSync;
+
+			        CEM_u32CrankEdgeCounter = CEM_u8SimpleMissingSync;
+			        CEM_u32ToothEdgeCounter = (CEM_u8SimpleMissingSync + CEM_u8MissingToothCountMax) %
+			        		CEM_xAllEdgesCount;
+
+					if (1 == CEM_u8PhaseRepeats)
+					{
+						CEM_u32CycleToothEdgeCounter = CEM_u32ToothEdgeCounter;
+					}
+					else
+					{
+						if ((CEM_u32CycleToothEdgeCounter != CEM_u32ToothEdgeCounter) &&
+								(CEM_u32CycleToothEdgeCounter != (CEM_u32ToothEdgeCounter + CEM_xAllEdgesCount)))
+						{
+							CEM_u32CycleToothEdgeCounter = CEM_u32ToothEdgeCounter;
+						}
+					}
 				}
+		        else
+		        {
+		        	CEM_u32SmallestToothTime = au32InputArray[CEM_nEdgesMax - 1];
+		        }
+
+		        /* Is tooth prior to gap/gaps */
+		        if (CEM_u8SimpleMissingSync ==
+		        		((CEM_u32CrankEdgeCounter + 1) % (CEM_xEdgesCount + CEM_u8MissingToothCountMax)))
+		        {
+					TEPM_vSetNextMissingToothInterrupt(enEHIOResource, CEM_u32SmallestToothTime, CEM_u8MissingToothCountMax);
+		        }
 
 		        /* Sync over 720 degrees */
 		        if (CEM_enTypeWVEA888 == CEM_enTriggerType)
@@ -579,12 +614,12 @@ void CEM_vPrimaryEventCB(IOAPI_tenEHIOResource enEHIOResource, TEPMAPI_ttEventTi
 						}
 					}
 		        }
-		        else if (CEM_u8CrankEdgeCounter == stSimpleCamSync.u32CamSyncSampleToothCount)
+		        else if (CEM_u32CrankEdgeCounter == stSimpleCamSync.u32CamSyncSampleToothCount)
 				{
 					boLatePhase = CEM_boGetLatePhaseSimpleCamSync();
 				}
 
-				if (0 == CEM_u8CrankEdgeCounter)
+				if (0 == CEM_u32CrankEdgeCounter)
 				{
 				    CEM_vSequenceReset(enEHIOResource, tEventTime, 0, boLatePhase);
 				    TEPM_vSynchroniseEventProgramKernelQueues();
@@ -627,50 +662,62 @@ void CEM_vPrimaryEventCB(IOAPI_tenEHIOResource enEHIOResource, TEPMAPI_ttEventTi
 					}
 				}
 
-				if ((25 == CEM_u8CrankEdgeCounter) || (53 == CEM_u8CrankEdgeCounter))
+				if ((25 == CEM_u32CrankEdgeCounter) || (53 == CEM_u32CrankEdgeCounter))
 				{
 					TEPM_vStartEventProgramKernelQueues(FALSE, 0x80);
 				}
 
-				CEM_u8CrankEdgeCounter = (CEM_u8CrankEdgeCounter + 1) % CEM_xEdgesCount;
+				CEM_u32CrankEdgeCounter = (CEM_u32CrankEdgeCounter + 1) % CEM_xEdgesCount;
+
+				if (1 == CEM_u8PhaseRepeats)
+				{
+					CEM_u32ToothEdgeCounter = (CEM_u32ToothEdgeCounter + 1) % CEM_xAllEdgesCount;
+					CEM_u32CycleToothEdgeCounter = CEM_u32ToothEdgeCounter;
+				}
+				else
+				{
+					TEPM_vRunEventToothProgramKernelQueues(FALSE, CEM_u32CycleToothEdgeCounter, CEM_u32SmallestToothTime);
+					CEM_u32CycleToothEdgeCounter = (CEM_u32CycleToothEdgeCounter + 1) % (2 * CEM_xAllEdgesCount);
+					CEM_u32ToothEdgeCounter = (CEM_u32ToothEdgeCounter + 1) % CEM_xAllEdgesCount;
+				}
 
 				break;
 			}
 			case CEM_enTypeSuzukiM15A:
 			{
-				CEM_u32GlobalCycleFraction += CEM_au16AllEdge[(CEM_u8CrankEdgeCounter - 1) % CEM_xEdgesCount];
+				CEM_u32GlobalCycleFraction += CEM_au16AllEdge[(CEM_u32CrankEdgeCounter - 1) % CEM_xEdgesCount];
 
 		        if (au32InputArray[CEM_nEdgesMax - 1] > (au32InputArray[CEM_nEdgesMax - 2] * 2))
 				{
 					/* Crank sensor gap */
-					if (((CEM_u8CrankEdgeCounter != 21) && (CEM_u8CrankEdgeCounter != 7)) &&
+					if (((CEM_u32CrankEdgeCounter != 21) && (CEM_u32CrankEdgeCounter != 7)) &&
 						(100 < u32EdgeCount))
 					{
-						CEM_vPhaseError(CEM_u8CrankEdgeCounter);
+						CEM_vPhaseError(CEM_u32CrankEdgeCounter);
 					} 
 
-					CEM_u8CrankEdgeCounter++;
+					CEM_u32CrankEdgeCounter++;
 
 					u8SameGapCount = 0;
 
-					CEM_u8CrankEdgeCounter = 30 <= CEM_u8CrankEdgeCounter ? 1 : CEM_u8CrankEdgeCounter;
+					CEM_u32CrankEdgeCounter = 30 <= CEM_u32CrankEdgeCounter ? 1 : CEM_u32CrankEdgeCounter;
 				}
 		        else if (au32InputArray[CEM_nEdgesMax - 1] < (au32InputArray[CEM_nEdgesMax - 2] / 2))
 				/* Crank sensor end gap */
 		        {
-			        if (((CEM_u8CrankEdgeCounter != 22) && (CEM_u8CrankEdgeCounter != 9)) &&
+			        if (((CEM_u32CrankEdgeCounter != 22) && (CEM_u32CrankEdgeCounter != 9)) &&
 			        (100 < u32EdgeCount))
 			        {
-				        CEM_vPhaseError(CEM_u8CrankEdgeCounter);
+				        CEM_vPhaseError(CEM_u32CrankEdgeCounter);
 			        }
 
 					if (0 < u8SameGapCount)
 					{
-						CEM_u8CrankEdgeCounter = 10;
+						CEM_u32CrankEdgeCounter = 10;
 					}
 					else
 					{
-						CEM_u8CrankEdgeCounter = 23;
+						CEM_u32CrankEdgeCounter = 23;
 						CEM_u32GlobalCycleFraction = CEM_au16AllEdge[0] + CEM_au16AllEdge[1];
 					}
 
@@ -680,16 +727,16 @@ void CEM_vPrimaryEventCB(IOAPI_tenEHIOResource enEHIOResource, TEPMAPI_ttEventTi
 				{
 					/* Crank sensor same gap */
 					u8SameGapCount++;
-					CEM_u8CrankEdgeCounter++;
+					CEM_u32CrankEdgeCounter++;
 				}
 
 
-				if (31 == CEM_u8CrankEdgeCounter)
+				if (31 == CEM_u32CrankEdgeCounter)
 				{
 					CEM_u32GlobalCycleFraction &= 0x10000;
 				    CEM_vSequenceReset(enEHIOResource, tEventTime, 0, boLatePhase);
 				    TEPM_vSynchroniseEventProgramKernelQueues();
-					CEM_u8CrankEdgeCounter = 1;
+					CEM_u32CrankEdgeCounter = 1;
 				}
 
 				if (1 == CEM_u8PhaseRepeats)
@@ -738,7 +785,7 @@ void CEM_vPrimaryEventCB(IOAPI_tenEHIOResource enEHIOResource, TEPMAPI_ttEventTi
 		}
 	
 
-		if ((1u != ((CEM_u8CrankEdgeCounter - u8PhasePrev) % CEM_xEdgesCount)) && (TRUE == boPhaseLocked))
+		if ((1u != ((CEM_u32CrankEdgeCounter - u8PhasePrev) % CEM_xEdgesCount)) && (TRUE == boPhaseLocked))
 		{
 			CEM_vPhaseError(0);
 		}
@@ -911,6 +958,7 @@ static void CEM_vSequenceReset(IOAPI_tenEHIOResource enEHIOResource, TEPMAPI_ttE
 			{
 				u32SequenceIDX = 0;
 				CEM_u32GlobalCycleFraction = u32OriginGlobalCycleFraction;
+				CEM_u32CycleToothEdgeCounter = 0;
 			}
 			else
 			{
@@ -934,7 +982,7 @@ static void CEM_vSequenceReset(IOAPI_tenEHIOResource enEHIOResource, TEPMAPI_ttE
 	}
 
 	
-	if (1 < CEM_u32GlobalCycleOriginCount)//matthew
+	if (1 < CEM_u32GlobalCycleOriginCount)
 	{
 		TEPM_vStartEventProgramKernelQueues(FALSE, u32SequenceIDX);	
 	}
@@ -956,6 +1004,7 @@ void CEM_vPhaseEventCB(IOAPI_tenEHIOResource enEHIOResource, TEPMAPI_ttEventTime
 
 		if (IOAPI_enLow == enTriState)
 		{
+			/* Note signal is internally inverted */
 			CEM_atLastVVTLowTime[0] = TEPMHA_nCounterMask & (tEventTime - CEM_atLastVVTTimer[0]);
 		}
 		else
@@ -990,21 +1039,22 @@ void CEM_vSetupSimpleCamSync(IOAPI_tenEHIOResource enEHIOResource, bool boCamSyn
 void CEM_vFreqEventCB(IOAPI_tenEHIOResource enEHIOResource, TEPMAPI_ttEventTime tEventTime)
 {
 	static uint32 u32OldOSTick;
-	volatile static uint32 samples[100];
-	static uint32 counter;
 	static uint32 u32TimeOld;
-	static uint32 u32Temp;
+	static uint32 u32Sum;
+	static uint32 u32SampleCount;
+	uint32 u32Sample;
 	static uint32 u32ErrCount;
+	static uint32 u32SampleOld;
 
-	samples[counter] = (tEventTime - u32TimeOld) & TEPMHA_nCounterMask;
+	u32Sample = (tEventTime - u32TimeOld) & TEPMHA_nCounterMask;
 
-	u32Temp -= 5;
-	u32Temp *= 2;
+	u32SampleOld -= 5;
+	u32SampleOld *= 2;
 
-	if ((u32Temp < samples[counter]) &&
+	if ((u32Sample > u32SampleOld) &&
 		(2 > u32ErrCount))
 	{
-		samples[counter] /= 2;
+		u32Sample /= 2;
 		u32ErrCount++;
 	}
 	else
@@ -1012,14 +1062,22 @@ void CEM_vFreqEventCB(IOAPI_tenEHIOResource enEHIOResource, TEPMAPI_ttEventTime 
 		u32ErrCount = 0;
 	}
 
-	u32Temp = samples[counter];
+	u32SampleOld = u32Sample;
+	u32Sum += u32Sample;
+	u32SampleCount++;
 
 	if (OS_u32TickCounter > (u32OldOSTick + 1))
 	{
-		TEPM_vInitiateUserCallBack(enEHIOResource, samples[counter]);
+		TEPM_vInitiateUserCallBack(enEHIOResource, u32Sum / u32SampleCount);
 		u32OldOSTick = OS_u32TickCounter;
+		u32Sum = 0;
+		u32SampleCount = 0;
 	}
 
-	counter = (counter + 1) % 100;
 	u32TimeOld = tEventTime;
+}
+
+uint32 CEM_u32GetAllEdgesCount(void)
+{
+	return CEM_xAllEdgesCount;
 }

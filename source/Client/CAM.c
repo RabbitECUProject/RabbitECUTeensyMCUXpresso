@@ -24,6 +24,7 @@
 #include "CAM.h"
 #include "CTS.h"
 #include "FME.h"
+#include "diag.h"
 
 
 /* LOCAL VARIABLE DEFINITIONS (STATIC) ****************************************/
@@ -118,6 +119,9 @@ void CAM_vEngineSpeedCB(TEPMAPI_ttEventTime tEventTime)
 	uint32 u32Temp;
 	sint32 s32Temp;
 	
+	/* Suppress early false alarm crank events */
+	if (500 > USERDIAG_u32GlobalTimeTick) return;
+
 	CAM_u32RPMRawOld = CAM_u32RPMRaw;
 	CAM_u32RPMRaw = CAM_xTicksToRPM(tEventTime);
 	
@@ -171,6 +175,8 @@ void CAM_vEngineSpeedCB(TEPMAPI_ttEventTime tEventTime)
 	{
 		TPS_u32TipInEnrichment = 1000;
 	}
+
+	SENSORS_vCycleUpdate();
 }
 
 #endif //BUILD_USER

@@ -118,7 +118,7 @@ void MAP_vStart(puint32 const pu32Arg)
 	/* Request and initialise required Kernel managed table for Pseudo MAP */
 	MAP_tMapPseudoMAPIDX = SETUP_tSetupMap((void*)&USERCAL_stRAMCAL.aUserPseudoMAPMap, (void*)&MAP_u32PseudoMAP, TYPE_enUInt32, 17, 17, MAP_tSpreadPseudoMAPxIDX, MAP_tSpreadPseudoMAPyIDX, NULL);
 
-
+	MAP_tBoostTarget = 150000;
 }
 
 void MAP_vRun(puint32 const pu32Arg)
@@ -137,6 +137,7 @@ void MAP_vRun(puint32 const pu32Arg)
 	uint32 u32TableIDXy = ~0;
 	uint8 u8MapFilter = 0x40;
 	uint32 u32Temp;
+	uint8 u8Temp;
 	uint32 u32TPSWeightLimit;
 
 
@@ -301,6 +302,7 @@ void MAP_vRun(puint32 const pu32Arg)
 	MAP_boBoostETCCutEnable = 140000 < MAP_tKiloPaFiltered ? TRUE : MAP_boBoostETCCutEnable;
 	MAP_boBoostETCCutEnable = 101300 > MAP_tKiloPaFiltered ? FALSE : MAP_boBoostETCCutEnable;
 
+	u8Temp = ((7 > TORQUE_u8ATXSelectedGear) && (0 < TORQUE_u8ATXSelectedGear)) ? TORQUE_u8ATXSelectedGear - 1 : 0;
 
 	if (TRUE == USERCAL_stRAMCAL.u8LaunchBoostEnable)
 	{
@@ -309,27 +311,51 @@ void MAP_vRun(puint32 const pu32Arg)
 			u32Temp = SENSORS_u16CANVSS * USERCAL_stRAMCAL.u16LaunchMidBoostMax;
 			u32Temp += (USERCAL_stRAMCAL.u16LaunchMidVSS - SENSORS_u16CANVSS) * USERCAL_stRAMCAL.u16LaunchStoppedBoostMax;
 			u32Temp /= USERCAL_stRAMCAL.u16LaunchMidVSS;
-			s32Temp = MAP_tKiloPaFiltered - (10 * u32Temp);
+			u32Temp *= 10;
 		}
 		else if (USERCAL_stRAMCAL.u16LaunchEndVSS > SENSORS_u16CANVSS)
 		{
 			u32Temp = (SENSORS_u16CANVSS - USERCAL_stRAMCAL.u16LaunchMidVSS) * USERCAL_stRAMCAL.u16LaunchEndBoostMax;
 			u32Temp += (USERCAL_stRAMCAL.u16LaunchEndVSS - SENSORS_u16CANVSS) * USERCAL_stRAMCAL.u16LaunchMidBoostMax;
 			u32Temp /= (USERCAL_stRAMCAL.u16LaunchEndVSS - USERCAL_stRAMCAL.u16LaunchMidVSS);
-			s32Temp = MAP_tKiloPaFiltered - (10 * u32Temp);
+			u32Temp *= 10;
 		}
 		else
 		{
 			/* Simple boost error based on gear boost target */
-			s32Temp = MAP_tKiloPaFiltered - (USERCAL_stRAMCAL.au16BoostTarget[5] * 10);
+			u32Temp = USERCAL_stRAMCAL.au16BoostTarget[u8Temp] * 10;
 		}
 	}
 	else
 	{
 		/* Simple boost error based on gear boost target */
-		s32Temp = MAP_tKiloPaFiltered - (USERCAL_stRAMCAL.au16BoostTarget[5] * 10);
+		u32Temp = USERCAL_stRAMCAL.au16BoostTarget[u8Temp] * 10;
 	}
 
+	if (MAP_tBoostTarget > u32Temp)
+	{
+		MAP_tBoostTarget = u32Temp;
+	}
+	else
+	{
+		if (MAP_BOOST_POS_DELTA_PER_MS < (u32Temp - MAP_tBoostTarget))
+		{
+			if (0 != TORQUE_u16GearShiftCount)
+			{
+				MAP_tBoostTarget += 10;
+			}
+			else
+			{
+				MAP_tBoostTarget += MAP_BOOST_POS_DELTA_PER_MS;
+			}
+		}
+		else
+		{
+			MAP_tBoostTarget = u32Temp;
+		}
+	}
+
+	s32Temp = (sint32)MAP_tKiloPaFiltered - (sint32)MAP_tBoostTarget;
 
 	if (s32Temp > (MAP_tKiloPaTargetError + USERCAL_stRAMCAL.u16PressureControlHyst))
 	{

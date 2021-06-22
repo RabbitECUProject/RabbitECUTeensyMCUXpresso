@@ -33,6 +33,11 @@ uint16 SENSORS_au16ADSensorValue[SENSORS_enADCount];
 uint16 SENSORS_au16ADSensorFiltered[SENSORS_enADCount];
 SPREADAPI_ttSpreadIDX SENSORS_tSpreadPedalTransferIDX;
 TABLEAPI_ttTableIDX SENSORS_tTablePedalTransferIDX;
+uint32 SENSORS_u32HertzSamplesSumRunning;
+uint32 SENSORS_u32HertzSamplesSumReady;
+uint32 SENSORS_u32HertzSampleCountRunning;
+uint32 SENSORS_u32HertzSampleCountReady;
+bool SENSORS_boHertzCalcPending;
 
 
 /* LOCAL FUNCTION PROTOTYPES (STATIC) *****************************************/
@@ -318,7 +323,7 @@ void SENSORS_vRun(puint32 const pu32Arg)
 	uint8 u8TriggerHystLow = 2 - USERCAL_stRAMCAL.u8TriggerPullStrength;
 	uint8 u8TriggerHystHigh = 4 + USERCAL_stRAMCAL.u8TriggerPullStrength;
 	uint32 u32AUXIDX = SENSORS_u32RunCounter & 0x7;
-	uint16 u32Temp;
+	uint32 u32Temp;
 	static bool boSensorRPMHystLimit;
 
 	boSensorRPMHystLimit = USERCAL_stRAMCAL.u16SensorHystLimitRPM > CAM_u32RPMFiltered ? FALSE : boSensorRPMHystLimit;
@@ -516,6 +521,13 @@ void SENSORS_vRun(puint32 const pu32Arg)
 				TPS_tSensorVolts);
 	}
 #endif //BUILD_FME
+
+	if (TRUE == SENSORS_boHertzCalcPending)
+	{
+		u32Temp = SENSORS_nSlowFTMFreq * SENSORS_u32HertzSampleCountReady;
+		AFM_tSensorHertz = u32Temp / SENSORS_u32HertzSamplesSumReady;
+		SENSORS_boHertzCalcPending = FALSE;
+	}
 
 	SENSORS_u32RunCounter++;
 }
@@ -788,42 +800,24 @@ static void SENSORS_vADCCallBack(IOAPI_tenEHIOResource enEHIOResource, uint32 u3
 
 static void SENSORS_vCEMCallBack(IOAPI_tenEHIOResource enEHIOResource, TEPMAPI_ttEventTime tEventTime)
 {
-	uint32 u32Hertz;
 	uint32 u32Temp;
-	static uint32 au32Hertz[SENSORS_nAFMHertzSamples];
-	static uint32 u32HertzSampleIDX;
-
 
 	switch (enEHIOResource)
 	{
 		case CRANK_nInput:
 		{
-		    CAM_vEngineSpeedCB(tEventTime);		
+		    CAM_vEngineSpeedCB(tEventTime);
+
 			break;	
 		}
 #ifdef BUILD_BSP_AFM_FREQ
 		case AFM_FREQ_nInput:
 		{
-			au32Hertz[u32HertzSampleIDX] = (uint32)SENSORS_nSlowFTMFreq / tEventTime;
-			u32Hertz = USERMATH_u32DiscardAndAverage32(au32Hertz, SENSORS_nAFMHertzSamples, 1);
-
-			u32Temp = 20 + (TPS_tThetaFiltered / 1500);
-
-			if ((AFM_tSensorHertz + u32Temp) < u32Hertz)
+			if (SENSORS_nHertzSamplesMax > SENSORS_u32HertzSampleCountRunning)
 			{
-				AFM_tSensorHertz += u32Temp;
+				SENSORS_u32HertzSamplesSumRunning += tEventTime;
+				SENSORS_u32HertzSampleCountRunning++;
 			}
-			else if (((AFM_tSensorHertz - u32Temp) > u32Hertz) &&
-					(100u < AFM_tSensorHertz))
-			{
-				AFM_tSensorHertz -= u32Temp;
-			}
-			else
-			{
-				AFM_tSensorHertz = u32Hertz;
-			}
-
-			u32HertzSampleIDX = (u32HertzSampleIDX + 1) % SENSORS_nAFMHertzSamples;
 
 			break;
 		}
@@ -866,6 +860,15 @@ bool SENSORS_boGetAuxActive(SENSORS_tenAUXConfig enAUXConfig)
 	}
 
 	return boActive;
+}
+
+void SENSORS_vCycleUpdate(void)
+{
+	SENSORS_u32HertzSamplesSumReady = SENSORS_u32HertzSamplesSumRunning;
+	SENSORS_u32HertzSampleCountReady = SENSORS_u32HertzSampleCountRunning;
+	SENSORS_boHertzCalcPending = TRUE;
+	SENSORS_u32HertzSamplesSumRunning = 0;
+	SENSORS_u32HertzSampleCountRunning = 0;
 }
 
 
