@@ -84,28 +84,21 @@ void TORQUE_vRun(puint32 const pu32Arg)
 		TORQUE_u32TorqueModelEstimateScaled	= 0;
 	}
 
-
-	if (26000 >= TPS_tThetaFiltered)
+	if (6000 < TPS_tThetaFiltered)
 	{
-		if (6000 < TPS_tThetaFiltered)
-		{
-			u32Temp = (TPS_tThetaFiltered - 6000) / 120;
-		}
-		else
-		{
-			u32Temp = 0;
-		}
+		u32Temp = (TPS_tThetaFiltered - 6000) / 90;
+		u32Temp = 0x100 > u32Temp ? u32Temp : 0xff;
 	}
 	else
 	{
-		u32Temp = 164 + (TPS_tThetaFiltered - 26000) / 700;
+		u32Temp = 0;
 	}
 
 	if (20000 < MAP_tKiloPaFiltered)
 	{
-		if (122000 > MAP_tKiloPaFiltered)
+		if (150000 > MAP_tKiloPaFiltered)
 		{
-			TORQUE_u32OutputTorqueEstimate = u32Temp / 2 + ((MAP_tKiloPaFiltered - 20000) / 800);
+			TORQUE_u32OutputTorqueEstimate = u32Temp / 2 + ((MAP_tKiloPaFiltered - 20000) / 1020);
 		}
 		else
 		{

@@ -420,7 +420,7 @@ void USERDIAG_vRun(puint32 const pu32Arg)
 			u32Temp = DIAG_u8PedalPositionReport;
 			stCANMsg.u32DWL |= (u32Temp << 16);
 
-			if (6000 < TPS_tThetaFiltered)
+			if (6000 < TPS_tThetaFiltered)//matthew bad!
 			{
 				stCANMsg.u32DWH &= 0x00ffffff;
 			}

@@ -136,7 +136,7 @@ SPREADAPI_ttSpreadIDX SETUP_tSetupSpread(void* pvSourceData, void* pvSpreadData,
 
 void SETUP_vSetupDigitalIO(IOAPI_tenEHIOResource enEHIOResource, IOAPI_tenEHIOType enEHIOType, IOAPI_tenDriveStrength enDriveStrength, puint32 pu32Arg)
 {	
-	if (EH_IO_Invalid != enEHIOResource)
+	if ((EH_IO_Invalid != enEHIOResource) && (IO_Total_Discrete_Count > enEHIOResource))
 	{
 		USER_vSVC(SYSAPI_enRequestIOResource, (void*)&enEHIOResource,	(void*)NULL, (void*)NULL);	
 		

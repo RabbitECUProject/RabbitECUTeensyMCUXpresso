@@ -48,52 +48,55 @@
 	{ 20u, enTaskFunction	, 78u                   , enTaskReady, TASKAPI_enTaskCycNot	, &CTRL_vStart			, NULL,	NULL, 0u   		, 0u     		 , 0u 			 ,	 0u		, enTaskPrivileged	},\
 	{ 21u, enTaskFunction	, 78u                   , enTaskReady, TASKAPI_enTaskCycNot	, &TEPM_vStart			, NULL,	NULL, 0u   		, 0u     		 , 0u 			 ,	 0u		, enTaskPrivileged	},\
 	{ 22u, enTaskFunction	, 78u                   , enTaskReady, TASKAPI_enTaskCycNot	, &VCOM_vStart			, NULL,	NULL, 0u   		, 0u     		 , 0u 			 ,	 0u		, enTaskPrivileged	},\
-	{ 23u, enTaskFunction	, 78u                   , enTaskReady, TASKAPI_enTaskCycNot	, &SRLTFR_vStart		, NULL,	NULL, 0u   		, 0u     		 , 0u 			 ,	 0u		, enTaskPrivileged	} \
+	{ 23u, enTaskFunction	, 78u                   , enTaskReady, TASKAPI_enTaskCycNot	, &CEM_vStart			, NULL,	NULL, 0u   		, 0u     		 , 0u 			 ,	 0u		, enTaskPrivileged	},\
+	{ 24u, enTaskFunction	, 78u                   , enTaskReady, TASKAPI_enTaskCycNot	, &SRLTFR_vStart		, NULL,	NULL, 0u   		, 0u     		 , 0u 			 ,	 0u		, enTaskPrivileged	} \
 }
 
 #define OS_nTaskCyclic 																																																																										\
 /* enTaskID, 					enType, 		enPriority,     enState,      enRateMS, 				pfFunction,	 tSP,  tPC, tsCreated,  tsStarted, tsFinished, tsAccumulated, tsPrivilege */\
 {																																																																																					\
-	{ 24u    , enTaskCyclic		, TASKAPI_enTaskPrMaxCyc, enTaskReady, 100u					, &UART_vRun				, NULL,	NULL, 0u   		, 0u     		 , 0u 			 ,	 0u		, enTaskPrivileged	},\
-	{ 25u    , enTaskCyclic		, 101u          , enTaskReady, 10u						, &UDSAL_vRun				, NULL,	NULL, 0u   		, 0u     		 , 0u 			 ,	 0u		, enTaskPrivileged	},\
-	{ 26u    , enTaskCyclic		, 180u          , enTaskReady, 20u					, &PIM_vRun					, NULL,	NULL, 0u   		, 0u     		 , 0u 			 ,	 0u		, enTaskPrivileged	},\
-	{ 27u    , enTaskCyclic		, 115u          , enTaskReady, 20u					, &ADC_vRun					, NULL,	NULL, 0u   		, 0u     		 , 0u 			 ,	 0u		, enTaskPrivileged	},\
-	{ 28u    , enTaskCyclic		, 115u          , enTaskReady, 20u					, &DAC_vRun					, NULL,	NULL, 0u   		, 0u     		 , 0u 			 ,	 0u		, enTaskPrivileged	},\
-	{ 29u    , enTaskCyclic		, 110u          , enTaskReady, 20u					, &PIT_vRun					, NULL,	NULL, 0u   		, 0u     		 , 0u 			 ,	 0u		, enTaskPrivileged	},\
-	{ 30u    , enTaskCyclic		, 200u          , enTaskReady, 1u						, &DLL_vRun					, NULL,	NULL, 0u   		, 0u     		 , 0u 			 ,	 0u		, enTaskPrivileged	},\
-	{ 31u    , enTaskCyclic		, 166u          , enTaskReady, 1u						, &FEE_vRun					, NULL,	NULL, 0u   		, 0u     		 , 0u 			 ,	 0u		, enTaskPrivileged	},\
-	{ 32u    , enTaskCyclic		, 166u          , enTaskReady, 250u					, &DSCRIO_vRun			, NULL,	NULL, 0u   		, 0u     		 , 0u 			 ,	 0u		, enTaskPrivileged	},\
-	{ 33u    , enTaskCyclic		, 166u          , enTaskReady, 250u					, &SDHC_vRun				, NULL,	NULL, 0u   		, 0u     		 , 0u 			 ,	 0u		, enTaskPrivileged	},\
-	{ 34u    , enTaskCyclic		, 166u          , enTaskReady, 250u					, &DISK_vRun				, NULL,	NULL, 0u   		, 0u     		 , 0u 			 ,	 0u		, enTaskPrivileged	},\
-	{ 35u    , enTaskCyclic		, 166u          , enTaskReady, 250u					, &TIME_vRun				, NULL,	NULL, 0u   		, 0u     		 , 0u 			 ,	 0u		, enTaskPrivileged	},\
-	{ 36u    , enTaskCyclic		, 19u           , enTaskReady, 1u						, &CAN_vRun					, NULL,	NULL, 0u   		, 0u     		 , 0u 			 ,	 0u		, enTaskPrivileged	},\
-	{ 37u    , enTaskCyclic		, 19u           , enTaskReady, 1u						, &CTRL_vRun				, NULL,	NULL, 0u   		, 0u     		 , 0u 			 ,	 0u		, enTaskPrivileged	},\
-	{ 38u    , enTaskCyclic		, 19u           , enTaskReady, 1u						, &TEPM_vRun				, NULL,	NULL, 0u   		, 0u     		 , 0u 			 ,	 0u		, enTaskPrivileged	},\
-	{ 39u    , enTaskCyclic		, 19u           , enTaskReady, 1u						, &CRC16_vRun				, NULL,	NULL, 0u   		, 0u     		 , 0u 			 ,	 0u		, enTaskPrivileged	},\
-	{ 40u    , enTaskCyclic		, 19u           , enTaskReady, 1u						, &VCOM_vRun				, NULL,	NULL, 0u   		, 0u     		 , 0u 			 ,	 0u		, enTaskPrivileged	},\
-	{ 41u    , enTaskCyclic		, 19u           , enTaskReady, 5u						, &SRLTFR_vRun			, NULL,	NULL, 0u   		, 0u     		 , 0u 			 ,	 0u		, enTaskPrivileged	} \
+	{ 25u    , enTaskCyclic		, TASKAPI_enTaskPrMaxCyc, enTaskReady, 100u					, &UART_vRun				, NULL,	NULL, 0u   		, 0u     		 , 0u 			 ,	 0u		, enTaskPrivileged	},\
+	{ 26u    , enTaskCyclic		, 101u          , enTaskReady, 10u						, &UDSAL_vRun				, NULL,	NULL, 0u   		, 0u     		 , 0u 			 ,	 0u		, enTaskPrivileged	},\
+	{ 27u    , enTaskCyclic		, 180u          , enTaskReady, 20u					, &PIM_vRun					, NULL,	NULL, 0u   		, 0u     		 , 0u 			 ,	 0u		, enTaskPrivileged	},\
+	{ 28u    , enTaskCyclic		, 115u          , enTaskReady, 20u					, &ADC_vRun					, NULL,	NULL, 0u   		, 0u     		 , 0u 			 ,	 0u		, enTaskPrivileged	},\
+	{ 29u    , enTaskCyclic		, 115u          , enTaskReady, 20u					, &DAC_vRun					, NULL,	NULL, 0u   		, 0u     		 , 0u 			 ,	 0u		, enTaskPrivileged	},\
+	{ 30u    , enTaskCyclic		, 110u          , enTaskReady, 20u					, &PIT_vRun					, NULL,	NULL, 0u   		, 0u     		 , 0u 			 ,	 0u		, enTaskPrivileged	},\
+	{ 31u    , enTaskCyclic		, 200u          , enTaskReady, 1u						, &DLL_vRun					, NULL,	NULL, 0u   		, 0u     		 , 0u 			 ,	 0u		, enTaskPrivileged	},\
+	{ 32u    , enTaskCyclic		, 166u          , enTaskReady, 1u						, &FEE_vRun					, NULL,	NULL, 0u   		, 0u     		 , 0u 			 ,	 0u		, enTaskPrivileged	},\
+	{ 33u    , enTaskCyclic		, 166u          , enTaskReady, 250u					, &DSCRIO_vRun			, NULL,	NULL, 0u   		, 0u     		 , 0u 			 ,	 0u		, enTaskPrivileged	},\
+	{ 34u    , enTaskCyclic		, 166u          , enTaskReady, 250u					, &SDHC_vRun				, NULL,	NULL, 0u   		, 0u     		 , 0u 			 ,	 0u		, enTaskPrivileged	},\
+	{ 35u    , enTaskCyclic		, 166u          , enTaskReady, 250u					, &DISK_vRun				, NULL,	NULL, 0u   		, 0u     		 , 0u 			 ,	 0u		, enTaskPrivileged	},\
+	{ 36u    , enTaskCyclic		, 166u          , enTaskReady, 250u					, &TIME_vRun				, NULL,	NULL, 0u   		, 0u     		 , 0u 			 ,	 0u		, enTaskPrivileged	},\
+	{ 37u    , enTaskCyclic		, 19u           , enTaskReady, 1u						, &CAN_vRun					, NULL,	NULL, 0u   		, 0u     		 , 0u 			 ,	 0u		, enTaskPrivileged	},\
+	{ 38u    , enTaskCyclic		, 19u           , enTaskReady, 1u						, &CTRL_vRun				, NULL,	NULL, 0u   		, 0u     		 , 0u 			 ,	 0u		, enTaskPrivileged	},\
+	{ 39u    , enTaskCyclic		, 19u           , enTaskReady, 1u						, &TEPM_vRun				, NULL,	NULL, 0u   		, 0u     		 , 0u 			 ,	 0u		, enTaskPrivileged	},\
+	{ 40u    , enTaskCyclic		, 19u           , enTaskReady, 1u						, &CRC16_vRun				, NULL,	NULL, 0u   		, 0u     		 , 0u 			 ,	 0u		, enTaskPrivileged	},\
+	{ 41u    , enTaskCyclic		, 19u           , enTaskReady, 1u						, &VCOM_vRun				, NULL,	NULL, 0u   		, 0u     		 , 0u 			 ,	 0u		, enTaskPrivileged	},\
+	{ 42u    , enTaskCyclic		, 19u           , enTaskReady, 5u						, &CEM_vRun				, NULL,	NULL, 0u   		, 0u     		 , 0u 			 ,	 0u		, enTaskPrivileged	},\
+	{ 43u    , enTaskCyclic		, 19u           , enTaskReady, 5u						, &SRLTFR_vRun			, NULL,	NULL, 0u   		, 0u     		 , 0u 			 ,	 0u		, enTaskPrivileged	} \
 }
 
 #define OS_nTaskTerminate																																																																									\
 /* enTaskID, 					enType, 		enPriority,     enState,      enRateMS,     		pfFunction,	 tSP,  tPC, tsCreated,  tsStarted, tsFinished, tsAccumulated, tsPrivilege */\
 {																																																																																					\
-	{ 42u    , enTaskFunction	, TASKAPI_enTaskPrMaxAll, enTaskReady, TASKAPI_enTaskCycNot	, &UART_vTerminate	, NULL,	NULL, 0u   		, 0u     		 , 0u 			 ,	 0u		, enTaskPrivileged	},\
-	{ 43u    , enTaskFunction	, TASKAPI_enTaskPrMaxAll, enTaskReady, TASKAPI_enTaskCycNot	, &UDSAL_vTerminate	, NULL,	NULL, 0u   		, 0u     		 , 0u 			 ,	 0u		, enTaskPrivileged	},\
-	{ 44u    , enTaskFunction	, TASKAPI_enTaskPrMaxAll, enTaskReady, TASKAPI_enTaskCycNot	, &PIM_vTerminate		, NULL,	NULL, 0u   		, 0u     		 , 0u 			 ,	 0u		, enTaskPrivileged	},\
-	{ 45u    , enTaskFunction	, TASKAPI_enTaskPrMaxAll, enTaskReady, TASKAPI_enTaskCycNot	, &ADC_vTerminate		, NULL,	NULL, 0u   		, 0u     		 , 0u 			 ,	 0u		, enTaskPrivileged	},\
-	{ 46u    , enTaskFunction	, TASKAPI_enTaskPrMaxAll, enTaskReady, TASKAPI_enTaskCycNot	, &DAC_vTerminate		, NULL,	NULL, 0u   		, 0u     		 , 0u 			 ,	 0u		, enTaskPrivileged	},\
-	{ 47u    , enTaskFunction	, TASKAPI_enTaskPrMaxAll, enTaskReady, TASKAPI_enTaskCycNot	, &PIT_vTerminate		, NULL,	NULL, 0u   		, 0u     		 , 0u 			 ,	 0u		, enTaskPrivileged	},\
-	{ 48u    , enTaskFunction	, TASKAPI_enTaskPrMaxAll, enTaskReady, TASKAPI_enTaskCycNot	, &DLL_vTerminate		, NULL,	NULL, 0u   		, 0u     		 , 0u 			 ,	 0u		, enTaskPrivileged	},\
-	{ 49u    , enTaskFunction	, TASKAPI_enTaskPrMaxAll, enTaskReady, TASKAPI_enTaskCycNot	, &FEE_vTerminate		, NULL,	NULL, 0u   		, 0u     		 , 0u 			 ,	 0u		, enTaskPrivileged	},\
-	{ 50u    , enTaskFunction	, TASKAPI_enTaskPrMaxAll, enTaskReady, TASKAPI_enTaskCycNot	, &DSCRIO_vTerminate, NULL,	NULL, 0u   		, 0u     		 , 0u 			 ,	 0u		, enTaskPrivileged	},\
-	{ 51u    , enTaskFunction	, TASKAPI_enTaskPrMaxAll, enTaskReady, TASKAPI_enTaskCycNot	, &SDHC_vTerminate	, NULL,	NULL, 0u   		, 0u     		 , 0u 			 ,	 0u		, enTaskPrivileged	},\
-	{ 52u    , enTaskFunction	, TASKAPI_enTaskPrMaxAll, enTaskReady, TASKAPI_enTaskCycNot	, &DISK_vTerminate	, NULL,	NULL, 0u   		, 0u     		 , 0u 			 ,	 0u		, enTaskPrivileged	},\
-	{ 53u    , enTaskFunction	, TASKAPI_enTaskPrMaxAll, enTaskReady, TASKAPI_enTaskCycNot	, &TIME_vTerminate	, NULL,	NULL, 0u   		, 0u     		 , 0u 			 ,	 0u		, enTaskPrivileged	},\
-	{ 54u    , enTaskFunction	, TASKAPI_enTaskPrMaxAll, enTaskReady, TASKAPI_enTaskCycNot	, &TIMER_vTerminate	, NULL,	NULL, 0u   		, 0u     		 , 0u 			 ,	 0u		, enTaskPrivileged	},\
-	{ 55u    , enTaskFunction	, TASKAPI_enTaskPrMaxAll, enTaskReady, TASKAPI_enTaskCycNot	, &CAN_vTerminate		, NULL,	NULL, 0u   		, 0u     		 , 0u 			 ,	 0u		, enTaskPrivileged	},\
-	{ 56u    , enTaskFunction	, TASKAPI_enTaskPrMaxAll, enTaskReady, TASKAPI_enTaskCycNot	, &CRC16_vTerminate	, NULL,	NULL, 0u   		, 0u     		 , 0u 			 ,	 0u		, enTaskPrivileged	},\
-	{ 57u    , enTaskFunction	, TASKAPI_enTaskPrMaxAll, enTaskReady, TASKAPI_enTaskCycNot	, &VCOM_vTerminate	, NULL,	NULL, 0u   		, 0u     		 , 0u 			 ,	 0u		, enTaskPrivileged	},\
-	{ 58u    , enTaskFunction	, TASKAPI_enTaskPrMaxAll, enTaskReady, TASKAPI_enTaskCycNot	, &SRLTFR_vTerminate, NULL,	NULL, 0u   		, 0u     		 , 0u 			 ,	 0u		, enTaskPrivileged	} \
+	{ 44u    , enTaskFunction	, TASKAPI_enTaskPrMaxAll, enTaskReady, TASKAPI_enTaskCycNot	, &UART_vTerminate	, NULL,	NULL, 0u   		, 0u     		 , 0u 			 ,	 0u		, enTaskPrivileged	},\
+	{ 45u    , enTaskFunction	, TASKAPI_enTaskPrMaxAll, enTaskReady, TASKAPI_enTaskCycNot	, &UDSAL_vTerminate	, NULL,	NULL, 0u   		, 0u     		 , 0u 			 ,	 0u		, enTaskPrivileged	},\
+	{ 46u    , enTaskFunction	, TASKAPI_enTaskPrMaxAll, enTaskReady, TASKAPI_enTaskCycNot	, &PIM_vTerminate		, NULL,	NULL, 0u   		, 0u     		 , 0u 			 ,	 0u		, enTaskPrivileged	},\
+	{ 47u    , enTaskFunction	, TASKAPI_enTaskPrMaxAll, enTaskReady, TASKAPI_enTaskCycNot	, &ADC_vTerminate		, NULL,	NULL, 0u   		, 0u     		 , 0u 			 ,	 0u		, enTaskPrivileged	},\
+	{ 48u    , enTaskFunction	, TASKAPI_enTaskPrMaxAll, enTaskReady, TASKAPI_enTaskCycNot	, &DAC_vTerminate		, NULL,	NULL, 0u   		, 0u     		 , 0u 			 ,	 0u		, enTaskPrivileged	},\
+	{ 49u    , enTaskFunction	, TASKAPI_enTaskPrMaxAll, enTaskReady, TASKAPI_enTaskCycNot	, &PIT_vTerminate		, NULL,	NULL, 0u   		, 0u     		 , 0u 			 ,	 0u		, enTaskPrivileged	},\
+	{ 50u    , enTaskFunction	, TASKAPI_enTaskPrMaxAll, enTaskReady, TASKAPI_enTaskCycNot	, &DLL_vTerminate		, NULL,	NULL, 0u   		, 0u     		 , 0u 			 ,	 0u		, enTaskPrivileged	},\
+	{ 51u    , enTaskFunction	, TASKAPI_enTaskPrMaxAll, enTaskReady, TASKAPI_enTaskCycNot	, &FEE_vTerminate		, NULL,	NULL, 0u   		, 0u     		 , 0u 			 ,	 0u		, enTaskPrivileged	},\
+	{ 52u    , enTaskFunction	, TASKAPI_enTaskPrMaxAll, enTaskReady, TASKAPI_enTaskCycNot	, &DSCRIO_vTerminate, NULL,	NULL, 0u   		, 0u     		 , 0u 			 ,	 0u		, enTaskPrivileged	},\
+	{ 53u    , enTaskFunction	, TASKAPI_enTaskPrMaxAll, enTaskReady, TASKAPI_enTaskCycNot	, &SDHC_vTerminate	, NULL,	NULL, 0u   		, 0u     		 , 0u 			 ,	 0u		, enTaskPrivileged	},\
+	{ 54u    , enTaskFunction	, TASKAPI_enTaskPrMaxAll, enTaskReady, TASKAPI_enTaskCycNot	, &DISK_vTerminate	, NULL,	NULL, 0u   		, 0u     		 , 0u 			 ,	 0u		, enTaskPrivileged	},\
+	{ 55u    , enTaskFunction	, TASKAPI_enTaskPrMaxAll, enTaskReady, TASKAPI_enTaskCycNot	, &TIME_vTerminate	, NULL,	NULL, 0u   		, 0u     		 , 0u 			 ,	 0u		, enTaskPrivileged	},\
+	{ 56u    , enTaskFunction	, TASKAPI_enTaskPrMaxAll, enTaskReady, TASKAPI_enTaskCycNot	, &TIMER_vTerminate	, NULL,	NULL, 0u   		, 0u     		 , 0u 			 ,	 0u		, enTaskPrivileged	},\
+	{ 57u    , enTaskFunction	, TASKAPI_enTaskPrMaxAll, enTaskReady, TASKAPI_enTaskCycNot	, &CAN_vTerminate		, NULL,	NULL, 0u   		, 0u     		 , 0u 			 ,	 0u		, enTaskPrivileged	},\
+	{ 58u    , enTaskFunction	, TASKAPI_enTaskPrMaxAll, enTaskReady, TASKAPI_enTaskCycNot	, &CRC16_vTerminate	, NULL,	NULL, 0u   		, 0u     		 , 0u 			 ,	 0u		, enTaskPrivileged	},\
+	{ 59u    , enTaskFunction	, TASKAPI_enTaskPrMaxAll, enTaskReady, TASKAPI_enTaskCycNot	, &VCOM_vTerminate	, NULL,	NULL, 0u   		, 0u     		 , 0u 			 ,	 0u		, enTaskPrivileged	},\
+	{ 60u    , enTaskFunction	, TASKAPI_enTaskPrMaxAll, enTaskReady, TASKAPI_enTaskCycNot	, &CEM_vTerminate	, NULL,	NULL, 0u   		, 0u     		 , 0u 			 ,	 0u		, enTaskPrivileged	},\
+	{ 61u    , enTaskFunction	, TASKAPI_enTaskPrMaxAll, enTaskReady, TASKAPI_enTaskCycNot	, &SRLTFR_vTerminate, NULL,	NULL, 0u   		, 0u     		 , 0u 			 ,	 0u		, enTaskPrivileged	} \
 }
 /*<AUTOGEN END>*/
 

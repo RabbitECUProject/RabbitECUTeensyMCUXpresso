@@ -164,7 +164,7 @@ void IAC_vRun(puint32 const pu32Arg)
 		NULL, NULL);
 
 		/* Correct open loop position for after start alternator load */
-		IAC_u16OpenLoopPos += ((13000 - BVM_tCrankBattVolts) / 30);
+		IAC_u16OpenLoopPos += ((13000 - BVM_tCrankBattVolts) / 100);
 		IAC_u16OpenLoopPos = 256 > IAC_u16OpenLoopPos ? IAC_u16OpenLoopPos : 255;
 
 		if ((TRUE == USERCAL_stRAMCAL.u8VehicleStoppedFuelCutEnable) ||
@@ -247,27 +247,27 @@ void IAC_vRun(puint32 const pu32Arg)
 		/* Ramp the min/max */
 		if (400 > CAM_u32RPMFiltered)
 		{
-			u16ISCMin = 2048;
+			u16ISCMin = 1024;
 			u16ISCMax = 4096;
 		}
 		else
 		{
-			if ((u16TempMin + 10) < u16ISCMin)
+			if ((u16TempMin + 25) < u16ISCMin)
 			{
-				u16ISCMin -= 10;
+				u16ISCMin -= 25;
 			}
-			else if (u16TempMin > (u16ISCMin + 10))
+			else if (u16TempMin > (u16ISCMin + 25))
 			{
-				u16ISCMin += 10;
+				u16ISCMin += 25;
 			}
 
-			if ((u16TempMax + 10) < u16ISCMax)
+			if ((u16TempMax + 25) < u16ISCMax)
 			{
-				u16ISCMax -= 10;
+				u16ISCMax -= 25;
 			}
-			else if (u16TempMax > (u16ISCMax + 10))
+			else if (u16TempMax > (u16ISCMax + 25))
 			{
-				u16ISCMax += 10;
+				u16ISCMax += 25;
 			}
 		}
 

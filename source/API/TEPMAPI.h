@@ -94,7 +94,7 @@ typedef struct
 	TEPMAPI_tenAction enAction;
 	TEPMAPI_tenMethod enMethod;
 	TEPMAPI_ttEventTime* ptEventTime;
-	TEPMAPI_ttEventTime tFractionalEventTime[2];
+	TEPMAPI_ttEventTime tFractionalEventTime;
 	TEPMAPI_tpfEventCB pfEventCB;	
 	TEPMAPI_ttEventTime tAccumulate;
 	TEPMAPI_ttEventTime* ptAccumulate;

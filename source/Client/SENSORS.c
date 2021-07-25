@@ -97,7 +97,19 @@ void SENSORS_vStart(puint32 const pu32Arg)
 	/* Initialise the TEPM channel CRANK_nInput */
 	if (SYSAPI_enOK == pstSVCDataStruct->enSVCResult)	
 	{	
-		stTEPMChannelCB.enAction = TEPMAPI_enCapRising;
+		if (0 == USERCAL_stRAMCAL.u8UserPrimaryEdgeSetup)
+		{
+			stTEPMChannelCB.enAction = TEPMAPI_enCapFalling;
+		}
+		else if (1 == USERCAL_stRAMCAL.u8UserPrimaryEdgeSetup)
+		{
+			stTEPMChannelCB.enAction = TEPMAPI_enCapRising;
+		}
+		else
+		{
+			stTEPMChannelCB.enAction = TEPMAPI_enCapAny;
+		}
+
 		stTEPMChannelCB.boInterruptEnable = TRUE;
 		stTEPMChannelCB.enLinkedResource = VR_nPhaseTelltalePin;
 		stTEPMChannelCB.boRecursive = TRUE;

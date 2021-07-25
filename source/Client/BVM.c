@@ -157,7 +157,7 @@ void BVM_vRun(uint32* const pu32Arg)
 	{
 		if (BVM_tBattVolts < BVM_tCrankBattVolts)
 		{
-			BVM_tCrankBattVolts = BVM_tBattVolts;
+			BVM_tCrankBattVolts--;
 		}
 		else
 		{

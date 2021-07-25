@@ -38,13 +38,24 @@ void PIM_vInitPortBit(PIMAPI_tenPort enPort, IOAPI_tenEHIOType enIOType, uint32 
 
 void PIM_vAssertPortBit(PIMAPI_tenPort enPort, uint32 u32PortBit, IOAPI_tenTriState enTriState)
 {
-    PIMHA_vAssertPortBit(enPort, u32PortBit, enTriState);
+	if (PIMAPI_enVIRT_PORT_F > enPort)
+	{
+		PIMHA_vAssertPortBit(enPort, u32PortBit, enTriState);
+	}
 }
 
 
 bool PIM_boGetPortBitState(PIMAPI_tenPort enPort, uint32 u32PortBit)
 {
-    return PIMHA_boGetPortBitState(enPort, u32PortBit);
+	bool boState = FALSE;
+
+	if (PIMAPI_enVIRT_PORT_F > enPort)
+	{
+		boState = PIMHA_boGetPortBitState(enPort, u32PortBit);
+	}
+
+	return boState;
+
 }
 
 void PIM_vSetPortMux(PIMAPI_tenPort enPort, IOAPI_tenEHIOType enIOType, uint32 u32PortBit, uint32 u32MuxSel)

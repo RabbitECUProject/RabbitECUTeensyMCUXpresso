@@ -103,8 +103,23 @@ inline FME_tenFaultState FME_enGetDiagState(FME_tenDiags enDiags)
 
 static void FME_vConditionFault(FME_tenDiags enDiags, bool boFaultActive)
 {
-	if (TRUE == boFaultActive)
+	static bool boEngineStart;
+	static uint32 u32EngineStartTime = 0;
+
+	if (600 < CAM_u32RPMFiltered)
 	{
+		boEngineStart = TRUE;
+	}
+	else if (0 == CAM_u32RPMFiltered)
+	{
+		boEngineStart = FALSE;
+		u32EngineStartTime = USERDIAG_u32GlobalTimeTick;
+	}
+
+	if ((TRUE == boFaultActive) && (5000 < (USERDIAG_u32GlobalTimeTick - u32EngineStartTime))
+			&& (TRUE == boEngineStart))
+	{
+		/* Only if engine running more than 5 seconds - cranking can cause sensor VCC brown-out faults */
 		FME_astDiagRunningData[enDiags].u32FaultCounts =
 			FME_astDiagControlData[enDiags].u32FaultCountLimit > FME_astDiagRunningData[enDiags].u32FaultCounts ?
 				FME_astDiagRunningData[enDiags].u32FaultCounts + 1 :
