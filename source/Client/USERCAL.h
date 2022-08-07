@@ -37,12 +37,14 @@
 #define KTM_SC_CAL_off
 #define L98CAL_off
 #define M15A_CAL_off
-#define GOLF_MK6_CAL
+#define GOLF_MK6_CAL_off
 #define TEST_60_M2_off
 #define FIESTA_36_M1_off
 #define FIESTA_36_M1_TEENSY_ADAPT_off
 #define TEENSY_ADAPT_BASEoff
-#define TEENSY_ADAPT_60M2off
+#define TEENSY_ADAPT_60M2_off
+#define TEENSY_ADAPT_2NR_FE_off
+#define TEENSY_ADAPT_24M1
 
 #ifdef TESTCAL
 #include "TEST_CAL.h"	
@@ -92,6 +94,14 @@
 
 #ifdef TEENSY_ADAPT_60M2
 #include "VW_60_M2_TEENSY_ADAPT.h"
+#endif
+
+#ifdef TEENSY_ADAPT_2NR_FE
+#include "2NR_FE_TEENSY_ADAPT.h"
+#endif
+
+#ifdef TEENSY_ADAPT_24M1
+#include "24M1_TEENSY_ADAPT.h"
 #endif
 
 #pragma GCC diagnostic pop
@@ -464,8 +474,8 @@ typedef struct
 	uint16 u16CLO2RightResource;
 	uint16 u16ISCCLWeight;
 	uint8 u8ScheduleToothIgnition;
+	uint8 u8ESTRegMux;
 	uint8 u8DummyPadding1;
-	uint8 u8DummyPadding2;
 	uint16 u16CRC16;
 	uint8* offsets;
 } BUILD_PACKING USERCAL_tstCalibration;
@@ -498,7 +508,7 @@ EXTERN USERCAL_tstCalibration BUILD_PACKING USERCAL_stRAMCAL;
 //ASAM mode=writevalue name="Warm Up Delay" parent="USERCAL_stRAMCAL" type=uint8 offset=172 min=0 max=2000 m=1 b=0 units="dl" format=3.0 help="TBC HTML=016.HTML"
 //ASAM mode=writevalue name="Display Mode" parent="USERCAL_stRAMCAL" type=uint8 offset=173 min=0 max=2000 m=1 b=0 units="dl" format=3.0 help="TBC HTML=017.HTML"
 //ASAM mode=writevalue name="Back Light Enable" parent="USERCAL_stRAMCAL" type=uint8 offset=174 min=0 max=2000 units="ENUMERATION OFF=0 ON=1" format=3.0 help="TBC HTML=018.HTML"
-//ASAM mode=writevalue name="TPS Cal Min" parent="USERCAL_stRAMCAL" type=uint32 offset=178 min=0 max=5 m=0.001 b=0 units="V" format=3.2 help="TPS voltage at min throttle position or neutral ETC position HTML=019.HTML"
+//ASAM mode=writevalue name="TPS Cal Min" parent="USERCAL_stRAMCAL" type=uint32 offset=185 min=0 max=5 m=0.001 b=0 units="V" format=3.2 help="TPS voltage at min throttle position or neutral ETC position HTML=019.HTML"
 //ASAM mode=writevalue name="TPS Cal Max" parent="USERCAL_stRAMCAL" type=uint32 offset=189 min=0 max=5 m=0.001 b=0 units="V" format=3.2 help="TPS voltage at maximum throttle position HTML=020.HTML"
 // 2
 //ASAM mode=writeaxis_pts name="AfmTF Table_XAXIS" parent="USERCAL_stRAMCAL" type=uint32 offset=193 min=0 max=300000 m=0.001 b=0 units="V" format=7.6 help="Air Flow Meter calibration curve x-axis points array HTML=021.HTML" xcount=17 xindexvar="AFM Sensor Voltage"
@@ -599,7 +609,7 @@ EXTERN USERCAL_tstCalibration BUILD_PACKING USERCAL_stRAMCAL;
 //ASAM mode=writevalue name="ISC EST Trim Neg" parent="USERCAL_stRAMCAL" type=uint32 offset=5103 min=0 max=15 m=0.001 b=0 units="Degrees" format=5.3 help="ISC EST Trim Negative Max HTML=106.HTML"
 //ASAM mode=writevalue name="CLO2 EST Trim Pos" parent="USERCAL_stRAMCAL" type=uint32 offset=5107 min=0 max=5 m=0.001 b=0 units="Degrees" format=5.3 help="Closed Loop Fuel EST Trim Positive Max HTML=107.HTML"
 //ASAM mode=writevalue name="CLO2 EST Trim Neg" parent="USERCAL_stRAMCAL" type=uint32 offset=5111 min=0 max=5 m=0.001 b=0 units="Degrees" format=5.3 help="Closed Loop Fuel EST Trim Negative Max HTML=108.HTML"
-//ASAM mode=writevalue name="Cylinder CC" parent="USERCAL_stRAMCAL" type=uint16 offset=5115 min=0 max=1 m=1 b=0 units="dl" format=1.0 help="Cylinder Capacity HTML=109.HTML"
+//ASAM mode=writevalue name="Cylinder CC" parent="USERCAL_stRAMCAL" type=uint16 offset=5115 min=0 max=2000 m=1 b=0 units="dl" format=1.0 help="Cylinder Capacity HTML=109.HTML"
 //ASAM mode=writevalue name="AFM Primary Input Enable Open" parent="USERCAL_stRAMCAL" type=uint8 offset=5117 min=0 max=1 units="ENUMERATION OFF=0 ON=1" format=1.0 help="AFM Primary Input Enable Open HTML=110.HTML"
 //ASAM mode=writevalue name="Speed Density AFM TPS Limit" parent="USERCAL_stRAMCAL" type=uint32 offset=5118 min=0 max=90 m=.001 b=0 units="degrees" format=5.3 help="TBC HTML=111.HTML"
 //ASAM mode=writevalue name="Seq RPM Limit AE" parent="USERCAL_stRAMCAL" type=uint16 offset=5122 min=0 max=10000 m=1 b=0 units="dl" format=1.0 help="TBC HTML=112.HTML"
@@ -640,9 +650,9 @@ EXTERN USERCAL_tstCalibration BUILD_PACKING USERCAL_stRAMCAL;
 //ASAM mode=writevalue name="Sensor CAN Data Offset" parent="USERCAL_stRAMCAL" type=uint8 offset=5195 min=1 max=255 m=1 b=0 units="dl" format=4.0 help="Priority CAN ID 1 HTML=145.HTML"
 //ASAM mode=writevalue name="Sensor CAN Data ByteCount" parent="USERCAL_stRAMCAL" type=uint8 offset=5203 min=1 max=255 m=1 b=0 units="dl" format=4.0 help="Priority CAN ID 1 HTML=146.HTML"
 //ASAM mode=writevalue name="Sync Phase Repeats" parent="USERCAL_stRAMCAL" type=uint32 offset=5211 min=1 max=4095 units="ENUMERATION BATCH=1 SEQUENTIAL=2" format=4.0 help="Sync Phase Repeats HTML=147.HTML"
-//ASAM mode=writevalue name="Map Sensor Gain" parent="USERCAL_stRAMCAL" type=sint32 offset=5215 min=1 max=4095 m=1 b=0 units="dl" format=4.0 help="Sync Phase Repeats HTML=148.HTML"
+//ASAM mode=writevalue name="Map Sensor Gain" parent="USERCAL_stRAMCAL" type=sint32 offset=5215 min=1 max=65535 m=1 b=0 units="dl" format=4.0 help="Sync Phase Repeats HTML=148.HTML"
 // 13
-//ASAM mode=writevalue name="Map Sensor Offset" parent="USERCAL_stRAMCAL" type=sint32 offset=5219 min=1 max=4095 m=1 b=0 units="dl" format=4.0 help="Sync Phase Repeats HTML=149.HTML"
+//ASAM mode=writevalue name="Map Sensor Offset" parent="USERCAL_stRAMCAL" type=sint32 offset=5219 min=1 max=65535 m=1 b=0 units="dl" format=4.0 help="Sync Phase Repeats HTML=149.HTML"
 //ASAM mode=writevalue name="Inj Divide" parent="USERCAL_stRAMCAL" type=uint8 offset=5223 min=1 max=4 units="ENUMERATION TBI=4 BATCH=2 SEQUENTIAL=1" format=4.0 help="Sync Phase Repeats HTML=150.HTML"
 //ASAM mode=writevalue name="CLO2 LeftEnable" parent="USERCAL_stRAMCAL" type=uint8 offset=5224 min=0 max=1 units="ENUMERATION OFF=0 ON=1" format=4.0 help="Sync Phase Repeats HTML=151.HTML"
 //ASAM mode=writevalue name="CLO2 RightEnable" parent="USERCAL_stRAMCAL" type=uint8 offset=5225 min=0 max=1 units="ENUMERATION OFF=0 ON=1" format=4.0 help="Sync Phase Repeats HTML=152.HTML"
@@ -758,14 +768,14 @@ EXTERN USERCAL_tstCalibration BUILD_PACKING USERCAL_stRAMCAL;
 //ASAM mode=writevalue name="PWM 3D 3 IO Resource" parent="USERCAL_stRAMCAL" type=uint16 offset=5668 min=0 max=255 units="ENUMERATION EH_IO_GPSE1=0 EH_IO_GPSE2=1 EH_IO_GPSE3=2 EH_IO_GPSE4=3 EH_IO_GPSE5=4 EH_IO_GPSE6=5 EH_IO_GPSE7=6 EH_IO_GPSE8=7 EH_IO_UART1_TX=15 EH_IO_UART1_RX=16 EH_IO_UART1_CTS=17 EH_IO_UART1_RTS=18 EH_IO_UART2_TX=19 EH_IO_UART2_RX=20 EH_IO_SPI1_MISO=21 EH_IO_SPI1_MOSI=22 EH_IO_SPI1_CLK=23 EH_IO_SPI1_CS=24 EH_IO_TMR1=25 EH_IO_TMR2=26 EH_IO_TMR3=27 EH_IO_TMR4=28 EH_IO_TMR5=29 EH_IO_TMR6=30 EH_IO_TMR7=31 EH_IO_TMR8=32 EH_IO_TMR9=33 EH_IO_TMR10=34 EH_IO_TMR11=35 EH_IO_TMR12=36 EH_IO_TMR13=37 EH_IO_TMR14=38 EH_IO_TMR15=39 EH_IO_TMR16=40 EH_IO_TMR17=41 EH_IO_TMR18=42 EH_IO_IIC1_SCL=43 EH_IO_IIC1_SDA=44 EH_IO_GP1=47 EH_IO_GP2=48 EH_IO_GP3=49 EH_IO_GP4=50 EH_IO_GP5=51 EH_IO_GP6=52 EH_IO_GP7=53 EH_IO_GP8=54 EH_IO_GP9=55 EH_IO_GP10=56 EH_IO_GP11=57 EH_IO_GP12=58 EH_IO_GP13=59 EH_IO_GP14=60 EH_VIO_REL1=124 EH_VIO_REL2=125 EH_VIO_REL3=126 EH_VIO_REL4=127 EH_VIO_REL5=128 EH_VIO_REL6=129 EH_VIO_REL7=130 EH_VIO_REL8=131 EH_IO_UNUSED=133" format=3.0 help="PWM 3D 3 IO Resource HTML=246.HTML"
 //ASAM mode=writevalue name="PWM 3D 4 IO Resource" parent="USERCAL_stRAMCAL" type=uint16 offset=5670 min=0 max=255 units="ENUMERATION EH_IO_GPSE1=0 EH_IO_GPSE2=1 EH_IO_GPSE3=2 EH_IO_GPSE4=3 EH_IO_GPSE5=4 EH_IO_GPSE6=5 EH_IO_GPSE7=6 EH_IO_GPSE8=7 EH_IO_UART1_TX=15 EH_IO_UART1_RX=16 EH_IO_UART1_CTS=17 EH_IO_UART1_RTS=18 EH_IO_UART2_TX=19 EH_IO_UART2_RX=20 EH_IO_SPI1_MISO=21 EH_IO_SPI1_MOSI=22 EH_IO_SPI1_CLK=23 EH_IO_SPI1_CS=24 EH_IO_TMR1=25 EH_IO_TMR2=26 EH_IO_TMR3=27 EH_IO_TMR4=28 EH_IO_TMR5=29 EH_IO_TMR6=30 EH_IO_TMR7=31 EH_IO_TMR8=32 EH_IO_TMR9=33 EH_IO_TMR10=34 EH_IO_TMR11=35 EH_IO_TMR12=36 EH_IO_TMR13=37 EH_IO_TMR14=38 EH_IO_TMR15=39 EH_IO_TMR16=40 EH_IO_TMR17=41 EH_IO_TMR18=42 EH_IO_IIC1_SCL=43 EH_IO_IIC1_SDA=44 EH_IO_GP1=47 EH_IO_GP2=48 EH_IO_GP3=49 EH_IO_GP4=50 EH_IO_GP5=51 EH_IO_GP6=52 EH_IO_GP7=53 EH_IO_GP8=54 EH_IO_GP9=55 EH_IO_GP10=56 EH_IO_GP11=57 EH_IO_GP12=58 EH_IO_GP13=59 EH_IO_GP14=60 EH_VIO_REL1=124 EH_VIO_REL2=125 EH_VIO_REL3=126 EH_VIO_REL4=127 EH_VIO_REL5=128 EH_VIO_REL6=129 EH_VIO_REL7=130 EH_VIO_REL8=131 EH_IO_UNUSED=133" format=3.0 help="PWM 3D 4 IO Resource HTML=247.HTML"
 
-//ASAM mode=writeaxis_pts name="PWM 2D Table 1_XAXIS" parent="USERCAL_stRAMCAL" type=sint32 offset=5672 min=0 max=65535 m=1 b=0 units="%" format=4.3 help="PWM 2D 1 X Axis HTML=248.HTML" xcount=17 xindexvar="Generic Source IDX1 HTML=248.HTML"
-//ASAM mode=writeaxis_pts name="PWM 2D Table 2_XAXIS" parent="USERCAL_stRAMCAL" type=sint32 offset=5740 min=0 max=65535 m=1 b=0 units="%" format=4.3 help="PWM 2D 2 X Axis HTML=249.HTML" xcount=17 xindexvar="Generic Source IDX2 HTML=249.HTML"
-//ASAM mode=writeaxis_pts name="PWM 2D Table 3_XAXIS" parent="USERCAL_stRAMCAL" type=sint32 offset=5808 min=0 max=65535 m=1 b=0 units="%" format=4.3 help="PWM 2D 3 X Axis HTML=250.HTML" xcount=17 xindexvar="Generic Source IDX3 HTML=250.HTML"
-//ASAM mode=writeaxis_pts name="PWM 2D Table 4_XAXIS" parent="USERCAL_stRAMCAL" type=sint32 offset=5876 min=0 max=65535 m=1 b=0 units="%" format=4.3 help="PWM 2D 4 X Axis HTML=251.HTML" xcount=17 xindexvar="Generic Source IDX4 HTML=251.HTML"
-//ASAM mode=writeaxis_pts name="PWM 2D Table 5_XAXIS" parent="USERCAL_stRAMCAL" type=sint32 offset=5944 min=0 max=65535 m=1 b=0 units="%" format=4.3 help="PWM 2D 5 X Axis HTML=252.HTML" xcount=17 xindexvar="Generic Source IDX5 HTML=252.HTML"
-//ASAM mode=writeaxis_pts name="PWM 2D Table 6_XAXIS" parent="USERCAL_stRAMCAL" type=sint32 offset=6012 min=0 max=65535 m=1 b=0 units="%" format=4.3 help="PWM 2D 6 X Axis HTML=253.HTML" xcount=17 xindexvar="Generic Source IDX6 HTML=253.HTML"
-//ASAM mode=writeaxis_pts name="PWM 2D Table 7_XAXIS" parent="USERCAL_stRAMCAL" type=sint32 offset=6080 min=0 max=65535 m=1 b=0 units="%" format=4.3 help="PWM 2D 7 X Axis HTML=254.HTML" xcount=17 xindexvar="Generic Source IDX7 HTML=254.HTML"
-//ASAM mode=writeaxis_pts name="PWM 2D Table 8_XAXIS" parent="USERCAL_stRAMCAL" type=sint32 offset=6148 min=0 max=65535 m=1 b=0 units="%" format=4.3 help="PWM 2D 8 X Axis HTML=255.HTML" xcount=17 xindexvar="Generic Source IDX8 HTML=255.HTML"
+//ASAM mode=writeaxis_pts name="PWM 2D Table 1_XAXIS" parent="USERCAL_stRAMCAL" type=sint32 offset=5672 min=0 max=65535 m=1 b=0 units="%" format=4.3 help="PWM 2D 1 X Axis HTML=248.HTML" xcount=17 xindexvar="Generic Source IDX1"
+//ASAM mode=writeaxis_pts name="PWM 2D Table 2_XAXIS" parent="USERCAL_stRAMCAL" type=sint32 offset=5740 min=0 max=65535 m=1 b=0 units="%" format=4.3 help="PWM 2D 2 X Axis HTML=249.HTML" xcount=17 xindexvar="Generic Source IDX2"
+//ASAM mode=writeaxis_pts name="PWM 2D Table 3_XAXIS" parent="USERCAL_stRAMCAL" type=sint32 offset=5808 min=0 max=65535 m=1 b=0 units="%" format=4.3 help="PWM 2D 3 X Axis HTML=250.HTML" xcount=17 xindexvar="Generic Source IDX3"
+//ASAM mode=writeaxis_pts name="PWM 2D Table 4_XAXIS" parent="USERCAL_stRAMCAL" type=sint32 offset=5876 min=0 max=65535 m=1 b=0 units="%" format=4.3 help="PWM 2D 4 X Axis HTML=251.HTML" xcount=17 xindexvar="Generic Source IDX4"
+//ASAM mode=writeaxis_pts name="PWM 2D Table 5_XAXIS" parent="USERCAL_stRAMCAL" type=sint32 offset=5944 min=0 max=65535 m=1 b=0 units="%" format=4.3 help="PWM 2D 5 X Axis HTML=252.HTML" xcount=17 xindexvar="Generic Source IDX5"
+//ASAM mode=writeaxis_pts name="PWM 2D Table 6_XAXIS" parent="USERCAL_stRAMCAL" type=sint32 offset=6012 min=0 max=65535 m=1 b=0 units="%" format=4.3 help="PWM 2D 6 X Axis HTML=253.HTML" xcount=17 xindexvar="Generic Source IDX6"
+//ASAM mode=writeaxis_pts name="PWM 2D Table 7_XAXIS" parent="USERCAL_stRAMCAL" type=sint32 offset=6080 min=0 max=65535 m=1 b=0 units="%" format=4.3 help="PWM 2D 7 X Axis HTML=254.HTML" xcount=17 xindexvar="Generic Source IDX7"
+//ASAM mode=writeaxis_pts name="PWM 2D Table 8_XAXIS" parent="USERCAL_stRAMCAL" type=sint32 offset=6148 min=0 max=65535 m=1 b=0 units="%" format=4.3 help="PWM 2D 8 X Axis HTML=255.HTML" xcount=17 xindexvar="Generic Source IDX8"
 		
 //ASAM mode=writecurve name="PWM 2D Table 1" parent="USERCAL_stRAMCAL" type=uint16 offset=6216 min=0 max=100 m=0.00152 b=0 units="%" format=4.3 help="PWM 2D Curve 1 HTML=256.HTML" xcount=17 xindexvar="Generic Source IDX1"
 //ASAM mode=writecurve name="PWM 2D Table 2" parent="USERCAL_stRAMCAL" type=uint16 offset=6250 min=0 max=100 m=0.00152 b=0 units="%" format=4.3 help="PWM 2D Curve 2 HTML=257.HTML" xcount=17 xindexvar="Generic Source IDX2"
@@ -971,7 +981,7 @@ EXTERN USERCAL_tstCalibration BUILD_PACKING USERCAL_stRAMCAL;
 
 //ASAM mode=writevalue name="VSS CAN Calibration" parent="USERCAL_stRAMCAL" type=uint16 offset=12199 max=65535 m=1 b=0 units="dl" format=5.0 help="VSS CAN Calibration HTML=409.HTML"
 //ASAM mode=writevalue name="ETC Override Keys" parent="USERCAL_stRAMCAL" type=uint16 offset=12201 min=0 max=65535 m=1 b=0 units="dl" format=5.0 help="ETC Override Keys HTML=410.HTML"
-//ASAM mode=writevalue name="ETC Override" parent="USERCAL_stRAMCAL"typ e=uint16 offset=12203 min=0 max=255 m=1 b=0 units="dl" format=5.0 help="ETC Override HTML=411.HTML"
+//ASAM mode=writevalue name="ETC Override" parent="USERCAL_stRAMCAL"type=uint16 offset=12203 min=0 max=65535 m=1 b=0 units="dl" format=5.0 help="ETC Override HTML=411.HTML"
 //ASAM mode=writevalue name="Vehicle Model Diag" parent="USERCAL_stRAMCAL" type=uint16 offset=12205 min=0 max=255 units="ENUMERATION VAG_GTI_DSG_DQ250_Mk6=0 VAG_GTI_MT6_Mk6=1" format=3.0 help="ETC Override HTML=412.HTML"
 
 //ASAM mode=writeaxis_pts name="ETC RPM Match Table_XAXIS" parent="USERCAL_stRAMCAL" type=uint32 offset=12207 min=0 max=10000 m=1 b=0 units="RPM" format=4.0 xcount=17 xindexvar="Rev Match RPM" help="TODO HTML=413.HTML"
@@ -1024,7 +1034,8 @@ EXTERN USERCAL_tstCalibration BUILD_PACKING USERCAL_stRAMCAL;
 //ASAM mode=writevalue name="ISC Closed Loop Weight" parent="USERCAL_stRAMCAL" type=uint16 offset=13887 min=0 max=255 m=1 b=0 units="dl" format=2.0 help="Hot Off Throttle Blip HTML=447.HTML"
 
 //ASAM mode=writevalue name="Ignition Tooth Timing Enable" parent="USERCAL_stRAMCAL" type=uint8 offset=13889 min=0 max=1 m=1 b=0 units="dl" format=2.0 help="Cold Off Throttle Blip HTML=448.HTML"
-//ASAMoff modeoff=writevalue name="DUMMY 2" parent="USERCAL_stRAMCAL" type=uint8 offset=13890 min=0 max=1 m=1 b=0 units="dl" format=2.0 help="Cold Off Throttle Blip HTML=448.HTML"
+
+//ASAM mode=writevalue name="EST Register Multiplex Enable" parent="USERCAL_stRAMCAL" type=uint8 offset=13890 min=0 max=1 m=1 b=0 units="dl" format=2.0 help="EST Register Multiplex Enable HTML=448.HTML"
 //ASAM mode=writevalue name="DUMMY RELAY" parent="USERCAL_stRAMCAL" type=uint8 offset=13891 min=1 max=255 units="ENUMERATION EH_IO_GPSE1=0 EH_IO_GPSE2=1 EH_IO_GPSE3=2 EH_IO_GPSE4=3 EH_IO_GPSE5=4 EH_IO_GPSE6=5 EH_IO_GPSE7=6 EH_IO_GPSE8=7 EH_IO_UART1_TX=15 EH_IO_UART1_RX=16 EH_IO_UART1_CTS=17 EH_IO_UART1_RTS=18 EH_IO_UART2_TX=19 EH_IO_UART2_RX=20 EH_IO_SPI1_MISO=21 EH_IO_SPI1_MOSI=22 EH_IO_SPI1_CLK=23 EH_IO_SPI1_CS=24 EH_IO_TMR1=25 EH_IO_TMR2=26 EH_IO_TMR3=27 EH_IO_TMR4=28 EH_IO_TMR5=29 EH_IO_TMR6=30 EH_IO_TMR7=31 EH_IO_TMR8=32 EH_IO_TMR9=33 EH_IO_TMR10=34 EH_IO_TMR11=35 EH_IO_TMR12=36 EH_IO_TMR13=37 EH_IO_TMR14=38 EH_IO_TMR15=39 EH_IO_TMR16=40 EH_IO_TMR17=41 EH_IO_TMR18=42 EH_IO_IIC1_SCL=43 EH_IO_IIC1_SDA=44 EH_IO_GP1=47 EH_IO_GP2=48 EH_IO_GP3=49 EH_IO_GP4=50 EH_IO_GP5=51 EH_IO_GP6=52 EH_IO_GP7=53 EH_IO_GP8=54 EH_IO_GP9=55 EH_IO_GP10=56 EH_IO_GP11=57 EH_IO_GP12=58 EH_IO_GP13=59 EH_IO_GP14=60 EH_VIO_REL1=124 EH_VIO_REL2=125 EH_VIO_REL3=126 EH_VIO_REL4=127 EH_VIO_REL5=128 EH_VIO_REL6=129 EH_VIO_REL7=130 EH_VIO_REL8=131 EH_IO_UNUSED=133" format=4.0 help="Thermofan Relay HTML=214.HTML"
 //ASAM mode=writevalue name="CAL CRC" parent="USERCAL_stRAMCAL" type=uint16 offset=13892 min=0 max=255 m=1 b=0 units="dl" format=3.0 help="CAL CRC16"
 /* 	NOTE MUST ALWAYS INCLUDE CAL STRUCT ELEMENTS ONE FOR ONE AND IN ORDER */
@@ -1362,8 +1373,8 @@ EXTERN USERCAL_tstCalibration BUILD_PACKING USERCAL_stRAMCAL;
 	offsetof(USERCAL_tstCalibration, u16CLO2RightResource),\
 	offsetof(USERCAL_tstCalibration, u16ISCCLWeight),\
 	offsetof(USERCAL_tstCalibration, u8ScheduleToothIgnition),\
+	offsetof(USERCAL_tstCalibration, u8ESTRegMux),\
 	offsetof(USERCAL_tstCalibration, u8DummyPadding1),\
-	offsetof(USERCAL_tstCalibration, u8DummyPadding2),\
 	offsetof(USERCAL_tstCalibration, u16CRC16)}
 
 const uint32 __attribute__((used)) au32Offsets[]=OFFSETS_DATA;

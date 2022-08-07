@@ -144,6 +144,7 @@ void IAC_vRun(puint32 const pu32Arg)
 	static uint16 u16ISCMax = 4096;
 	uint16 u16TempMin;
 	uint16 u16TempMax;
+	static bool boCANVSSMoving;
 
 	if (TRUE == IAC_boRun)
 	{
@@ -164,7 +165,11 @@ void IAC_vRun(puint32 const pu32Arg)
 		NULL, NULL);
 
 		/* Correct open loop position for after start alternator load */
-		IAC_u16OpenLoopPos += ((13000 - BVM_tCrankBattVolts) / 100);
+		if (12000 > BVM_tCrankBattVolts)
+		{
+			IAC_u16OpenLoopPos += ((12000 - BVM_tCrankBattVolts) / 100);
+		}
+
 		IAC_u16OpenLoopPos = 256 > IAC_u16OpenLoopPos ? IAC_u16OpenLoopPos : 255;
 
 		if ((TRUE == USERCAL_stRAMCAL.u8VehicleStoppedFuelCutEnable) ||
@@ -193,8 +198,27 @@ void IAC_vRun(puint32 const pu32Arg)
 		}
 
 		
+		if (0 == USERCAL_stRAMCAL.u16DiagType)
+		{
+			/* Only VW CAN type */
+			if (20 > SENSORS_u16CANVSS)
+			{
+				boCANVSSMoving = FALSE;
+			}
+			else if (70 < SENSORS_u16CANVSS)
+			{
+				boCANVSSMoving = TRUE;
+			}
+		}
+		else
+		{
+			boCANVSSMoving = FALSE;
+		}
+
+
 		if ((u32IdleEntryRPM > CAM_u32RPMRaw) && 
 				(TRUE == TPS_boThrottleClosed) &&
+				(FALSE == boCANVSSMoving) &&
 				(0 != CAM_u32RPMRaw))
 		{
 			s32Temp = (sint32)(IAC_u32RPMLongAverage / 0x100) - (sint32)CAM_u32RPMRaw;

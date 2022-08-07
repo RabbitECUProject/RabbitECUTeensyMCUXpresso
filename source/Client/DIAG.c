@@ -420,7 +420,7 @@ void USERDIAG_vRun(puint32 const pu32Arg)
 			u32Temp = DIAG_u8PedalPositionReport;
 			stCANMsg.u32DWL |= (u32Temp << 16);
 
-			if (6000 < TPS_tThetaFiltered)//matthew bad!
+			if (!TORQUE_u32PedalClosed)
 			{
 				stCANMsg.u32DWH &= 0x00ffffff;
 			}
@@ -556,7 +556,7 @@ void USERDIAG_vRun(puint32 const pu32Arg)
 	}
 	else if (27 == (USERDIAG_u32GlobalTimeTick % 64))
 	{
-		u8Temp = 0x3f & TORQUE_u16ETCScale;
+		u8Temp = 0x3f & TORQUE_u16ETCScaleRamped;
 		UARTHA_vSendChar(EH_VIO_UART1, u8Temp + u8UARTSeq);
 		u8UARTChecksum += (u8Temp + u8UARTSeq);
 		u8UARTSeq -= 0x40;
@@ -577,7 +577,7 @@ void USERDIAG_vRun(puint32 const pu32Arg)
 				}
 				else
 				{
-					if (FALSE == MAP_boBoostETCCutEnable)
+					if ((FALSE == MAP_boBoostETCCutEnable) || (2000 > CAM_u32RPMFiltered))
 					{
 						/* 0x10 <= IAC_u8SlaveTarget < 0x20 */
 						u8Temp = 0x3f & IAC_u8SlaveTarget;

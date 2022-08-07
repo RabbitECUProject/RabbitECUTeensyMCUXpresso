@@ -181,13 +181,21 @@ void FUEL_vStart(puint32 const pu32Arg)
 		}			
 		
 		/* Switch injector on at a fraction of global time */
+#ifndef BUILD_GDI_SIG_INVERT
 		FUEL_astTimedHoldKernelEvents[0].enAction = TEPMAPI_enSetHigh;
+#else
+		FUEL_astTimedHoldKernelEvents[0].enAction = TEPMAPI_enSetLow;
+#endif
 		FUEL_astTimedHoldKernelEvents[0].enMethod = TEPMAPI_enGlobalLinkedFraction;
 		FUEL_astTimedHoldKernelEvents[0].ptEventTime = &FUEL_tStartHoldFraction[0];
 		FUEL_astTimedHoldKernelEvents[0].enEHIOBitMirrorResource = EH_IO_Invalid;
 	
 		/* Switch injector off at timer ms */
+#ifndef BUILD_GDI_SIG_INVERT
 		FUEL_astTimedHoldKernelEvents[1].enAction = TEPMAPI_enSetLow;
+#else
+		FUEL_astTimedHoldKernelEvents[1].enAction = TEPMAPI_enSetHigh;
+#endif
 		FUEL_astTimedHoldKernelEvents[1].enMethod = TEPMAPI_enHardLinkedTimeStep;
 		FUEL_astTimedHoldKernelEvents[1].ptEventTime = &FUEL_tTimeHold[0];	
 		FUEL_astTimedHoldKernelEvents[1].pfEventCB = FUEL_vTEPMCallBack;
@@ -224,13 +232,21 @@ void FUEL_vStart(puint32 const pu32Arg)
 		}	
 	
 		/* Switch injector on at a fraction of global time */
+#ifndef BUILD_GDI_SIG_INVERT
 		FUEL_astTimedHoldKernelEvents[0].enAction = TEPMAPI_enSetHigh;
+#else
+		FUEL_astTimedHoldKernelEvents[0].enAction = TEPMAPI_enSetLow;
+#endif
 		FUEL_astTimedHoldKernelEvents[0].enMethod = TEPMAPI_enGlobalLinkedFraction;
 		FUEL_astTimedHoldKernelEvents[0].ptEventTime = &FUEL_tStartHoldFraction[1];
 		FUEL_astTimedHoldKernelEvents[0].enEHIOBitMirrorResource = EH_IO_Invalid;
 	
 		/* Switch injector off at timer ms */
+#ifndef BUILD_GDI_SIG_INVERT
 		FUEL_astTimedHoldKernelEvents[1].enAction = TEPMAPI_enSetLow;
+#else
+		FUEL_astTimedHoldKernelEvents[1].enAction = TEPMAPI_enSetHigh;
+#endif
 		FUEL_astTimedHoldKernelEvents[1].enMethod = TEPMAPI_enHardLinkedTimeStep;
 		FUEL_astTimedHoldKernelEvents[1].ptEventTime = &FUEL_tTimeHold[1];
 		FUEL_astTimedHoldKernelEvents[1].pfEventCB = FUEL_vTEPMCallBack;	
@@ -267,13 +283,21 @@ void FUEL_vStart(puint32 const pu32Arg)
 		}		
 	
 		/* Switch injector on at a fraction of global time */
+#ifndef BUILD_GDI_SIG_INVERT
 		FUEL_astTimedHoldKernelEvents[0].enAction = TEPMAPI_enSetHigh;
+#else
+		FUEL_astTimedHoldKernelEvents[0].enAction = TEPMAPI_enSetLow;
+#endif
 		FUEL_astTimedHoldKernelEvents[0].enMethod = TEPMAPI_enGlobalLinkedFraction;
 		FUEL_astTimedHoldKernelEvents[0].ptEventTime = &FUEL_tStartHoldFraction[2];
 		FUEL_astTimedHoldKernelEvents[0].enEHIOBitMirrorResource = EH_IO_Invalid;
 	
 		/* Switch injector off at timer ms */
+#ifndef BUILD_GDI_SIG_INVERT
 		FUEL_astTimedHoldKernelEvents[1].enAction = TEPMAPI_enSetLow;
+#else
+		FUEL_astTimedHoldKernelEvents[1].enAction = TEPMAPI_enSetHigh;
+#endif
 		FUEL_astTimedHoldKernelEvents[1].enMethod = TEPMAPI_enHardLinkedTimeStep;
 		FUEL_astTimedHoldKernelEvents[1].ptEventTime = &FUEL_tTimeHold[2];
 		FUEL_astTimedHoldKernelEvents[1].pfEventCB = FUEL_vTEPMCallBack;	
@@ -310,13 +334,21 @@ void FUEL_vStart(puint32 const pu32Arg)
 		}					
 	
 		/* Switch injector on at a fraction of global time */
+#ifndef BUILD_GDI_SIG_INVERT
 		FUEL_astTimedHoldKernelEvents[0].enAction = TEPMAPI_enSetHigh;
+#else
+		FUEL_astTimedHoldKernelEvents[0].enAction = TEPMAPI_enSetLow;
+#endif
 		FUEL_astTimedHoldKernelEvents[0].enMethod = TEPMAPI_enGlobalLinkedFraction;
 		FUEL_astTimedHoldKernelEvents[0].ptEventTime = &FUEL_tStartHoldFraction[3];
 		FUEL_astTimedHoldKernelEvents[0].enEHIOBitMirrorResource = EH_IO_Invalid;
 	
 		/* Switch injector off at timer ms */
+#ifndef BUILD_GDI_SIG_INVERT
 		FUEL_astTimedHoldKernelEvents[1].enAction = TEPMAPI_enSetLow;
+#else
+		FUEL_astTimedHoldKernelEvents[1].enAction = TEPMAPI_enSetHigh;
+#endif
 		FUEL_astTimedHoldKernelEvents[1].enMethod = TEPMAPI_enHardLinkedTimeStep;
 		FUEL_astTimedHoldKernelEvents[1].ptEventTime = &FUEL_tTimeHold[3];
 		FUEL_astTimedHoldKernelEvents[1].pfEventCB = FUEL_vTEPMCallBack;
@@ -665,7 +697,6 @@ void FUEL_vRun(puint32 const pu32Arg)
 
 	boFuelCutsActive = SENSORS_boGetAuxActive(SENSORS_enAUX_LAUNCH_LOW);
 	boFuelCutsActive |= SENSORS_boGetAuxActive(SENSORS_enAUX_LAUNCH_HIGH);
-	boFuelCutsActive |= (0x100 != TORQUE_u32FuelTorqueModifier);
 
 	if (TRUE == boFuelCutsActive)
 	{
@@ -680,47 +711,27 @@ void FUEL_vRun(puint32 const pu32Arg)
 				NULL, NULL);
 
 			u32FuelCutPercent = (uint32)FUEL_u16FuelCutsPercent;
+			u32Temp = 0xffff;
+
+			USER_vSVC(SYSAPI_enSetFuelCuts, &u32FuelCutPercent, &FUEL_u32FuelChannelsMask, &u32Temp);
 		}
 		else
 		{
-			if (EST_nIgnitionReqDSGCutsStage3 == EST_enIgnitionTimingRequest)
-			{
-				if (2000 < CAM_u32RPMFiltered)
-				{
-					if (100000 < MAP_tKiloPaFiltered)
-					{
-						u32FuelCutPercent = (MAP_tKiloPaFiltered - 100000) / 1000;
-						u32FuelCutPercent =
-								USERCAL_stRAMCAL.u16TorqueReductionMaxFuelCut > u32FuelCutPercent ?
-										u32FuelCutPercent : USERCAL_stRAMCAL.u16TorqueReductionMaxFuelCut;
-					}
-					else
-					{
-						u32FuelCutPercent = 0;
-					}
-				}
-				else
-				{
-					u32FuelCutPercent = 0;
-				}
-			}
-			else
-			{
-				/* No fuel cut pre-shift */
-				u32FuelCutPercent = 0;
-			}
-		}
+			/* TODO if invoked by DSG shift */
+			u32FuelCutPercent = 0;
 
-		/* Set the fuel cuts */
-		USER_vSVC(SYSAPI_enSetFuelCuts, &u32FuelCutPercent, &FUEL_u32FuelChannelsMask, &FUEL_u32FuelChannelsCount);
+			/* Set the fuel cuts */
+			USER_vSVC(SYSAPI_enSetFuelCuts, &u32FuelCutPercent, &FUEL_u32FuelChannelsMask, &TORQUE_u32QuickCutDuration);
+		}
 	}
 	else
 	{
 		u32FuelCutPercent = 0;
+		u32Temp = 0;
 
 		if (boFuelCutsActivePrev != boFuelCutsActive)
 		{
-			USER_vSVC(SYSAPI_enSetFuelCuts, &u32FuelCutPercent, &FUEL_u32FuelChannelsMask, &FUEL_u32FuelChannelsCount);
+			USER_vSVC(SYSAPI_enSetFuelCuts, &u32FuelCutPercent, &FUEL_u32FuelChannelsMask, &u32Temp);
 		}
 	}
 
@@ -1162,13 +1173,13 @@ static void FUEL_vCyclicCalculate(void)
 
 	if (TRUE == boSequentialMode)
 	{
-		if (49500 > u32Temp)
+		if (59500 > u32Temp)
 		{
 			/* Assign the end of event angles */
-			FUEL_tStartHoldFraction[0] = 50000 - u32Temp;
-			FUEL_tStartHoldFraction[1] = 50000 - u32Temp;
-			FUEL_tStartHoldFraction[2] = 50000 - u32Temp;
-			FUEL_tStartHoldFraction[3] = 50000 - u32Temp;
+			FUEL_tStartHoldFraction[0] = 60000 - u32Temp;
+			FUEL_tStartHoldFraction[1] = 60000 - u32Temp;
+			FUEL_tStartHoldFraction[2] = 60000 - u32Temp;
+			FUEL_tStartHoldFraction[3] = 60000 - u32Temp;
 		}
 		else
 		{
@@ -1213,6 +1224,12 @@ void FUEL_vTerminate(puint32 const pu32Arg)
 void FUEL_vCallBack(puint32 const pu32Arg)
 {
 
+}
+
+void FUEL_vQuickCut(uint32 cut_percent, uint32 duration)
+{
+	FUEL_u32FuelChannelsMask = 0x1800;
+	USER_vSVC(SYSAPI_enSetFuelCuts, &cut_percent, &FUEL_u32FuelChannelsMask, &duration);
 }
 
 static void FUEL_vTEPMCallBack(IOAPI_tenEHIOResource enEHIOResource, TEPMAPI_ttEventTime tEventTime)

@@ -87,5 +87,6 @@ void FUEL_vRun(uint32* const pu32Arg);
 void FUEL_vTerminate(uint32* const pu32Arg);
 void FUEL_vCallBack(puint32 const pu32Arg);
 void FUEL_vCalculateFuellingValues(void);
+void FUEL_vQuickCut(uint32 cut_cycles, uint32_t duration);
 
 #endif // FUEL_H

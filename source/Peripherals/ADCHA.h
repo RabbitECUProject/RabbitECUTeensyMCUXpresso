@@ -145,7 +145,7 @@ typedef Adc tstADCModule;
    {EH_IO_TMR12, ADCHA_enADC0, 5, 0, ADCHA_enChannelB, false},		\
    {EH_IO_TMR13, ADCHA_enADCInvalid, 0, FALSE, FALSE, FALSE},     \
    {EH_IO_TMR14, ADCHA_enADCInvalid, 0, FALSE, FALSE, FALSE},     \
-   {EH_IO_TMR15, ADCHA_enADC1, 4, 0, ADCHA_enChannelB, false},		\
+   {EH_IO_TMR15, ADCHA_enADC0, 6, 0, ADCHA_enChannelB, false},		\
    {EH_IO_TMR16, ADCHA_enADC0, 7, 0, ADCHA_enChannelB, false},		\
    {EH_IO_TMR17, ADCHA_enADC0, 15, 0, ADCHA_enChannelA, false},		\
    {EH_IO_TMR18, ADCHA_enADC0, 4, 0, ADCHA_enChannelB, false},		\

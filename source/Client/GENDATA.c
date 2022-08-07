@@ -261,7 +261,7 @@ void GENDATA_vRun(puint32 const pu32Arg)
 	u16GenIDXX = USERCAL_stRAMCAL.aPWM2DAxesSourceXIDX[u32SampleCount];
 	GENDATA_s32SOURCE[u32SampleCount] = GENDATA_s32VARS[u16GenIDXX];
 
-	if (~0 != u16GenIDXX)
+	if (0xff != u16GenIDXX)
 	{
 		/* Calculate the current generic spread */
 		USER_vSVC(SYSAPI_enCalculateSpread, (void*)&GENDATA_tSpreadPWM2DxIDX[u32SampleCount],

@@ -15,7 +15,7 @@
 #include "SPREADSAPI.h"
 #include "SYSAPI.h"
 
-#define SPREAD_nKernelSpreadCount	50u
+#define SPREAD_nKernelSpreadCount	55u
 #define SPREAD_nUserSpreadCount	    45u
 
 void SPREADS_vStart(puint32 const pu32Arg);

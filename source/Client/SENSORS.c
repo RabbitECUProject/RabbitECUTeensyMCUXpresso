@@ -125,16 +125,36 @@ void SENSORS_vStart(puint32 const pu32Arg)
 		(void*)&stTimedEvent, (void*)NULL);	
 
 
-#ifdef BUILD_BSP_AFM_FREQ
+#if defined(BUILD_BSP_AFM_FREQ) || defined(BUILD_BSP_SINGLE_CAM_INPUT)
 	/* Request and initialise AFM_FREQ_nInput */
+
+#if defined(BUILD_BSP_AFM_FREQ)
 	enEHIOResource = AFM_FREQ_nInput;
+#endif
+
+#if defined(BUILD_BSP_SINGLE_CAM_INPUT)
+	enEHIOResource = CAM_nInput;
+#endif
+
 	enEHIOType = IOAPI_enCaptureCompare;
 	USER_vSVC(SYSAPI_enRequestIOResource, (void*)&enEHIOResource,	(void*)NULL, (void*)NULL);
 	
-	/* Initialise the TEPM channel AFM_FREQ_nInput */
+	/* Initialise the TEPM channel AFM_FREQ_nInput (PF-DI) or CAM_nInput (TEENSY_ADAPT)*/
 	if (SYSAPI_enOK == pstSVCDataStruct->enSVCResult)
 	{
-		stTEPMChannelCB.enAction = TEPMAPI_enCapRising;
+		if (0 == USERCAL_stRAMCAL.u8UserSecondaryEdgeSetup)
+		{
+			stTEPMChannelCB.enAction = TEPMAPI_enCapFalling;
+		}
+		else if (1 == USERCAL_stRAMCAL.u8UserSecondaryEdgeSetup)
+		{
+			stTEPMChannelCB.enAction = TEPMAPI_enCapRising;
+		}
+		else
+		{
+			stTEPMChannelCB.enAction = TEPMAPI_enCapAny;
+		}
+
 		stTEPMChannelCB.boInterruptEnable = TRUE;
 		stTEPMChannelCB.boRecursive = FALSE;
 		
@@ -142,12 +162,17 @@ void SENSORS_vStart(puint32 const pu32Arg)
 		(void*)&enEHIOType,	(void*)&stTEPMChannelCB);
 	}
 
+#ifdef BUILD_SPARKDOG_TEENSY_ADAPT
+	stTimedEvent.enMethod = TEPMAPI_enLinkVVT1Input;
+#else
 	stTimedEvent.enMethod = TEPMAPI_enLinkFreqInput;
+#endif
+
 	stTimedEvent.pfEventCB = &SENSORS_vCEMCallBack;
-#endif //BUILD_BSP_AFM_FREQ
-	
+
 	USER_vSVC(SYSAPI_enConfigureUserTEPMInput, (void*)&enEHIOResource,
 	(void*)&stTimedEvent, (void*)NULL);
+#endif //BUILD_BSP_AFM_FREQ
 
 	/* Enable the Hall-Effect sensor type */
 	enEHIOResource = VRA_nPullupEnablePin;
@@ -487,8 +512,8 @@ void SENSORS_vRun(puint32 const pu32Arg)
 			else if (0x1234 != USERCAL_stRAMCAL.u16ETCOverrideKeys)
 			{
 				/* No higher than pedal authority */
-				SENSORS_u16TPSSafeMaxModified = SENSORS_u32PPSMVoltsRamp > (uint32)SENSORS_u16TPSSafeMax ?
-					SENSORS_u16TPSSafeMax : (uint16)SENSORS_u32PPSMVoltsRamp;
+				SENSORS_u16TPSSafeMaxModified = (SENSORS_u32PPSMVoltsRamp + 150) > (uint32)SENSORS_u16TPSSafeMax ?
+					SENSORS_u16TPSSafeMax : (uint16)(SENSORS_u32PPSMVoltsRamp + 150);
 			}
 			else
 			{
@@ -569,6 +594,7 @@ static void SENSORS_vGetCANSensorData()
 	uint16 u16Temp;
 	sint16 s16Temp;
 	sint32 s32Temp;
+	static uint8 u8OldATXStat;
 	static uint8 u8OldGear;
 	static uint8 u8OldDistCount;
 	static sint16 s16OldDistance;
@@ -611,61 +637,93 @@ static void SENSORS_vGetCANSensorData()
 			SENSORS_boCANNewBrakePressedSample = FALSE;
 		}
 
+		if (USERCAL_stRAMCAL.u16ETCOverrideKeys == 0xffff)
+		{
+			pu8CANDataBuffer[18] = USERCAL_stRAMCAL.u16ETCOverride & 0x00ff;
+			pu8CANDataBuffer[19] = USERCAL_stRAMCAL.u16ETCOverride >> 8;
+			TORQUE_boVehicleMovingUS = TRUE;
+			TORQUE_boManualShiftMode = TRUE;
+		}
+
 		/* Check CAN torque reduction requests */
 		SENSORS_boCANNewTorqueRequestSample = pu8CANDataBuffer[19] != 0xff;
 
 		if (TRUE == SENSORS_boCANNewTorqueRequestSample)
 		{
 			TORQUE_boManualShiftMode = 0 != (pu8CANDataBuffer[18] & 0x80);
+			TORQUE_u8ATXSelectedGear = 0xf & pu8CANDataBuffer[18];
+			u8OldGear = 0xf & pu8CANDataBuffer[18];
 
-			if ((0xf & pu8CANDataBuffer[18]) != u8OldGear)
+			/* Look for status change */
+			if (pu8CANDataBuffer[19] != u8OldATXStat)
 			{
-				TORQUE_u8ATXSelectedGear = 0xf & pu8CANDataBuffer[18];
-				TORQUE_boDownShift = u8OldGear > (0xf & pu8CANDataBuffer[18]) ? TRUE : FALSE;
-				u8OldGear = 0xf & pu8CANDataBuffer[18];
+				u8OldATXStat = pu8CANDataBuffer[19];
 
-				if (0 == TORQUE_boDownShift)
+				if (0x04 == (u8OldATXStat & 0x04))
 				{
-					TORQUE_u16GearShiftCount = USERCAL_stRAMCAL.u16ShiftUpCountLimit;
-				}
-				else
-				{
-					TORQUE_u16GearShiftCount = USERCAL_stRAMCAL.u16ShiftDownCountLimit;
-				}
+					/* Up-shifting pre or post */
+					TORQUE_boDownShift = FALSE;
 
-				TORQUE_u16GearShiftPressureControlCount = USERCAL_stRAMCAL.u16ShiftCountPressureControlLimit;
-			}
-			else
-			{
-				TORQUE_u16GearShiftCount = 0 != TORQUE_u16GearShiftCount ? TORQUE_u16GearShiftCount - 1 : 0;
-				TORQUE_u16GearShiftPressureControlCount = 0 != TORQUE_u16GearShiftPressureControlCount ?
-						TORQUE_u16GearShiftPressureControlCount - 1 : 0;
-			}
-
-			if (0x80 == (0x80 & pu8CANDataBuffer[19]))
-			{
-				if (0 != TORQUE_u16GearShiftCount)
-				{
-					/* DSG torque reduction request */
-					if (EST_nIgnitionReqDSGCutsStage3 != EST_enIgnitionTimingRequest)
+					if ((0x01 == (u8OldATXStat & 0x01)) && (TRUE == TORQUE_boVehicleMovingUS))
 					{
-						EST_enIgnitionTimingRequest = EST_nIgnitionReqDSGStage2;
+						if (FALSE == TORQUE_boPostShift)
+						{
+							TORQUE_u16GearShiftCount = USERCAL_stRAMCAL.u16ShiftUpCountLimit;
+							TORQUE_boPostShift = TRUE;
+
+							if (TRUE == TORQUE_boManualShiftMode)
+							{
+								FUEL_vQuickCut(TORQUE_u32QuickCutPercent, TORQUE_u32QuickCutDuration);
+							}
+						}
+					}
+
+					if ((TRUE == TORQUE_boPostShift) && (FALSE == TORQUE_boESTTorqueModify) && (0x80 == (u8OldATXStat & 0x80)))
+					{
+						/* Shifting up, DSG torque reduction request */
+						EST_enIgnitionTimingRequest = EST_nIgnitionReqDSGStage1;
+						TORQUE_boESTTorqueModify = TRUE;
+
+						/* Try finishing fuel cuts */
+						FUEL_vQuickCut(0,0);
 					}
 				}
-			}
-			else if (0x05 == (0x05 & pu8CANDataBuffer[19]))
-			{
-				/* DSG torque reduction request */
-				EST_enIgnitionTimingRequest = EST_nIgnitionReqDSGStage1;
+				else if (0x01 == (u8OldATXStat & 0x05))
+				{
+					/* Shifting down, DSG torque reduction request */
+					EST_enIgnitionTimingRequest = EST_nIgnitionReqDSGStage1;
+					TORQUE_boDownShift = TRUE;
+					TORQUE_boPostShift = TRUE;
+					TORQUE_boESTTorqueModify = TRUE;
+					TORQUE_u16GearShiftCount = USERCAL_stRAMCAL.u16ShiftDownCountLimit;
+				}
+				else if (0x10 == (u8OldATXStat & 0x10))
+				{
+					/* DSG normal */
+					EST_enIgnitionTimingRequest = EST_nIgnitionReqPrimary;
+					TORQUE_u16GearShiftCount = 0;
+					TORQUE_u16GearShiftPressureControlCount = 0;
+					TORQUE_boDownShift = FALSE;
+					TORQUE_boPostShift = FALSE;
+					TORQUE_boESTTorqueModify = FALSE;
+					FUEL_vQuickCut(0, 0);
+				}
 			}
 			else
 			{
-				/* DSG normal */
-				EST_enIgnitionTimingRequest = EST_nIgnitionReqPrimary;
+				if ((TRUE == TORQUE_boPostShift) && (TRUE == TORQUE_boESTTorqueModify))
+				{
+					TORQUE_u16GearShiftCount = 0 != TORQUE_u16GearShiftCount ? TORQUE_u16GearShiftCount - 1 : 0;
+					TORQUE_u16GearShiftPressureControlCount = 0 != TORQUE_u16GearShiftPressureControlCount ?
+							TORQUE_u16GearShiftPressureControlCount - 1 : 0;
+
+					EST_enIgnitionTimingRequest = 0 == TORQUE_u16GearShiftCount ? EST_nIgnitionReqPrimary : EST_enIgnitionTimingRequest;
+				}
 			}
 
 			TORQUE_u32ATXTorqueLimit = pu8CANDataBuffer[16];
 		}
+
 
 		/* Get power mode */
 		u16Temp = pu8CANDataBuffer[0] + (pu8CANDataBuffer[1] << 8);
@@ -684,39 +742,42 @@ static void SENSORS_vGetCANSensorData()
 			DIAG_u8PowerModeActive = 0 < DIAG_u16PowerModeActiveCount;
 		}
 
-		/* Get VSS */
-		if (u8OldDistCount != (0x80 & pu8CANDataBuffer[8]))
+		if (USERCAL_stRAMCAL.u16ETCOverrideKeys != 0xffff)
 		{
-			u8OldDistCount = 0x80 & pu8CANDataBuffer[8];
-
-			s16Temp = pu8CANDataBuffer[13] * 0x100 + pu8CANDataBuffer[14];
-
-			if (s16Temp >= s16OldDistance)
+			/* Get VSS */
+			if (u8OldDistCount != (0x80 & pu8CANDataBuffer[8]))
 			{
-				s32Temp = (sint32)s16Temp - (sint32)s16OldDistance;
+				u8OldDistCount = 0x80 & pu8CANDataBuffer[8];
+
+				s16Temp = pu8CANDataBuffer[13] * 0x100 + pu8CANDataBuffer[14];
+
+				if (s16Temp >= s16OldDistance)
+				{
+					s32Temp = (sint32)s16Temp - (sint32)s16OldDistance;
+				}
+				else if (s16Temp < s16OldDistance)
+				{
+					s32Temp = (sint32)s16Temp - (sint32)s16OldDistance;
+					s32Temp += 2048;
+				}
+
+				s32Temp *= USERCAL_stRAMCAL.u16VSSCANCal;
+				s32Temp /= 100;
+
+				s32Temp = 0x10000 > s32Temp ? s32Temp : 0xffff;
+				SENSORS_u16CANVSS = ((uint16)s32Temp / 2) + (SENSORS_u16CANVSS / 2);
+
+				s16OldDistance = s16Temp;
+				u32VSSTimeout = 0;
 			}
-			else if (s16Temp < s16OldDistance)
+			else if (u32VSSTimeout > 125)
 			{
-				s32Temp = (sint32)s16Temp - (sint32)s16OldDistance;
-				s32Temp += 2048;
+				SENSORS_u16CANVSS = 0;
 			}
-
-			s32Temp *= USERCAL_stRAMCAL.u16VSSCANCal;
-			s32Temp /= 100;
-
-			s32Temp = 0x10000 > s32Temp ? s32Temp : 0xffff;
-			SENSORS_u16CANVSS = ((uint16)s32Temp / 2) + (SENSORS_u16CANVSS / 2);
-
-			s16OldDistance = s16Temp;
-			u32VSSTimeout = 0;
-		}
-		else if (u32VSSTimeout > 125)
-		{
-			SENSORS_u16CANVSS = 0;
-		}
-		else
-		{
-			u32VSSTimeout++;
+			else
+			{
+				u32VSSTimeout++;
+			}
 		}
 
 
@@ -746,6 +807,41 @@ static void SENSORS_vGetCANSensorData()
 				SENSORS_u16VSSCalcGearRPMSlip = (uint16)s32Temp;
 				break;
 			}
+		}
+
+		if (USERCAL_stRAMCAL.u16ETCOverrideKeys == 0x5678)
+		{
+			TORQUE_u8ATXSelectedGear = USERCAL_stRAMCAL.u16ETCOverride & 0x000f;
+			SENSORS_u16CANVSS = 10 * (USERCAL_stRAMCAL.u16ETCOverride >> 8);
+		}
+
+		/* Calculate rpm slips based on DSG reported engaged gear */
+		u16Temp = 6 > TORQUE_u8ATXSelectedGear ? TORQUE_u8ATXSelectedGear : 6;
+
+		/* zero based index */
+		if (u16Temp) u16Temp--;
+
+		/* Calculate RPM slip */
+		s32Temp = (1000 * SENSORS_u16CANVSS) / USERCAL_stRAMCAL.u16VSSPerRPM[u16Temp];
+		s32Temp -= (sint32)CAM_u32RPMFiltered;
+		s32Temp = ABS(s32Temp);
+
+		SENSORS_u16VSSDSGGearRPMSlip = (uint16)s32Temp;
+
+		if (5 > u16Temp)
+		{
+			u16Temp++;
+
+			/* Calculate RPM slip next gear */
+			s32Temp = (1000 * SENSORS_u16CANVSS) / USERCAL_stRAMCAL.u16VSSPerRPM[u16Temp];
+			s32Temp -= (sint32)CAM_u32RPMFiltered;
+			s32Temp = ABS(s32Temp);
+
+			SENSORS_u16VSSDSGGearRPMSlipNext = (uint16)s32Temp;
+		}
+		else
+		{
+			SENSORS_u16VSSDSGGearRPMSlipNext = SENSORS_u16VSSDSGGearRPMSlip;
 		}
 	}
 }

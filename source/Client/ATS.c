@@ -56,18 +56,19 @@ void ATS_vStart(puint32 const pu32Arg)
 	ATS_u32SampleCount = 0;
 	ATS_boNewSample = FALSE;
 	ATS_tTempCRaw = 20000;
+	ATS_tTempCFiltered = 20000;
 	
-	if (FALSE == USERCAL_stRAMCAL.boATSCANPrimary)	
+	if ((FALSE == USERCAL_stRAMCAL.boATSCANPrimary)	&& (EH_IO_Invalid != USERCAL_stRAMCAL.u16ATSADResource))
 	{
 		/* Request and initialise the ATS ADC input channel */
 		SETUP_boSetupADSE(USERCAL_stRAMCAL.u16ATSADResource, IOAPI_enADSE, ADCAPI_en32Samples, &ATS_vADCCallBack, ADCAPI_enTrigger2, pu32Arg);
 	}
 	
 	/* Request and initialise required Kernel managed spread for air sensor */
-	ATS_tSpreadSensorIDX = SETUP_tSetupSpread((void*)&ATS_tSensorVolts, (void*)&USERCAL_stRAMCAL.aUserCoolantSensorSpread, TYPE_enUInt32, 17, SPREADAPI_enSpread4ms, NULL);
+	ATS_tSpreadSensorIDX = SETUP_tSetupSpread((void*)&ATS_tSensorVolts, (void*)&USERCAL_stRAMCAL.aUserAirSensorSpread, TYPE_enUInt32, 17, SPREADAPI_enSpread4ms, NULL);
 
 	/* Request and initialise required Kernel managed table for air sensor */
-	ATS_tTableSensorIDX = SETUP_tSetupTable((void*)&USERCAL_stRAMCAL.aUserCoolantSensorTable, (void*)&ATS_tTempCRaw, TYPE_enInt32, 17, ATS_tSpreadSensorIDX, NULL);		
+	ATS_tTableSensorIDX = SETUP_tSetupTable((void*)&USERCAL_stRAMCAL.aUserAirSensorTable, (void*)&ATS_tTempCRaw, TYPE_enInt32, 17, ATS_tSpreadSensorIDX, NULL);		
 	
 	/* Request and initialise required Kernel managed spread for air temp enrichment */
 	ATS_tSpreadEnrichmentIDX = SETUP_tSetupSpread((void*)&ATS_tTempCPort, (void*)&USERCAL_stRAMCAL.aUserAirTempCorrectionSpread, TYPE_enInt32, 17, SPREADAPI_enSpread4ms, NULL);
@@ -92,7 +93,7 @@ void ATS_vRun(puint32 const pu32Arg)
 	static uint32 u32RunCount;
 
 	
-	if ((TRUE == ATS_boNewSample) || (true == SENSORS_boCANATSNewSample))
+	if ((TRUE == ATS_boNewSample) || (TRUE == SENSORS_boCANATSNewSample))
 	{
 		ATS_u32SampleCount++;
 
@@ -210,11 +211,11 @@ void ATS_vRun(puint32 const pu32Arg)
 		{
 			if (ATS_tTempCRaw < ATS_tTempCFiltered)
 			{
-				ATS_tTempCFiltered -= 50;
+				ATS_tTempCFiltered -= 500;
 			}
 			else if (ATS_tTempCRaw > ATS_tTempCFiltered)
 			{
-				ATS_tTempCFiltered += 50;
+				ATS_tTempCFiltered += 500;
 			}
 		}
 	}

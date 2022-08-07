@@ -20,6 +20,7 @@
 #include "USER.h"
 #include "SYS.h"
 #include "TEPMAPI.h"
+#include "build.h"
 
 /* GLOBAL MACRO DEFINITIONS ***************************************************/
 typedef enum
@@ -64,7 +65,13 @@ typedef enum
 #define SENSORS_nHertzSamplesMax            16
 
 #ifdef BUILD_SPARKDOG_PF
+
+#ifndef PFDIV2FIX
 #define VRA_nPullupEnablePin                EH_IO_GP2
+#else
+#define VRA_nPullupEnablePin                EH_IO_GP14
+#endif
+
 #define VRB_nPullupEnablePin                EH_IO_UART2_TX
 #define VRA_nVREnablePin                    EH_IO_UART2_RX
 #define VRB_nVREnablePin                    EH_IO_GPSE7
@@ -94,6 +101,7 @@ typedef enum
 
 #ifdef BUILD_SPARKDOG_TEENSY_ADAPT
 #define CRANK_nInput                        EH_IO_TMR10
+#define CAM_nInput                          EH_IO_TMR11
 #endif //BUILD_SPARKDOG_TEENSY_ADAPT
 
 #ifdef BUILD_BSP_AFM_FREQ
@@ -102,13 +110,8 @@ typedef enum
 #define AFM_FREQ_nInput                     EH_IO_TMR10
 #endif //BUILD_SPARKDOG_PF
 
-#ifdef BUILD_SPARKDOG_TEENSY_ADAPT
-#define AFM_FREQ_nInput                     EH_IO_TMR11
-#endif //BUILD_SPARKDOG_TEENSY_ADAPT
-
 #endif //BUILD_BSP_AFM_FREQ
 
-//#define CTS_nSwitchPin                      EH_IO_GPSE1
 
 #if 0
 #define CLO2_nSwitchBank1Pin				EH_IO_GPSE2
@@ -186,6 +189,12 @@ EXTERN uint8 SENSORS_u8VSSCalcGear;
 //ASAM mode=readvalue name="Calculated Gear" type=uint8 offset=0 min=0 max=255 m=1 b=0 units="dl" format=1.0 help="VSS Calculated Gear"
 EXTERN uint16 SENSORS_u16VSSCalcGearRPMSlip;
 //ASAM mode=readvalue name="Calculated Gear RPM Slip" type=uint16 offset=0 min=0 max=65535 m=1 b=0 units="RPM" format=4.0 help="VSS Calculated Gear RPM Slip"
+EXTERN uint16 SENSORS_u16VSSDSGGearRPMSlip;
+//ASAM mode=readvalue name="DSG Calculated Gear RPM Slip" type=uint16 offset=0 min=0 max=65535 m=1 b=0 units="RPM" format=4.0 help="VSS DSG Calculated Gear RPM Slip"
+EXTERN uint16 SENSORS_u16VSSDSGGearRPMSlipNext;
+//ASAM mode=readvalue name="DSG Calculated Next Gear RPM Slip" type=uint16 offset=0 min=0 max=65535 m=1 b=0 units="RPM" format=4.0 help="VSS DSG Next Calculated Gear RPM Slip"
+
+
 EXTERN uint32 SENSORS_u32PPSMVoltsRamp;
 
 EXTERN uint16 SENSORS_au16ADSensorValueFiltered[SENSORS_enADCount];

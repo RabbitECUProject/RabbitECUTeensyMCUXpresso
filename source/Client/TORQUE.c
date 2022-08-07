@@ -61,7 +61,11 @@ void TORQUE_vRun(puint32 const pu32Arg)
 	uint16 u16Temp;
 	uint16 u16AutoRevMatch;
 	uint16 u16PostBlipDuration;
-	static uint32 u32DSGCutsCount;
+
+	if (USERCAL_stRAMCAL.u16ETCOverrideKeys == 0xffff)
+	{
+		SENSORS_u16CANVSS = 500;
+	}
 
 	TORQUE_boVehicleMovingDS = USERCAL_stRAMCAL.u16ATXTorqueOnVSS < SENSORS_u16CANVSS ? TRUE : TORQUE_boVehicleMovingDS;
 	TORQUE_boVehicleMovingDS = USERCAL_stRAMCAL.u16ATXTorqueOffVSS > SENSORS_u16CANVSS ? FALSE : TORQUE_boVehicleMovingDS;
@@ -84,31 +88,19 @@ void TORQUE_vRun(puint32 const pu32Arg)
 		TORQUE_u32TorqueModelEstimateScaled	= 0;
 	}
 
-	if (6000 < TPS_tThetaFiltered)
+
+
+	/* New torque estimate */
+	if (40000 < MAP_tKiloPaFiltered)
 	{
-		u32Temp = (TPS_tThetaFiltered - 6000) / 90;
-		u32Temp = 0x100 > u32Temp ? u32Temp : 0xff;
+		TORQUE_u32OutputTorqueEstimate = 10 + (MAP_tKiloPaFiltered - 40000) / 660;
+		TORQUE_u32OutputTorqueEstimate = 0xff > TORQUE_u32OutputTorqueEstimate ? TORQUE_u32OutputTorqueEstimate : 0xff;
 	}
 	else
 	{
-		u32Temp = 0;
+		TORQUE_u32OutputTorqueEstimate = MAP_tKiloPaFiltered / 4000;
 	}
 
-	if (20000 < MAP_tKiloPaFiltered)
-	{
-		if (150000 > MAP_tKiloPaFiltered)
-		{
-			TORQUE_u32OutputTorqueEstimate = u32Temp / 2 + ((MAP_tKiloPaFiltered - 20000) / 1020);
-		}
-		else
-		{
-			TORQUE_u32OutputTorqueEstimate = u32Temp / 2 + 127;
-		}
-	}
-	else
-	{
-		TORQUE_u32OutputTorqueEstimate = u32Temp / 2;
-	}
 
 	/* Calculate pedal percentage scaled */
 	u32Temp = MAX(USERCAL_stRAMCAL.userCalPPSCalMin, SENSORS_u32PPSMVolts);
@@ -121,13 +113,18 @@ void TORQUE_vRun(puint32 const pu32Arg)
 
 	TORQUE_u32TorquePedalEstimateScaled = u32Temp;
 
+	TORQUE_u32PedalClosed = 200 > TORQUE_u32TorquePedalEstimateScaled ? TRUE : TORQUE_u32PedalClosed;
+	TORQUE_u32PedalClosed = 800 < TORQUE_u32TorquePedalEstimateScaled ? FALSE : TORQUE_u32PedalClosed;
+	TORQUE_u32PedalWOT = 24500 > TORQUE_u32TorquePedalEstimateScaled ? FALSE : TORQUE_u32PedalWOT;
+	TORQUE_u32PedalWOT = 25200 < TORQUE_u32TorquePedalEstimateScaled ? TRUE : TORQUE_u32PedalWOT;
+
 	/* Apply ATX torque mode */
 	if ((EST_nIgnitionReqDSGStage1 == EST_enIgnitionTimingRequest)
 			&& (TRUE == TORQUE_boVehicleMovingUS))
 	{
 		if (0 == TORQUE_boDownShift)
 		{
-			u16Temp = (3 * USERCAL_stRAMCAL.u16ShiftUpCountLimit) / 4;
+			u16Temp = USERCAL_stRAMCAL.u16ShiftUpCountLimit - 5;
 		}
 		else
 		{
@@ -137,63 +134,62 @@ void TORQUE_vRun(puint32 const pu32Arg)
 		if (u16Temp < TORQUE_u16GearShiftCount)
 		{
 			/* Early in the shift */
-			TORQUE_u32ESTTorqueModifier = 10;
+			if (TRUE == TORQUE_boManualShiftMode)
+			{
+				TORQUE_u32ESTTorqueModifier = 10;
+			}
+			else
+			{
+				TORQUE_u32ESTTorqueModifier = 110;
+			}
 		}
 		else
 		{
-			if (100 > SENSORS_u16VSSCalcGearRPMSlip)
+			if (150 > SENSORS_u16VSSDSGGearRPMSlip)
 			{
-				/* OK slip is low, ramp up modifier */
-				TORQUE_u32ESTTorqueModifier = 215 > TORQUE_u32ESTTorqueModifier ?
-						TORQUE_u32ESTTorqueModifier + 40 : 0x100;
+				if (TRUE == TORQUE_boManualShiftMode)
+				{
+					/* Manual mode */
+					TORQUE_u32ESTTorqueModifier = 245 > TORQUE_u32ESTTorqueModifier ?
+							TORQUE_u32ESTTorqueModifier + 5 : 0x100;
+				}
+				else
+				{
+					/* Auto mode */
+					TORQUE_u32ESTTorqueModifier = 245 > TORQUE_u32ESTTorqueModifier ?
+							TORQUE_u32ESTTorqueModifier + 2 : 0x100;
+				}
 			}
-			else if (200 < SENSORS_u16VSSCalcGearRPMSlip)
+			else if (250 < SENSORS_u16VSSCalcGearRPMSlip)
 			{
-				/* Uh oh slip is high */
-				TORQUE_u32ESTTorqueModifier = 40 < TORQUE_u32ESTTorqueModifier ?
-						TORQUE_u32ESTTorqueModifier - 40 : 10;
+				if (TRUE == TORQUE_boManualShiftMode)
+				{
+					/* Manual mode */
+					TORQUE_u32ESTTorqueModifier = 20 < TORQUE_u32ESTTorqueModifier ?
+							TORQUE_u32ESTTorqueModifier - 5 : 20;
+				}
+				else
+				{
+					/* Auto mode */
+					TORQUE_u32ESTTorqueModifier = 110 < TORQUE_u32ESTTorqueModifier ?
+							TORQUE_u32ESTTorqueModifier - 5 : 110;
+				}
 			}
 		}
 
-
-		TORQUE_u32FuelTorqueModifier = 220;
+		if (TRUE == TORQUE_boManualShiftMode)
+		{
+			TORQUE_u32FuelTorqueModifier = 220;
+		}
+		else
+		{
+			TORQUE_u32FuelTorqueModifier = 240;
+		}
 
 		TORQUE_u32OutputTorqueModified = (TORQUE_u32OutputTorqueEstimate *
 				TORQUE_u32ESTTorqueModifier *
 				TORQUE_u32DBWTorqueModifier *
 				TORQUE_u32FuelTorqueModifier) / 0x1000000;
-
-		u32DSGCutsCount = 0;
-	}
-	else if (((EST_nIgnitionReqDSGStage2 == EST_enIgnitionTimingRequest) ||
-			(EST_nIgnitionReqDSGCutsStage3 == EST_enIgnitionTimingRequest))
-					&& (TRUE == TORQUE_boVehicleMovingUS))
-	{
-		if (u32DSGCutsCount > USERCAL_stRAMCAL.u16TorqueReductionMaxDuration)
-		{
-			EST_enIgnitionTimingRequest = EST_nIgnitionReqDSGStage2;
-		}
-		else
-		{
-			u32DSGCutsCount++;
-			EST_enIgnitionTimingRequest = EST_nIgnitionReqDSGCutsStage3;
-		}
-
-		TORQUE_u32FuelTorqueModifier = 200;
-
-		TORQUE_u32OutputTorqueModified = (TORQUE_u32OutputTorqueEstimate *
-				TORQUE_u32ESTTorqueModifier *
-				TORQUE_u32DBWTorqueModifier *
-				TORQUE_u32FuelTorqueModifier) / 0x1000000;
-
-		if ((TORQUE_u32ATXTorqueLimit - 20) < TORQUE_u32OutputTorqueModified)
-		{
-			TORQUE_u32ESTTorqueModifier--;
-		}
-		else if ((TORQUE_u32ATXTorqueLimit - 20) > TORQUE_u32OutputTorqueModified)
-		{
-			if (200 > TORQUE_u32ESTTorqueModifier) TORQUE_u32ESTTorqueModifier++;
-		}
 	}
 	else
 	{
@@ -203,7 +199,6 @@ void TORQUE_vRun(puint32 const pu32Arg)
 		TORQUE_u32DBWTorqueModifier = 0x100;
 		TORQUE_u32FuelTorqueModifier = 0x100;
 		TORQUE_u32IdleStabilisationTorque = 20;
-		u32DSGCutsCount = 0;
 	}
 
 	/* Reverse lookup pedal from torque */
@@ -220,6 +215,9 @@ void TORQUE_vRun(puint32 const pu32Arg)
 	/* Lookup the current ETC scale */
 	USER_vSVC(SYSAPI_enCalculateTable, (void*)&TORQUE_tTableETCScaleIDX,
 			NULL, NULL);
+
+	TORQUE_u16ETCScaleRamped = TORQUE_u16ETCScale < TORQUE_u16ETCScaleRamped ? TORQUE_u16ETCScaleRamped - 1 : TORQUE_u16ETCScaleRamped;
+	TORQUE_u16ETCScaleRamped = TORQUE_u16ETCScale > TORQUE_u16ETCScaleRamped ? TORQUE_u16ETCScaleRamped + 1 : TORQUE_u16ETCScaleRamped;
 
 
 	/* Compute Rev Match RPM */
@@ -266,10 +264,23 @@ void TORQUE_vRun(puint32 const pu32Arg)
 							}
 							else
 							{
+								/* Calculate desired TPS */
+								u32Temp = SENSORS_u32PPSMVolts;
+								u32Temp *= 4;
+								u32Temp /= 10;
+								u32Temp += 250;
+
+								/* Calculate target step */
+								u32Temp -= 470;
+								u32Temp /= 58;
+
 								u16AutoRevMatch = TORQUE_u16GetAutoRevMatch();
+								u16AutoRevMatch = u32Temp > u16AutoRevMatch ? u32Temp : u16AutoRevMatch;
+
 								u16Temp -= 50;
 								u16PostBlipDuration -= 50;
 
+								TORQUE_u16RevMatchPosition = u16AutoRevMatch;
 								TORQUE_u16RevMatchPosition *= u16Temp;
 								TORQUE_u16RevMatchPosition /= u16PostBlipDuration;
 							}
@@ -305,6 +316,42 @@ void TORQUE_vRun(puint32 const pu32Arg)
 	{
 		TORQUE_u32RevMatchRPM = 1500;
 		TORQUE_u16RevMatchPosition = 0;
+	}
+
+	if ((TORQUE_MIN_FCUTS_MAP > MAP_tKiloPaFiltered) ||
+		(FALSE == TORQUE_boManualShiftMode) ||
+		(TORQUE_MIN_FCUTS_RPM > CAM_u32RPMFiltered))
+	{
+		TORQUE_u32QuickCutPercent = 0;
+		TORQUE_u32QuickCutDuration = 0;
+
+	}
+	else
+	{
+		CPU_vEnterCritical();
+
+		/* Base engine speed related cut percent */
+		TORQUE_u32QuickCutPercent = (CAM_u32RPMFiltered - TORQUE_MIN_FCUTS_RPM) / 40;
+
+		/* Manifold pressure modification */
+		if (TORQUE_MAX_FCUTS_MAP > MAP_tKiloPaFiltered)
+		{
+			u32Temp = MAP_tKiloPaFiltered - TORQUE_MIN_FCUTS_MAP;
+			u32Temp = TORQUE_MAX_FCUTS_MAP - u32Temp;
+			u32Temp /= ((TORQUE_MAX_FCUTS_MAP - TORQUE_MIN_FCUTS_MAP) / 100u);
+		}
+		else
+		{
+			u32Temp = 0;
+		}
+
+		TORQUE_u32QuickCutPercent *= u32Temp;
+		TORQUE_u32QuickCutPercent /= 100;
+		TORQUE_u32QuickCutPercent = 100 > TORQUE_u32QuickCutPercent ? TORQUE_u32QuickCutPercent : 100;
+
+		TORQUE_u32QuickCutDuration = CAM_u32RPMFiltered >> 8;
+
+		CPU_vExitCritical();
 	}
 }
 

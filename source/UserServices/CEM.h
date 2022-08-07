@@ -40,6 +40,7 @@ typedef enum
    CEM_enOneGroupMissing,
    CEM_enTypeSuzukiM15A,
    CEM_enTypeWVEA888,
+   CEM_enToyota2NFE,
    CEM_enModeCount
 } CEM_tenTriggerType;
 

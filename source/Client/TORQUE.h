@@ -31,8 +31,11 @@
 	#define EXTERN extern
 #endif
 
-#define TORQUE_nPPSRange 25400
+#define TORQUE_nPPSRange 25400u
 
+#define TORQUE_MIN_FCUTS_MAP 30000u
+#define TORQUE_MAX_FCUTS_MAP 180000u
+#define TORQUE_MIN_FCUTS_RPM 500u
 
 /* GLOBAL VARIABLE DECLARATIONS ***********************************************/
 EXTERN uint32 TORQUE_u32ATXTorqueLimit;
@@ -40,14 +43,18 @@ EXTERN uint32 TORQUE_u32OutputTorqueModified;
 EXTERN uint32 TORQUE_u32OutputTorqueEstimate;
 //ASAM mode=readvalue name="Output Torque Estimate" type=uint32 offset=0 min=0 max=255 m=1 b=0 units="dl" format=3.1 help="Torque Estimate"
 
-
+EXTERN uint32 TORQUE_u32QuickCutPercent;
+EXTERN uint32 TORQUE_u32QuickCutDuration;
 EXTERN uint32 TORQUE_u32ESTTorqueModifier;
 EXTERN uint32 TORQUE_u32DBWTorqueModifier;
 EXTERN uint32 TORQUE_u32FuelTorqueModifier;
 EXTERN uint32 TORQUE_u32IdleStabilisationTorque;
 EXTERN uint32 TORQUE_u32TorquePedalEstimateScaled;
+EXTERN bool TORQUE_u32PedalClosed;
+EXTERN bool TORQUE_u32PedalWOT;
 EXTERN uint32 TORQUE_u32TorqueModelEstimateScaled;
 EXTERN uint16 TORQUE_u16ETCScale;
+EXTERN uint16 TORQUE_u16ETCScaleRamped;
 EXTERN uint16 TORQUE_u16GearShiftCount;
 //ASAM mode=readvalue name="Shift Control Count" type=uint16 offset=0 min=0 max=65535 m=1 b=0 units="dl" format=5.0 help="Shift Control Count"
 EXTERN bool TORQUE_boDownShift;
@@ -65,6 +72,8 @@ EXTERN bool TORQUE_boVehicleMovingDS;
 //ASAM mode=readvalue name="ATX Vehicle Moving Downshifts" type=uint8 offset=0 min=0 max=1 m=1 b=0 units="dl" format=1.0 help="ATX Vehicle Moving Downshifts"
 EXTERN bool TORQUE_boManualShiftMode;
 //ASAM mode=readvalue name="ATX Manual Shift Mode" type=uint8 offset=0 min=0 max=1 m=1 b=0 units="dl" format=1.0 help="ATX Manual Shift Mode"
+EXTERN bool TORQUE_boPostShift;
+EXTERN bool TORQUE_boESTTorqueModify;
 
 
 /* GLOBAL FUNCTION DECLARATIONS ***********************************************/

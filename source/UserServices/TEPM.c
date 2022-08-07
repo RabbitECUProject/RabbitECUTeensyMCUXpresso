@@ -75,7 +75,8 @@ IOAPI_tenEHIOResource TEPM_astTEPMVVTInputs[4];
 IOAPI_tenEHIOResource TEPM_astTEPMLinkedResource[TEPMHA_nEventChannels];
 uint32 TEPM_u32PrimaryPhaseIDX;
 uint16 TEPM_au16PWMLowResidual[16];
-uint32 TEPM_u32FuelCutsPercent;
+uint32 TEPM_u32FuelCutsNdxLimit;
+uint32 TEPM_u32FuelCutsDurationLimit;
 uint32 TEPM_u32SparkCutsPercent;
 uint32 TEPM_u32FuelCutsMask;
 uint32 TEPM_u32SparkCutsMask;
@@ -83,6 +84,7 @@ uint32 TEPM_u32FuelChannelCount;
 uint32 TEPM_u32SparkChannelCount;
 uint32 TEPM_u32FuelCutsCounter;
 uint32 TEPM_u32StartLinkPending;
+uint32 TEPM_u32FastCutCounter;
 
 #ifdef TEPM_PRIO_INPUT_MK6X
 extern const TEPM_tstTEPMReverseChannel TEPMHA_rastTEPMReverseChannel[];
@@ -128,7 +130,7 @@ void TEPM_vStart(puint32 const pu32Arg)
 		TEPM_astTEPMLinkedResource[u32QueueIDX] = EH_IO_Invalid;
 	}
 
-	TEPM_u32FuelCutsPercent = 5;
+	TEPM_u32FuelCutsNdxLimit = 4;
 }
 
 IOAPI_tenEHIOResource TEPM_enGetPrimaryLinkedResource(void)
@@ -757,7 +759,10 @@ void TEPM_vInterruptHandler(IOAPI_tenEHIOResource enEHVIOResource, void* pvData)
 
 void TEPM_vMissingToothInterruptHandler(IOAPI_tenEHIOResource enEHVIOResource, void* pvData)
 {
+#ifdef TELLTALE_MISSING
 	static bool flag;
+#endif //TELLTALE_MISSING
+
 	uint32 u32LastGap;
 
 	u32LastGap = TEPMHA_u32SetNextMissingToothInterrupt(0, 0, 0);
@@ -769,6 +774,7 @@ void TEPM_vMissingToothInterruptHandler(IOAPI_tenEHIOResource enEHVIOResource, v
 	CEM_u32ToothEdgeCounter++;
 	CEM_u32CycleToothEdgeCounter++;
 
+#ifdef TELLTALE_MISSING
 	if (flag)
 	{
 		PIM_vAssertPortBit(PIMAPI_enPHYS_PORT_E, 0x400, IOAPI_enLow);
@@ -779,6 +785,7 @@ void TEPM_vMissingToothInterruptHandler(IOAPI_tenEHIOResource enEHVIOResource, v
 	}
 
 	flag = !flag;
+#endif //TELLTALE_MISSING
 
 }
 
@@ -1442,22 +1449,55 @@ static void TEPM_vRunEventProgramKernelQueue(void* pvModule, uint32 u32ChannelID
 			{
 				if (FALSE == TEPM_boDisableSequences)
 				{
+#ifndef BUILD_GDI_SIG_INVERT
 					if (TEPMAPI_enSetLow == pstTimedEvent->enAction)
+#else
+					if (TEPMAPI_enSetHigh == pstTimedEvent->enAction)
+#endif
 					{
 						if (0 != (TEPM_u32FuelCutsMask & MATH_u32IDXToMask(u32TableIDX)))
 						{
-							TEPM_u32FuelCutsCounter = (TEPM_u32FuelCutsCounter + 1) % 5;
-
-							if (5 > TEPM_u32FuelCutsPercent)
+							if ((4 > TEPM_u32FuelCutsNdxLimit) && (0 != TEPM_u32FuelCutsDurationLimit))
 							{
-								if (TEPM_u32FuelCutsPercent <= TEPM_u32FuelCutsCounter)
+								if (TEPM_u32FuelCutsNdxLimit <= TEPM_u32FuelCutsCounter)
 								{
+									/* Make event soon */
 									tEventTimeScheduled = TEPMHA_u32GetFreeVal(pvModule, u32ChannelIDX) + TEPM_nSoonCountsLoose;
 									tEventTimeScheduled &= TEPMHA_nCounterMask;
 								}
 							}
+
+							if (FALSE == boSynchroniseUpdate)
+							{
+								TEPM_u32FuelCutsCounter = (TEPM_u32FuelCutsCounter + 1) % 4;
+								TEPM_u32FuelCutsDurationLimit =
+										0 < TEPM_u32FuelCutsDurationLimit ?
+												TEPM_u32FuelCutsDurationLimit
+														- 1 : 0;
+							}
 						}
 					}
+
+#ifdef BUILD_GDI_SIG_INVERT
+					if (TEPMAPI_enSetHigh == pstTimedEvent->enAction)
+
+					{
+						if (0 != TEPM_u32FastCutCounter)
+						{
+							if (TEPM_u32FuelCutsMask & (1 << u32TableIDX))
+							{
+								TEPM_u32FastCutCounter--;
+								tEventTimeScheduled = TEPMHA_u32GetFreeVal(pvModule, u32ChannelIDX) + TEPM_nSoonCountsLoose;
+								tEventTimeScheduled &= TEPMHA_nCounterMask;
+
+								if (TEPM_u32FastCutCounter == 0)
+								{
+									TEPM_u32FuelCutsMask = 0;
+								}
+							}
+						}
+					}
+#endif
 
 					TEPMHA_vCapComAction(pstTimedEvent->enAction, pvModule, u32ChannelIDX, u32SubChannelIDX, tEventTimeScheduled);
 
@@ -1569,16 +1609,48 @@ uint32 TEPM_u32GetTimerVal(IOAPI_tenEHIOResource enEHIOResource, void* pvData)
 	return 0;
 }
 
-void TEPM_vSetFuelCutsMask(uint32 u32CutsPercent, uint32 u32CutsMask, uint32 u32ChannelCount)
+void TEPM_vSetFuelCutsMask(uint32 u32CutsPercent, uint32 u32CutsMask, uint32 u32CutCountDuration)
 {
-	TEPM_u32FuelCutsPercent = 5 - (u32CutsPercent / 20);
+	uint32 temp;
+
+	if (u32CutsMask)
+	{
+		if (100 >= u32CutsPercent)
+		{
+			temp = 4 - (u32CutsPercent / 25);
+
+			if (temp != TEPM_u32FuelCutsNdxLimit)
+			{
+				CPU_xEnterCritical();
+				TEPM_u32FuelCutsNdxLimit = temp;
+				TEPM_u32FuelCutsCounter = TEPM_u32FuelCutsNdxLimit;
+				TEPM_u32FuelCutsDurationLimit = u32CutCountDuration;
+				CPU_xExitCritical();
+			}
+		}
+		else if (0 == u32CutsPercent)
+		{
+			TEPM_u32FuelCutsNdxLimit = 4;
+			TEPM_u32FuelCutsDurationLimit = 0;
+		}
+		else
+		{
+			TEPM_u32FuelCutsNdxLimit = 4;
+			TEPM_u32FuelCutsDurationLimit = 0;
+		}
+	}
+	else
+	{
+		TEPM_u32FuelCutsNdxLimit = 4;
+		TEPM_u32FuelCutsDurationLimit = 0;
+	}
+
 	TEPM_u32FuelCutsMask = u32CutsMask;
-	TEPM_u32FuelChannelCount = u32ChannelCount;
 }
 
 void TEPM_vSetSparkCutsMask(uint32 u32CutsPercent, uint32 u32CutsMask, uint32 u32ChannelCount)
 {
-	TEPM_u32SparkCutsPercent = 5 - (u32CutsPercent / 20);
+	TEPM_u32SparkCutsPercent = 4 - (u32CutsPercent / 25);
 	TEPM_u32SparkCutsMask = u32CutsMask;
 	TEPM_u32SparkChannelCount = u32ChannelCount;
 }
@@ -1612,7 +1684,8 @@ static void TEPM_vFirstStartLinkToothFractions(uint32 u32EventIDX, uint32 u32Tab
 	uint32 u32ToothTotal = CEM_u8PhaseRepeats * CEM_u32GetAllEdgesCount();
 	uint32 u32BitMask = 1;
 
-	if (0 != TEPM_u32StartLinkPending)
+	//if (0 != TEPM_u32StartLinkPending)
+	if (1)
 	{
 		/* Get the bit mask of the donor */
 		u32InputBitMask = MATH_u32IDXToMask(u32TableIDX);

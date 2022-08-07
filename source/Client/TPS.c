@@ -119,6 +119,7 @@ void TPS_vRun(puint32 const pu32Arg)
 	uint32 u32Temp;
 	sint16 s16Temp;
 	sint32 s32Temp;
+	bool boTemp;
 	static GPM6_ttTheta TPS_tThetaRawOld;
 	static uint32 u32Count;
 	static sint32 s32SecondDerivativeLimitNeg = 0;
@@ -330,12 +331,35 @@ void TPS_vRun(puint32 const pu32Arg)
 	}
 	else
 	{
-		if (USERCAL_stRAMCAL.u32TPSClosedLower > TPS_tThetaFiltered)
+		if (EH_IO_Invalid != USERCAL_stRAMCAL.u16PPSMADResource)
+		{
+			if (950 > SENSORS_u32PPSMVolts)
+			{
+				boTemp = TRUE;
+			}
+			else if (1050 < SENSORS_u32PPSMVolts)
+			{
+				boTemp = FALSE;
+			}
+		}
+		else
+		{
+			if (USERCAL_stRAMCAL.u32TPSClosedLower > TPS_tThetaFiltered)
+			{
+				boTemp = TRUE;
+			}
+			else if (USERCAL_stRAMCAL.u32TPSClosedUpper < TPS_tThetaFiltered)
+			{
+				boTemp = FALSE;
+			}
+		}
+
+		if (boTemp)
 		{
 			TPS_boThrottleClosed = TRUE;
 			TPS_u32TipInEnrichment = 1000;
 		}
-		else if (USERCAL_stRAMCAL.u32TPSClosedUpper < TPS_tThetaFiltered)
+		else
 		{
 			if (TPS_boThrottleClosed == TRUE)
 			{

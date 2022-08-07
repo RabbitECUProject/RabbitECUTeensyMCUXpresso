@@ -29,13 +29,19 @@ TEPMAPI_tstTimedKernelEvent EST_astTimedKernelEvents[2];
 SPREADAPI_ttSpreadIDX EST_tSpreadTimingxIDX;
 SPREADAPI_ttSpreadIDX EST_tSpreadTimingyIDX;
 SPREADAPI_ttSpreadIDX EST_tSpreadDwellIDX;
+SPREADAPI_ttSpreadIDX EST_tSpreadCTSTimingTrimIDX;
+SPREADAPI_ttSpreadIDX EST_tSpreadATSTimingTrimIDX;
 TABLEAPI_ttTableIDX EST_tMapTimingIDX;
 TABLEAPI_ttTableIDX EST_tMapTimingStage1IDX;
 TABLEAPI_ttTableIDX EST_tTableDwellIDX;
+TABLEAPI_ttTableIDX EST_tCTSTimingTrimIDX;
+TABLEAPI_ttTableIDX EST_tATSTimingTrimIDX;
 uint16 EST_u16TimingBase;
 sint16 EST_s16TimingStaged;
 sint16 EST_s16Timing;
 uint16 EST_u16Dwell;
+sint16 EST_s16CTSTimingTrim;
+sint16 EST_s16ATSTimingTrim;
 
 
 EST_tenIgnitionTimingStage EST_enIgnitionTimingStage;
@@ -56,6 +62,7 @@ void EST_vStart(puint32 const pu32Arg)
 	bool boCamSyncLate;
 	uint32 u32CamSyncSampleToothCount;
 	CEM_tstPatternSetupCB stPatternSetupCB;
+	uint32 u32Temp;
 
 	IOAPI_tenEdgePolarity enEdgePolarity = USERCAL_stRAMCAL.u8UserPrimaryEdgeSetup;
 	bool boFirstRising = 0 != USERCAL_stRAMCAL.u8UserFirstEdgeRisingPrimary;
@@ -348,6 +355,18 @@ void EST_vStart(puint32 const pu32Arg)
 	/* Request and initialise required Kernel managed table for Dwell*/
 	EST_tTableDwellIDX = SETUP_tSetupTable((void*)&USERCAL_stRAMCAL.aUserDwellTable, (void*)&EST_u16Dwell, TYPE_enUInt16, 17, EST_tSpreadDwellIDX, NULL);
 
+	/* Request and initialise required Kernel managed spread for CTS Timing Trim */
+	EST_tSpreadCTSTimingTrimIDX = SETUP_tSetupSpread((void*)&CTS_tTempCFiltered, (void*)&USERCAL_stRAMCAL.aUserCTSTimingCorrectionSpread, TYPE_enInt32, 17, SPREADAPI_enSpread4ms, NULL);
+
+	/* Request and initialise required Kernel managed table for CTS Timing Trim*/
+	EST_tCTSTimingTrimIDX = SETUP_tSetupTable((void*)&USERCAL_stRAMCAL.aUserCTSTimingCorrectionTable, (void*)&EST_s16CTSTimingTrim, TYPE_enInt16, 17, EST_tSpreadCTSTimingTrimIDX, NULL);
+
+	/* Request and initialise required Kernel managed spread for ATS Timing Trim */
+	EST_tSpreadATSTimingTrimIDX = SETUP_tSetupSpread((void*)&ATS_tTempCFiltered, (void*)&USERCAL_stRAMCAL.aUserATSTimingCorrectionSpread, TYPE_enInt32, 17, SPREADAPI_enSpread4ms, NULL);
+
+	/* Request and initialise required Kernel managed table for ATS Timing Trim */
+	EST_tATSTimingTrimIDX = SETUP_tSetupTable((void*)&USERCAL_stRAMCAL.aUserATSTimingCorrectionTable, (void*)&EST_s16ATSTimingTrim, TYPE_enInt16, 17, EST_tSpreadATSTimingTrimIDX, NULL);
+
 
 	/* Enable the Motor driver enables */
 	enEHIOResource = EST_nMotor1EnablePin;
@@ -446,6 +465,22 @@ void EST_vStart(puint32 const pu32Arg)
 		enEHIOType = IOAPI_enDIOOutput;
 		SETUP_vSetupDigitalIO(enEHIOResource, enEHIOType, enDriveStrength, pu32Arg);
 	}
+
+	/* Set up the v1.4 board ignition demux registers */
+#ifdef BUILD_RABBIT_1_4
+	if (0 == USERCAL_stRAMCAL.u8ESTRegMux)
+	{
+		IO_vAssertDIOResource(EH_IO_GP3, IOAPI_enHigh);
+
+		for (u32Temp = 0; u32Temp < 4; u32Temp++)
+		{
+			IO_vAssertDIOResource(EH_IO_GP2, IOAPI_enLow);
+			IO_vAssertDIOResource(EH_IO_GP2, IOAPI_enHigh);
+		}
+
+		IO_vAssertDIOResource(EH_IO_GP2, IOAPI_enLow);
+	}
+#endif //BUILD_RABBIT_1_4
 }
 
 void EST_vRun(puint32 const pu32Arg)
@@ -464,6 +499,7 @@ void EST_vRun(puint32 const pu32Arg)
 	IOAPI_tenEHIOResource enEHIOResource;
 	bool boESTAltMapRequestActive;
 	RELAY_tenBit enBit;
+	sint16 s16ATSCTSTimingTrim;
 	
 	boESTAltMapRequestActive = SENSORS_boGetAuxActive(SENSORS_enAUX_LAUNCH_LOW);
 	boESTAltMapRequestActive |= SENSORS_boGetAuxActive(SENSORS_enAUX_LAUNCH_HIGH);
@@ -508,7 +544,7 @@ void EST_vRun(puint32 const pu32Arg)
 		{
 			if ((EST_u16TimingBase - EST_s16Timing) >= USERCAL_stRAMCAL.u16ESTPosRateMax)
 			{
-				EST_s16Timing += USERCAL_stRAMCAL.u16ESTNegRateMax;
+				EST_s16Timing += USERCAL_stRAMCAL.u16ESTPosRateMax;
 			}
 			else
 			{
@@ -560,6 +596,25 @@ void EST_vRun(puint32 const pu32Arg)
 	USER_vSVC(SYSAPI_enCalculateTable, (void*)&EST_tTableDwellIDX,
 	NULL, NULL);	
 	
+	/* Calculate the current spread for CTS trim */
+	USER_vSVC(SYSAPI_enCalculateSpread, (void*)&EST_tSpreadCTSTimingTrimIDX,
+	NULL, NULL);
+
+	/* Lookup the current trim value for CTS trim */
+	USER_vSVC(SYSAPI_enCalculateTable, (void*)&EST_tCTSTimingTrimIDX,
+	NULL, NULL);
+
+	/* Calculate the current spread for ATS trim */
+	USER_vSVC(SYSAPI_enCalculateSpread, (void*)&EST_tSpreadATSTimingTrimIDX,
+	NULL, NULL);
+
+	/* Lookup the current trim value for ATS trim */
+	USER_vSVC(SYSAPI_enCalculateTable, (void*)&EST_tATSTimingTrimIDX,
+	NULL, NULL);
+
+	/* Apply CTS and ATS trims */
+	s16ATSCTSTimingTrim = EST_s16CTSTimingTrim + EST_s16ATSTimingTrim;
+
 	CPU_xEnterCritical();
 
 	u32DwellUsMax = (60000000 / CAM_u32RPMRaw) - EST_nDwellOffMinUs;
@@ -583,7 +638,7 @@ void EST_vRun(puint32 const pu32Arg)
 		}
 		else
 		{
-			EST_tIgnitionAdvanceMtheta = 100 * EST_s16Timing + USERCAL_stRAMCAL.u16TimingMainOffset;
+			EST_tIgnitionAdvanceMtheta = 100 * (EST_s16Timing + s16ATSCTSTimingTrim) + USERCAL_stRAMCAL.u16TimingMainOffset;
 		}
 	}
 	else
@@ -591,7 +646,7 @@ void EST_vRun(puint32 const pu32Arg)
 		s32ESTTrims[0] = CLO2_s32ISCESTTrim[0] + IAC_s32ISCESTTrim[0];
 		s32ESTTrims[1] = CLO2_s32ISCESTTrim[1] + IAC_s32ISCESTTrim[1];
 
-		s32Temp = 100 * EST_s16Timing + USERCAL_stRAMCAL.u16TimingMainOffset + s32ESTTrims[1];
+		s32Temp = 100 * (EST_s16Timing + s16ATSCTSTimingTrim) + USERCAL_stRAMCAL.u16TimingMainOffset + s32ESTTrims[1];
 
 		/* Here the ignition advance angle can not be negative, but can be effectively
           negative */

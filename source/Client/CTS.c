@@ -70,7 +70,7 @@ void CTS_vStart(puint32 const pu32Arg)
 	CTS_i32StartEnrichmentScaled = 1000 * 1000;
 	CTS_i32PostStartEnrichmentScaled = 1000 * 1000;	
 	
-	if (FALSE == USERCAL_stRAMCAL.boCTSCANPrimary)	
+	if ((FALSE == USERCAL_stRAMCAL.boCTSCANPrimary) && (EH_IO_Invalid != USERCAL_stRAMCAL.u16CTSADResource))
 	{
 		/* Request and initialise the CTS ADC input channel */
 		SETUP_boSetupADSE(USERCAL_stRAMCAL.u16CTSADResource, IOAPI_enADSE, ADCAPI_en32Samples, &CTS_vADCCallBack, ADCAPI_enTrigger2, pu32Arg);
@@ -136,7 +136,7 @@ void CTS_vRun(puint32 const pu32Arg)
 	static uint8 u8CANCTSOld = 0;
 
 	
-	if ((TRUE == CTS_boNewSample) || (true == SENSORS_boCANCTSNewSample))
+	if ((TRUE == CTS_boNewSample) || (TRUE == SENSORS_boCANCTSNewSample))
 	{
 		CTS_u32SampleCount++;
 

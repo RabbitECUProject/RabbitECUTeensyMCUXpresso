@@ -21,13 +21,21 @@
 #define BUILD_MK64
 #endif
 
-//#define BUILD_SPARKDOG_TEENSY_ADAPT
-#define BUILD_SPARKDOG_PF
-
+#define BUILD_SPARKDOG_TEENSY_ADAPT
+//#define BUILD_RABBIT_1_4
+//#define BUILD_SPARKDOG_PF
+//#define PFDIV2FIX
+//#define BUILD_GDI_SIG_INVERT
 #define BUILD_USER
 //#define BUILD_BSP_IAC_STEPPER
 #define BUILD_FME
+
+#ifdef BUILD_SPARKDOG_PF
 #define BUILD_BSP_AFM_FREQ
+#else
+#define BUILD_BSP_SINGLE_CAM_INPUT
+#endif //BUILD_SPARKDOG_PF
+
 #define BUILD_KERNEL_APP
 #define BUILD_PACKING __attribute__((packed))
 #define BUILD_PACKING_ETHERNET __attribute__((packed))
