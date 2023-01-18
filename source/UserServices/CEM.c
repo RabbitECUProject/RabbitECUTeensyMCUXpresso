@@ -61,6 +61,7 @@ static void CEM_vSequenceReset(IOAPI_tenEHIOResource enEHIOResource, TEPMAPI_ttE
 static TEPMAPI_ttEventTime CEM_tCalculateGlobalTime(TEPMAPI_ttEventTime tEventTime, uint16 u16LastGapFraction, bool boGlobalTimeEnable);
 static void CEM_vProcessAllEdges(void);
 static void CEM_vPhaseError(int);
+static void CEM_vNoiseError(int code_in);
 static bool CEM_boGetLatePhaseSimpleCamSync(void);
 static uint32 CEM_u32GetMissingThreshold(uint32);
 static bool CEM_boGetVVT1CamSyncState(void);
@@ -291,7 +292,6 @@ void CEM_vPrimaryEventCB(IOAPI_tenEHIOResource enEHIOResource, TEPMAPI_ttEventTi
 
 	CEM_u32PrimaryEdgeCount++;
 
-#ifdef CEM_CHECK_POL
 	/* Sanity check edge polarity */
 	if (IOAPI_enEdgeFalling == CEM_enEdgePolarity)
 	{
@@ -300,8 +300,7 @@ void CEM_vPrimaryEventCB(IOAPI_tenEHIOResource enEHIOResource, TEPMAPI_ttEventTi
 		/* Invert the polarity because the circuit inverts */
 	    if (IOAPI_enLow == enTriState)
 		{
-	    	u32EdgePolAbortCount++;
-			return;
+	    	CEM_vNoiseError(0);
 		}
 	}
 	else if (IOAPI_enEdgeRising == CEM_enEdgePolarity)
@@ -311,11 +310,10 @@ void CEM_vPrimaryEventCB(IOAPI_tenEHIOResource enEHIOResource, TEPMAPI_ttEventTi
 		/* Invert the polarity because the circuit inverts */
 	    if (IOAPI_enHigh == enTriState)
 		{
-	    	u32EdgePolAbortCount++;
-			return;
+	    	CEM_vNoiseError(0);
 		}
 	}
-#endif //CEM_CHECK_POL
+
 
 #ifdef BUILD_SAM3X8E
     CEM_au32TimerOffsets[8] = ((tstTimerModule*)TC2)->TC_CHANNEL[2].TC_CV - ((tstTimerModule*)TC0)->TC_CHANNEL[0].TC_CV;
@@ -1125,6 +1123,15 @@ static void CEM_vPhaseError(int code_in)
 	CEM_u32CrankErrorCounts++;
 }
 
+static void CEM_vNoiseError(int code_in)
+{
+	/* TODO
+	volatile static int code;
+	code = code_in;
+	*/
+	CEM_u32CrankNoiseCounts++;
+}
+
 
 static TEPMAPI_ttEventTime CEM_tCalculateGlobalTime(TEPMAPI_ttEventTime tEventTime, uint16 u16LastGapFraction, bool boGlobalTimeEnable)
 {
@@ -1362,41 +1369,30 @@ void CEM_vFreqEventCB(IOAPI_tenEHIOResource enEHIOResource, TEPMAPI_ttEventTime 
 {
 	static uint32 u32OldOSTick;
 	static uint32 u32TimeOld;
-	static uint32 u32Sum;
-	static uint32 u32SampleCount;
-	uint32 u32Sample;
-	static uint32 u32ErrCount;
-	static uint32 u32SampleOld;
+	static uint32 u32SampleIDX;
+	uint32 u32SampleIDXNext;
+	static uint32 samples[CEM_nPeriodSamples];
+	static uint32 samples_out[CEM_nPeriodSamples];
 
-	u32Sample = (tEventTime - u32TimeOld) & TEPMHA_nCounterMask;
-
-	u32SampleOld -= 5;
-	u32SampleOld *= 2;
-
-	if ((u32Sample > u32SampleOld) &&
-		(2 > u32ErrCount))
-	{
-		u32Sample /= 2;
-		u32ErrCount++;
-	}
-	else
-	{
-		u32ErrCount = 0;
-	}
-
-	u32SampleOld = u32Sample;
-	u32Sum += u32Sample;
-	u32SampleCount++;
+	u32SampleIDX = (u32SampleIDX + 1) % CEM_nPeriodSamples;
+    samples[u32SampleIDX] = (tEventTime - u32TimeOld) & TEPMHA_nCounterMask;
+	u32TimeOld = tEventTime;
 
 	if (OS_u32TickCounter > (u32OldOSTick + 1))
 	{
-		TEPM_vInitiateUserCallBack(enEHIOResource, u32Sum / u32SampleCount);
-		u32OldOSTick = OS_u32TickCounter;
-		u32Sum = 0;
-		u32SampleCount = 0;
-	}
+		/* run this code every 2 ms */
+		u32SampleIDXNext = (u32SampleIDX + 1) % CEM_nPeriodSamples;
 
-	u32TimeOld = tEventTime;
+		/* latest samples to end of buffer */
+		memcpy(&samples_out[CEM_nPeriodSamples - u32SampleIDXNext], samples, (u32SampleIDX + 1) * sizeof(uint32));
+
+		/* oldest samples to start of buffer */
+		memcpy(&samples_out[0], &samples[u32SampleIDXNext], (CEM_nPeriodSamples - u32SampleIDXNext) * sizeof(uint32));
+
+		/* caveat - actually passing a values array pointer here not a sample */
+		TEPM_vInitiateUserCallBack(enEHIOResource, (TEPMAPI_ttEventTime)&samples_out[0]);
+		u32OldOSTick = OS_u32TickCounter;
+	}
 }
 
 uint32 CEM_u32GetAllEdgesCount(void)

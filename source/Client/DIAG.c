@@ -304,6 +304,7 @@ void USERDIAG_vRun(puint32 const pu32Arg)
 	static uint8 u8Counter1000;
 	static uint8 u8UARTSeq;
 	uint32 u32Temp;
+	uint16 u16Temp;
 	uint8 u8Temp;
 	static uint8 u8UARTChecksum;
 	static uint8 au8UARTInBuffer[4];
@@ -411,7 +412,14 @@ void USERDIAG_vRun(puint32 const pu32Arg)
 			stCANMsg.u32DWL = 0;
 			stCANMsg.u32DWH |= ((TORQUE_u32OutputTorqueModified & 0xff) << 16);
 
-			DIAG_u8PedalPositionReport = TORQUE_u32TorquePedalEstimateScaled / 100;
+			if (TPS_boThrottleClosed > 0)
+			{
+				DIAG_u8PedalPositionReport = 0;
+			}
+			else
+			{
+				DIAG_u8PedalPositionReport = TORQUE_u32TorquePedalEstimateScaled / 100;
+			}
 
 			stCANMsg.u32DWL |= (TORQUE_u32OutputTorqueEstimate & 0xff);
 			stCANMsg.u32DWL |= ((TORQUE_u32OutputTorqueEstimate & 0xff) << 24);
@@ -420,7 +428,7 @@ void USERDIAG_vRun(puint32 const pu32Arg)
 			u32Temp = DIAG_u8PedalPositionReport;
 			stCANMsg.u32DWL |= (u32Temp << 16);
 
-			if (!TORQUE_u32PedalClosed)
+			if (!TPS_boThrottleClosed)
 			{
 				stCANMsg.u32DWH &= 0x00ffffff;
 			}
@@ -433,6 +441,8 @@ void USERDIAG_vRun(puint32 const pu32Arg)
 		stCANMsg.u32ID = 896;
 		stCANMsg.u32DWL = 0x0000fe00;
 		stCANMsg.u32DWH = 0x20830000;
+		stCANMsg.u32DWH |= (DIAG_u8PedalPositionReport << 8);
+
 		USER_vSVC(SYSAPI_enQueueCANMessage, (void*)&enEHIOResource, (void*)&stCANMsg, (void*)NULL);/*CR1_12*/
 
 		stCANMsg.u8DLC = 8;
@@ -495,7 +505,7 @@ void USERDIAG_vRun(puint32 const pu32Arg)
 		stCANMsg.u32ID = 648;
 
 		stCANMsg.u32DWH = USERDIAG_rau8Codes648[u8Counter20] << 24;
-		stCANMsg.u32DWH |= ((32 << 8) + 6);
+		stCANMsg.u32DWH |= 6;
 
 		if (0 <= CTS_tTempCFiltered)
 		{
@@ -503,19 +513,25 @@ void USERDIAG_vRun(puint32 const pu32Arg)
 			stCANMsg.u32DWH |= (u32Temp << 16);
 		}
 
+		u16Temp = 2048 > (SENSORS_u16CANVSS / 8) ? SENSORS_u16CANVSS / 8 : 255;
+		stCANMsg.u32DWH |= u16Temp;
+
 		if (TRUE == SENSORS_boBrakePedalPressed)
 		{
 			stCANMsg.u32DWH |= 0x0300;
 		}
 
-		stCANMsg.u32DWL = (76 << 16) + ((TORQUE_u32TorqueModelEstimateScaled & 0xff) << 8) +
-				TORQUE_u32TorqueModelEstimateScaled / 0x100;
+		stCANMsg.u32DWL = ((IAC_u16ISCTargetRamp / 10) << 16) + (TORQUE_u32TorqueEstimateScale & 0xff) +
+				((TORQUE_u32TorqueEstimateScale / 0x100) << 8);
 
 		USER_vSVC(SYSAPI_enQueueCANMessage, (void*)&enEHIOResource, (void*)&stCANMsg, (void*)NULL);/*CR1_12*/
 
 		stCANMsg.u32ID = 1152;
 		stCANMsg.u32DWH = USERDIAG_rau8Codes1152[u8Counter20] << 24;
-		stCANMsg.u32DWH |= (44 << 16);
+
+		stCANMsg.u32DWH += (FUEL_u32FuelConsumed & 0xff) << 8;
+		stCANMsg.u32DWH += (FUEL_u32FuelConsumed & 0xff00) >> 8;
+
 		stCANMsg.u32DWL = (24 << 24) + (4 << 8);
 		USER_DIAG_APPEND_XOR();
 		USER_vSVC(SYSAPI_enQueueCANMessage, (void*)&enEHIOResource, (void*)&stCANMsg, (void*)NULL);/*CR1_12*/

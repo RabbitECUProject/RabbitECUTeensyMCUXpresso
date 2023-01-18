@@ -41,7 +41,7 @@
 EXTERN uint32 TORQUE_u32ATXTorqueLimit;
 EXTERN uint32 TORQUE_u32OutputTorqueModified;
 EXTERN uint32 TORQUE_u32OutputTorqueEstimate;
-//ASAM mode=readvalue name="Output Torque Estimate" type=uint32 offset=0 min=0 max=255 m=1 b=0 units="dl" format=3.1 help="Torque Estimate"
+//ASAM mode=readvalue name="Output Torque Estimate" type=uint32 offset=0 min=0 max=65535 m=1 b=0 units="dl" format=3.1 help="Torque Estimate"
 
 EXTERN uint32 TORQUE_u32QuickCutPercent;
 EXTERN uint32 TORQUE_u32QuickCutDuration;
@@ -50,9 +50,9 @@ EXTERN uint32 TORQUE_u32DBWTorqueModifier;
 EXTERN uint32 TORQUE_u32FuelTorqueModifier;
 EXTERN uint32 TORQUE_u32IdleStabilisationTorque;
 EXTERN uint32 TORQUE_u32TorquePedalEstimateScaled;
-EXTERN bool TORQUE_u32PedalClosed;
 EXTERN bool TORQUE_u32PedalWOT;
-EXTERN uint32 TORQUE_u32TorqueModelEstimateScaled;
+EXTERN uint32 TORQUE_u32TorqueEstimateScale;
+//ASAM mode=readvalue name="Torque Estimate Scale" type=uint32 offset=0 min=0 max=65535 m=1 b=0 units="dl" format=5.0 help="Torque Scale"
 EXTERN uint16 TORQUE_u16ETCScale;
 EXTERN uint16 TORQUE_u16ETCScaleRamped;
 EXTERN uint16 TORQUE_u16GearShiftCount;

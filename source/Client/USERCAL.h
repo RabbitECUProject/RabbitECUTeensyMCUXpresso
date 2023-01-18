@@ -37,14 +37,14 @@
 #define KTM_SC_CAL_off
 #define L98CAL_off
 #define M15A_CAL_off
-#define GOLF_MK6_CAL_off
+#define GOLF_MK6_CAL
 #define TEST_60_M2_off
 #define FIESTA_36_M1_off
 #define FIESTA_36_M1_TEENSY_ADAPT_off
 #define TEENSY_ADAPT_BASEoff
 #define TEENSY_ADAPT_60M2_off
 #define TEENSY_ADAPT_2NR_FE_off
-#define TEENSY_ADAPT_24M1
+#define TEENSY_ADAPT_24M1_off
 
 #ifdef TESTCAL
 #include "TEST_CAL.h"	

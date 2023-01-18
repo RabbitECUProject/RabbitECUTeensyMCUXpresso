@@ -468,7 +468,8 @@ void EST_vStart(puint32 const pu32Arg)
 
 	/* Set up the v1.4 board ignition demux registers */
 #ifdef BUILD_RABBIT_1_4
-	if (0 == USERCAL_stRAMCAL.u8ESTRegMux)
+	/*
+	if (1 == USERCAL_stRAMCAL.u8ESTRegMux)
 	{
 		IO_vAssertDIOResource(EH_IO_GP3, IOAPI_enHigh);
 
@@ -480,6 +481,22 @@ void EST_vStart(puint32 const pu32Arg)
 
 		IO_vAssertDIOResource(EH_IO_GP2, IOAPI_enLow);
 	}
+	*/
+
+	if (1 == USERCAL_stRAMCAL.u8ESTRegMux)
+	{
+		IO_vAssertDIOResource(EST_nMotor1EnablePin, IOAPI_enHigh);
+
+		for (u32Temp = 0; u32Temp < 4; u32Temp++)
+		{
+			IO_vAssertDIOResource(EST_nMotor2EnablePin, IOAPI_enLow);
+			IO_vAssertDIOResource(EST_nMotor2EnablePin, IOAPI_enHigh);
+		}
+
+		IO_vAssertDIOResource(EST_nMotor2EnablePin, IOAPI_enLow);
+	}
+
+
 #endif //BUILD_RABBIT_1_4
 }
 

@@ -28,7 +28,6 @@
 
 
 /* LOCAL VARIABLE DEFINITIONS (STATIC) ****************************************/
-uint32 TORQUE_u32OutputTorqueEstimateScaled;
 SPREADAPI_ttSpreadIDX TORQUE_tSpreadTorquePedalIDX;
 TABLEAPI_ttTableIDX TORQUE_tTableTorquePedalIDX;
 SPREADAPI_ttSpreadIDX TORQUE_tSpreadETCScaleIDX;
@@ -42,6 +41,8 @@ static uint16 TORQUE_u16GetAutoRevMatch(void);
 /* GLOBAL FUNCTION DEFINITIONS ************************************************/
 void TORQUE_vStart(puint32 const pu32Arg)
 {
+	TORQUE_u32OutputTorqueEstimate = 0x10;
+
 	/* Request and initialise required Kernel managed spread for ETC scale function */
 	TORQUE_tSpreadETCScaleIDX = SETUP_tSetupSpread((void*)&CAM_u32RPMFiltered, (void*)&USERCAL_stRAMCAL.aUserETCScaleSpread, TYPE_enUInt32, 17, SPREADAPI_enSpread4ms, NULL);
 
@@ -72,35 +73,70 @@ void TORQUE_vRun(puint32 const pu32Arg)
 	TORQUE_boVehicleMovingUS = 150 < SENSORS_u16CANVSS ? TRUE : TORQUE_boVehicleMovingUS;
 	TORQUE_boVehicleMovingUS = 50 > SENSORS_u16CANVSS ? FALSE : TORQUE_boVehicleMovingUS;
 
-	if (10000 < MAP_tKiloPaFiltered)
+	/* Calculate max torque */
+	if (3000 > CAM_u32RPMFiltered)
 	{
-		if (239000 > MAP_tKiloPaFiltered)
+		if (1700 < CAM_u32RPMFiltered)
 		{
-			TORQUE_u32TorqueModelEstimateScaled	= 2 * ((MAP_tKiloPaFiltered - 10000) / 7);
+			u32Temp = CAM_u32RPMFiltered - 1000;
+			u32Temp *= 65000;
+			u32Temp /= 2000;
 		}
 		else
 		{
-			TORQUE_u32TorqueModelEstimateScaled	= 65500;
+			u32Temp = 22700;
 		}
+
+		u16Temp = u32Temp;
 	}
 	else
 	{
-		TORQUE_u32TorqueModelEstimateScaled	= 0;
+		u16Temp = 65000;
 	}
 
+	/* Store max torque */
+	TORQUE_u32TorqueEstimateScale = u16Temp & 0xff00;
 
+	/* Calculate min torque */
+	if (2000 > CAM_u32RPMFiltered)
+	{
+		u16Temp = 2000 - CAM_u32RPMFiltered;
+		u16Temp /= 64;
+		u16Temp += 16;
+	}
+	else
+	{
+		u16Temp = 16;
+	}
+
+	/* Store min torque */
+	TORQUE_u32TorqueEstimateScale += (u16Temp & 0xff);
 
 	/* New torque estimate */
-	if (40000 < MAP_tKiloPaFiltered)
+	if (30000 < MAP_tKiloPaFiltered)
 	{
-		TORQUE_u32OutputTorqueEstimate = 10 + (MAP_tKiloPaFiltered - 40000) / 660;
-		TORQUE_u32OutputTorqueEstimate = 0xff > TORQUE_u32OutputTorqueEstimate ? TORQUE_u32OutputTorqueEstimate : 0xff;
+		u32Temp = 8 + (MAP_tKiloPaFiltered - 30000) / 660;
+		u32Temp = 0xff > u32Temp ? u32Temp : 0xff;
 	}
 	else
 	{
-		TORQUE_u32OutputTorqueEstimate = MAP_tKiloPaFiltered / 4000;
+		u32Temp = 8;
 	}
 
+	/* Ramp torque estimate */
+
+	/* Increasing torque */
+	TORQUE_u32OutputTorqueEstimate =
+			u32Temp > (TORQUE_u32OutputTorqueEstimate + 3) ?
+					TORQUE_u32OutputTorqueEstimate + 1 : TORQUE_u32OutputTorqueEstimate;
+
+	/* Decreasing torque */
+	TORQUE_u32OutputTorqueEstimate =
+			u32Temp < (TORQUE_u32OutputTorqueEstimate - 3) ?
+					TORQUE_u32OutputTorqueEstimate - 1 : TORQUE_u32OutputTorqueEstimate;
+
+	/* Safety catch */
+	TORQUE_u32OutputTorqueEstimate &= 0xff;
 
 	/* Calculate pedal percentage scaled */
 	u32Temp = MAX(USERCAL_stRAMCAL.userCalPPSCalMin, SENSORS_u32PPSMVolts);
@@ -113,8 +149,6 @@ void TORQUE_vRun(puint32 const pu32Arg)
 
 	TORQUE_u32TorquePedalEstimateScaled = u32Temp;
 
-	TORQUE_u32PedalClosed = 200 > TORQUE_u32TorquePedalEstimateScaled ? TRUE : TORQUE_u32PedalClosed;
-	TORQUE_u32PedalClosed = 800 < TORQUE_u32TorquePedalEstimateScaled ? FALSE : TORQUE_u32PedalClosed;
 	TORQUE_u32PedalWOT = 24500 > TORQUE_u32TorquePedalEstimateScaled ? FALSE : TORQUE_u32PedalWOT;
 	TORQUE_u32PedalWOT = 25200 < TORQUE_u32TorquePedalEstimateScaled ? TRUE : TORQUE_u32PedalWOT;
 
@@ -200,9 +234,6 @@ void TORQUE_vRun(puint32 const pu32Arg)
 		TORQUE_u32FuelTorqueModifier = 0x100;
 		TORQUE_u32IdleStabilisationTorque = 20;
 	}
-
-	/* Reverse lookup pedal from torque */
-	TORQUE_u32OutputTorqueEstimateScaled = 100 * TORQUE_u32OutputTorqueEstimate;
 
 	/* Lookup the current Torque Pedal */
 	USER_vSVC(SYSAPI_enCalculateTable, (void*)&TORQUE_tTableTorquePedalIDX,
@@ -349,7 +380,7 @@ void TORQUE_vRun(puint32 const pu32Arg)
 		TORQUE_u32QuickCutPercent /= 100;
 		TORQUE_u32QuickCutPercent = 100 > TORQUE_u32QuickCutPercent ? TORQUE_u32QuickCutPercent : 100;
 
-		TORQUE_u32QuickCutDuration = CAM_u32RPMFiltered >> 8;
+		TORQUE_u32QuickCutDuration = CAM_u32RPMFiltered >> 16;
 
 		CPU_vExitCritical();
 	}

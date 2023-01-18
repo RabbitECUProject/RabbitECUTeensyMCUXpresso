@@ -62,7 +62,7 @@ typedef enum
 #define SENSORS_nSlowFTMDivisor             TEPMAPI_enDiv128
 #define SENSORS_nSlowFTMFreq                (SYS_FREQ_BUS / (1 << SENSORS_nSlowFTMDivisor))
 #define SENSORS_nSENSORADMAX                (2850)
-#define SENSORS_nHertzSamplesMax            16
+#define SENSORS_nHertzSamplesMax            8
 
 #ifdef BUILD_SPARKDOG_PF
 

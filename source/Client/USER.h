@@ -80,6 +80,8 @@
 #define USER_xEnterCritical()/*CR1_16*/
 #define USER_xExitCritical()/*CR1_16*/
 
+#define BUILD_ALLOW_CRITICAL
+
 #ifdef BUILD_ALLOW_CRITICAL
 	#undef USER_xEnterCritical
 	#undef USER_xExitCritical

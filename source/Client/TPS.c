@@ -69,7 +69,7 @@ void TPS_vStart(puint32 const pu32Arg)
 	TPS_u32AreaVolRatio = 0;
 	TPS_boNewSample = FALSE;
 	TPS_u32ThrottleMovingCounter = 0;
-
+	TPS_u32PPSLearnedMin = 100000;
 	TPS_u32TipInEnrichment = 1000;
 	
 	enEHIOResource = USERCAL_stRAMCAL.u16TPSADResource;
@@ -199,14 +199,29 @@ void TPS_vRun(puint32 const pu32Arg)
 			u32Temp /= SENSORS_nVDivRatio;
 		
 			TPS_tSensorVolts = u32Temp;		
-		
-			u32Temp = MAX(USERCAL_stRAMCAL.userCalTPSCalMin, TPS_tSensorVolts);
-			u32Temp = MIN(USERCAL_stRAMCAL.userCalTPSCalMax, u32Temp);				
-			u32Temp -= USERCAL_stRAMCAL.userCalTPSCalMin;
-		
-			u32Temp *= TPS_nAngleRange;
-			u32Temp /= (USERCAL_stRAMCAL.userCalTPSCalMax - 
-									USERCAL_stRAMCAL.userCalTPSCalMin);
+
+			if (USERCAL_stRAMCAL.userCalTPSCalMin < USERCAL_stRAMCAL.userCalTPSCalMax)
+			{
+				u32Temp = MAX(USERCAL_stRAMCAL.userCalTPSCalMin, TPS_tSensorVolts);
+				u32Temp = MIN(USERCAL_stRAMCAL.userCalTPSCalMax, u32Temp);
+				u32Temp -= USERCAL_stRAMCAL.userCalTPSCalMin;
+
+				u32Temp *= TPS_nAngleRange;
+				u32Temp /= (USERCAL_stRAMCAL.userCalTPSCalMax -
+										USERCAL_stRAMCAL.userCalTPSCalMin);
+			}
+			else
+			{
+				TPS_tSensorVolts = MIN(TPS_tSensorVolts, 5000);
+				u32Temp = 5000 - TPS_tSensorVolts;
+				u32Temp = MAX((5000 - USERCAL_stRAMCAL.userCalTPSCalMin), u32Temp);  //500
+				u32Temp = MIN((5000 - USERCAL_stRAMCAL.userCalTPSCalMax), u32Temp);  //4900
+				u32Temp -= (5000 - USERCAL_stRAMCAL.userCalTPSCalMin);
+
+				u32Temp *= TPS_nAngleRange;
+				u32Temp /= (USERCAL_stRAMCAL.userCalTPSCalMin -
+										USERCAL_stRAMCAL.userCalTPSCalMax);
+			}
 		
 			TPS_tThetaRaw = u32Temp;
 		
@@ -333,11 +348,35 @@ void TPS_vRun(puint32 const pu32Arg)
 	{
 		if (EH_IO_Invalid != USERCAL_stRAMCAL.u16PPSMADResource)
 		{
-			if (950 > SENSORS_u32PPSMVolts)
+			if ((TPS_u32PPSLearnedMin / 100) < SENSORS_u32PPSMVoltsRamp)
+			{
+				/* Learned min is lower than PPS */
+				if (CAM_u32RPMRaw < 1250)
+				{
+					if (SENSORS_u32PPSMVoltsRamp < (USERCAL_stRAMCAL.userCalPPSCalMin + 100))
+					{
+						TPS_u32PPSLearnedMin++;
+					}
+				}
+			}
+			else if ((TPS_u32PPSLearnedMin / 100) > SENSORS_u32PPSMVoltsRamp)
+			{
+				if (SENSORS_u32PPSMVoltsRamp > (USERCAL_stRAMCAL.userCalPPSCalMin - 100))
+				{
+					/* Learned min is higher than PPS */
+					TPS_u32PPSLearnedMin -= 5;
+				}
+			}
+
+			/* Calculate the learned trim */
+			s32Temp = USERCAL_stRAMCAL.userCalPPSCalMin - (TPS_u32PPSLearnedMin / 100);
+			u32Temp = SENSORS_u32PPSMVoltsRamp + s32Temp;
+
+			if ((USERCAL_stRAMCAL.userCalPPSCalMin + 80) > u32Temp)
 			{
 				boTemp = TRUE;
 			}
-			else if (1050 < SENSORS_u32PPSMVolts)
+			else if ((USERCAL_stRAMCAL.userCalPPSCalMin + 220) < u32Temp)
 			{
 				boTemp = FALSE;
 			}

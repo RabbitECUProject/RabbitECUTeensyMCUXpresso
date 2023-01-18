@@ -24,6 +24,7 @@
 #define CEM_nEdgesMax   80u
 #define CEM_nSeqGroupCount 2
 #define CEM_nSeqcount 4
+#define CEM_nPeriodSamples 8
 
 #ifdef EXTERN
 	#undef EXTERN
@@ -60,6 +61,8 @@ EXTERN TEPMAPI_ttEventTime CEM_tEventTimeLast;
 EXTERN TEPMAPI_ttEventTime CEM_tToothEventTimeLast;
 EXTERN TEPMAPI_ttEventTime CEM_tSyncTimeLast;
 EXTERN uint32 CEM_u32SequenceFraction;
+EXTERN uint32 CEM_u32CrankNoiseCounts;
+//ASAM mode=readvalue name="Crank Noise Counts" type=uint32 offset=0 min=0 max=65535 m=1 b=0 units="counts" format=5.3 help="Crank Noise Counts"
 EXTERN uint32 CEM_u32CrankErrorCounts;
 //ASAM mode=readvalue name="Crank Error Counts" type=uint32 offset=0 min=0 max=65535 m=1 b=0 units="counts" format=5.3 help="Crank Error Counts"
 EXTERN uint32 CEM_u32CamErrorCounts;

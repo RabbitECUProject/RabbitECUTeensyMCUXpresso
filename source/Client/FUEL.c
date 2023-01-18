@@ -1058,7 +1058,7 @@ static void FUEL_vCyclicCalculate(void)
 	}
 
 	/* Increment fuel consumed for BC */
-	FUEL_u32FuelConsumed += FUEL_tTimePredictedUs[0];
+	FUEL_u32FuelConsumed += (FUEL_tTimePredictedUs[0] / 100);
 
 	/* Manage overrun fuel cut */
 #ifdef BUILD_BSP_VSS_CAN

@@ -97,6 +97,7 @@ EXTERN uint32 TPS_u32AreaVolRatio;
 EXTERN uint32 TPS_u32ThrottleMovingCounter;
 //ASAM mode=readvalue name="TPS Moving Counter" type=int32 offset=0 min=0 max=2000 m=1 b=0 units="dl" format=4.0 help="TPS Moving Counter"
 EXTERN bool TPS_boThrottleClosed;
+//ASAM mode=readvalue name="TPS Closed State" type=uint16 offset=0 min=0 max=100 units="ENUMERATION OPEN=0 CLOSED=1" format=1.0 help="TPS Closed"
 EXTERN uint16 TPS_u16CANTPSDeltaNegCount;
 //ASAM mode=readvalue name="CAN TPS Move Neg Count" type=uint16 offset=0 min=0 max=1000 m=1 b=0 units="dl" format=4.0 help="Throttle Angle Movement"
 EXTERN uint16 TPS_u16CANTPSDeltaPosCount;
@@ -107,6 +108,9 @@ EXTERN uint32 TPS_u32TipInEnrichment;
 //ASAM mode=readvalue name="Tip In Enrichment" type=int32 offset=0 min=0 max=2000 m=1 b=0 units="dl" format=4.0 help="Tip In Enrichment"
 EXTERN uint32 TPS_u32TransitionCounter;
 //ASAM mode=readvalue name="TPS Transition Counter" type=int32 offset=0 min=0 max=2000 m=1 b=0 units="dl" format=4.0 help="TPS Transition Counter"
+EXTERN uint32 TPS_u32PPSLearnedMin;
+//ASAM mode=readvalue name="TPS PPS Learned Min" type=int32 offset=0 min=0 max=5 m=0.001 b=0 units="V" format=2.2 help="TPS PPS Learned Min"
+
 
 /* GLOBAL FUNCTION DECLARATIONS ***********************************************/
 void TPS_vStart(uint32 * const pu32Arg);

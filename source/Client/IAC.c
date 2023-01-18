@@ -47,8 +47,6 @@ SPREADAPI_ttSpreadIDX IAC_tSpreadOpenLoopPosIDX;
 TABLEAPI_ttTableIDX IAC_tTableOpenLoopPosIDX;
 uint16 IAC_u16ISCTarget;
 uint16 IAC_u16OpenLoopPos;
-uint16 IAC_u16ISCTargetRamp;
-//ASAM mode=readvalue name="IAC Target RPM" type=uint16 offset=0 min=0 max=4095 m=1 b=0 units="RPM" format=4.0 help="IAC Current Target RPM"
 uint16 IAC_u16ISCTargetRampOld;
 bool IAC_boRun;
 
