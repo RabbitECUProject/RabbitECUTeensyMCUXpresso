@@ -30,7 +30,7 @@
 /* GLOBAL MACRO DEFINITIONS ***************************************************/
 #define LSUH_nADConfig																																												\
 {																																																							\
-	{EH_IO_UART1_CTS, IOAPI_enADSE, ADCAPI_en4Samples, ADCAPI_enDiffGain1, &LSUH_vADCCallBack, ADCAPI_enTrigger3},	\
+	{EH_IO_GPSE10, IOAPI_enGPSE, ADCAPI_en4Samples, ADCAPI_enDiffGain1, &LSUH_vADCCallBack, ADCAPI_enTrigger3},	\
 }
 
 #define LSU_DUTY_RES                10u
@@ -51,8 +51,8 @@
 #define LSUH_nTEPMTimeOut           (10 * LSUH_nRateHZ)
 #define LSUH_nHeatCurrFilt			16u
 
-#define LSUH_nHMENResource          EH_IO_GP1
-#define LSUH_nHMFResource           EH_IO_UART1_CTS
+#define LSUH_nHMENResource          EH_IO_GP4
+#define LSUH_nHMFResource           EH_IO_GPSE11
 
 #undef EXTERN
 #ifdef _LSUH_C

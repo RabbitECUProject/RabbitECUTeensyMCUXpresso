@@ -13,7 +13,7 @@
 #ifndef HARDABSTRACT_H
 #define HARDABSTRACT_H
 
-#include "mk64f12.h"
+#include "mks20f12.h"
 
 #define CPUA_OS_u32GetSysTimeStamp()			0xFFFFFF;
 

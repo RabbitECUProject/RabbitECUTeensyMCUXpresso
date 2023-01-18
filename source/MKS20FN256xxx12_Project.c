@@ -37,7 +37,7 @@
 #include "peripherals.h"
 #include "pin_mux.h"
 #include "clock_config.h"
-#include "MK64F12.h"
+#include "MKS20F12.h"
 /* TODO: insert other include files here. */
 
 /* TODO: insert other definitions and declarations here. */

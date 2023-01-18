@@ -12,7 +12,7 @@
 /******************************************************************************/
 #define __MSG_C
 
-#include "mk64f12.h"
+#include "mks20f12.h"
 #include <TYPES.h>
 #include <DECLARATIONS.h>
 #include "MSG.h"

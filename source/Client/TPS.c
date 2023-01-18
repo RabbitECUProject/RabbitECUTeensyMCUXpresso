@@ -73,7 +73,7 @@ void TPS_vStart(puint32 const pu32Arg)
 	TPS_u32TipInEnrichment = 1000;
 	
 	enEHIOResource = USERCAL_stRAMCAL.u16TPSADResource;
-	enEHIOType = IOAPI_enADSE;
+	enEHIOType = IOAPI_enGPSE;
 	stADCCB.enSamplesAv = ADCAPI_en32Samples;
 	stADCCB.pfResultCB = &TPS_vADCCallBack;
 	stADCCB.enTrigger = ADCAPI_enTrigger4;				

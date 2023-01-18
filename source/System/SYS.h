@@ -28,7 +28,7 @@
 #endif // DEBUG
 #define SYS_TASK_PRIORITISE
 
-#define SYS_FREQ_OSC                        (16000000u)
+#define SYS_FREQ_OSC                        (8000000u)
 #define SYS_FREQ_OSCER                      (50000000u)
 #define SYS_FREQ_PLL                        (120000000u)
 #define SYS_FREQ_NS_IN_1S					(1000000000u)
@@ -49,7 +49,7 @@
 /*CR1_113*/											
 																	
 #define SYS_THREAD_STACK_SIZE			(512u)	
-#define SYS_THREAD_MAX						(5u)
+#define SYS_THREAD_MAX						(3u)
 #define SYS_CLIENT_MODULES_MAX		(10u)
 /*CR1_114*/
 

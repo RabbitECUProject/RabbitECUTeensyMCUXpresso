@@ -55,7 +55,24 @@ void DACHA_vRun(puint32 const pu32Stat)
 			
 			/* Set the read pointer */
 			pstDAC->C2 = (pstDAC->C2 & DAC_C2_DACBFUP_MASK) | DAC_C2_DACBFRP(DACHA_au32QueueIDX[u32DACIDX]);
-#endif //BUILD_MK60
+#endif // defined(BUILD_MK60) || defined(BUILD_MK64)
+
+#if defined(BUILD_MKS20)
+			pstDAC = DAC0;
+
+			if ((pstDAC->C2 & DAC_C2_DACBFUP_MASK) < ++DACHA_au32QueueIDX[u32DACIDX])
+			{
+				for (u32QueueIDX = 0; u32QueueIDX <= (pstDAC->C2 & DAC_C2_DACBFUP_MASK); u32QueueIDX++)
+				{
+					pstDAC->DAT[u32QueueIDX].DATH = (DACHA_atQueue[u32DACIDX][u32QueueIDX] & 0x0f00) >> 8;
+					pstDAC->DAT[u32QueueIDX].DATL = DACHA_atQueue[u32DACIDX][u32QueueIDX] & 0xff;
+				}
+				DACHA_au32QueueIDX[u32DACIDX] = 0;
+			}
+
+			/* Set the read pointer */
+			pstDAC->C2 = (pstDAC->C2 & DAC_C2_DACBFUP_MASK) | DAC_C2_DACBFRP(DACHA_au32QueueIDX[u32DACIDX]);
+#endif //BUILD_MKS20
 		}
 		u32ClockReq *= 2;
 	}
@@ -90,16 +107,26 @@ SYSAPI_tenSVCResult DACHA_vInitDACResource(IOAPI_tenEHIOResource enEHIOResource,
 			break;
 		}
 #endif //BUILD_MK60
+
+#if defined(BUILD_MKS20)
+		case EH_IO_GPSE3:
+		{
+			pstDAC = DAC0;
+			//SIM_vSetReg32(SIM_SCGC2, SIM_SCGC2_DAC0_MASK);
+			DACHA_u32PortClockRequested |= 1;
+			break;
+		}
 		default:
 			pstDAC = NULL;
 			break;
+#endif //BUILD_MKS20
 	}
 	
 	if (NULL != pstDAC)
 	{
 		enResult = SYSAPI_enOK;
 		
-#if defined(BUILD_MK60) || defined(BUILD_MK64)
+#if defined(BUILD_MK60) || defined(BUILD_MK64) || defined(BUILD_MKS20)
 		pstDAC->C0 |= (DAC_C0_DACEN_MASK | DAC_C0_DACRFS_MASK);									
 		if (DACAPI_enSoftwareTrigger == pstDACCB->enTriggerType) pstDAC->C0 |= DAC_C0_DACTRGSEL_MASK;
 		if (TRUE == pstDACCB->boWaterMarkEventEnable) pstDAC->C0 |= DAC_C0_DACBWIEN_MASK;
@@ -107,7 +134,7 @@ SYSAPI_tenSVCResult DACHA_vInitDACResource(IOAPI_tenEHIOResource enEHIOResource,
 		if (TRUE == pstDACCB->boPointerBottomEventEnable) pstDAC->C0 |= DAC_C0_DACBBIEN_MASK;		
 		pstDAC->C1 = DAC_C1_DACBFWM(pstDACCB->enWatermarkWords) | DAC_C1_DACBFEN_MASK;								
 		pstDAC->C2 = DAC_C2_DACBFUP(pstDACCB->enQueueDepth);
-#endif //BUILD_MK60
+#endif // defined(BUILD_MK60) || defined(BUILD_MK64) || defined(BUILD_MKS20)
 	}	
 	
 	return enResult;
@@ -128,4 +155,14 @@ void DACHA_vWriteDACQueue(IOAPI_tenEHIOResource enEHIOResource, DACAPI_ttOutputV
         DACHA_atQueue[u32Queue][u32QueueIDX] = *pOutputVoltage++;
 	}	
 #endif //BUILD_MK60
+
+#if defined(BUILD_MKS20)
+	pstDAC =  DAC0;
+	u32Queue = 0;
+
+	for (u32QueueIDX = 0; u32QueueIDX <= (pstDAC->C2 & DAC_C2_DACBFUP_MASK); u32QueueIDX++)
+	{
+        DACHA_atQueue[u32Queue][u32QueueIDX] = *pOutputVoltage++;
+	}
+#endif //BUILD_MKS20
 }

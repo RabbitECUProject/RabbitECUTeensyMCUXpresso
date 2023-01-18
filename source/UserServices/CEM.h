@@ -25,6 +25,7 @@
 #define CEM_nSeqGroupCount 2
 #define CEM_nSeqcount 4
 #define CEM_nPeriodSamples 8
+#define CEM_VVT1_RESOURCE EH_IO_TMR9
 
 #ifdef EXTERN
 	#undef EXTERN

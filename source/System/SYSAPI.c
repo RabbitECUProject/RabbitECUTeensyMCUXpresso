@@ -106,7 +106,7 @@ void SYS_vAPISVC(void)
 				IO_vInitDIOResource(*(IOAPI_tenEHIOResource*)OS_stSVCDataStruct.pvArg1, *(IOAPI_tenEHIOType*)OS_stSVCDataStruct.pvArg2, *(IOAPI_tenDriveStrength*)OS_stSVCDataStruct.pvArg3);
 			}
 
-			else if ((IOAPI_enADSE == *(IOAPI_tenEHIOType*)OS_stSVCDataStruct.pvArg2) || (IOAPI_enADD == *(IOAPI_tenEHIOType*)OS_stSVCDataStruct.pvArg2))
+			else if ((IOAPI_enGPSE == *(IOAPI_tenEHIOType*)OS_stSVCDataStruct.pvArg2) || (IOAPI_enADD == *(IOAPI_tenEHIOType*)OS_stSVCDataStruct.pvArg2))
 			{
 				IO_vInitADCResource(*(IOAPI_tenEHIOResource*)OS_stSVCDataStruct.pvArg1, *(IOAPI_tenEHIOType*)OS_stSVCDataStruct.pvArg2, (ADCAPI_tstADCCB*)OS_stSVCDataStruct.pvArg3);
 			}	
@@ -167,7 +167,7 @@ void SYS_vAPISVC(void)
 			if (CTRLAPI_enPID == *(CTRLAPI_tenCTRLType*)OS_stSVCDataStruct.pvArg1)
 			{
 				PIDIDX = *(CTRLAPI_tenCTRLType*)OS_stSVCDataStruct.pvArg2;
-				CTRL_vIteratePID(PIDIDX);
+				//CTRL_vIteratePID(PIDIDX);
 				OS_stSVCDataStruct.enSVCResult = (-1 < PIDIDX) ? SYSAPI_enOK : SYSAPI_enResourceUnavailable;
 				break;
 			}
@@ -224,7 +224,6 @@ void SYS_vAPISVC(void)
 			switch ((IOAPI_tenEHIOResource)OS_stSVCDataStruct.pvArg1)
 			{				
 				case EH_VIO_IIC1:
-				case EH_VIO_IIC2:
 				case EH_VIO_SPI1:
 				case EH_VIO_SPI2:
 				{				
@@ -260,7 +259,7 @@ void SYS_vAPISVC(void)
 		
 		case SYSAPI_enWriteDACQueue:
 		{
-			DAC_vWriteDACQueue(*(IOAPI_tenEHIOResource*)OS_stSVCDataStruct.pvArg1, (DACAPI_ttOutputVoltage*)OS_stSVCDataStruct.pvArg2);
+			//DAC_vWriteDACQueue(*(IOAPI_tenEHIOResource*)OS_stSVCDataStruct.pvArg1, (DACAPI_ttOutputVoltage*)OS_stSVCDataStruct.pvArg2);
 			break;
 		}
 		
@@ -293,8 +292,8 @@ void SYS_vAPISVC(void)
 		
 		case SYSAPI_enGetTimerValue:
 		{
-			if ((EH_VIO_FTM0 <= *(IOAPI_tenEHIOResource*)OS_stSVCDataStruct.pvArg1) &&
-			(EH_VIO_FTM3 >= *(IOAPI_tenEHIOResource*)OS_stSVCDataStruct.pvArg1))
+			if ((EH_VIO_TPM0 <= *(IOAPI_tenEHIOResource*)OS_stSVCDataStruct.pvArg1) &&
+			(EH_VIO_TPM2 >= *(IOAPI_tenEHIOResource*)OS_stSVCDataStruct.pvArg1))
 			{
 				TEPM_u32GetTimerVal(*(IOAPI_tenEHIOResource*)OS_stSVCDataStruct.pvArg1, OS_stSVCDataStruct.pvArg2);
 			}		
@@ -461,6 +460,7 @@ void SYS_vAPISVC(void)
 					OS_stSVCDataStruct.enSVCResult = SYSAPI_enFail;
 				}
 			}
+			break;
 		}
 
 		case SYSAPI_enSetFuelCuts:
@@ -478,6 +478,13 @@ void SYS_vAPISVC(void)
 		case SYSAPI_enConfigureMissingToothInterrupt:
 		{
 			TEPM_vConfigureMissingToothInterrupt();
+			break;
+		}
+
+		case SYSAPI_enConfigureFuelPWMExport:
+		{
+			TEPM_vConfigureFuelPWMExport((uint32*)OS_stSVCDataStruct.pvArg1);
+			break;
 		}
 
 		default:

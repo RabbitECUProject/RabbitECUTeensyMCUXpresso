@@ -11,7 +11,7 @@
 #define _OS_C
 #include <string.h>
 #include <DECLARATIONS.h>
-#include "mk64f12.h"
+#include "mks20f12.h"
 
 #include "PROTAPI.h"
 #include "IOAPI.h"
@@ -23,11 +23,8 @@
 #include "PIT.h"
 #include "FEE.h"
 #include "perCAN.h"
-#include "DSCRIO.h"
 #include "CQUEUE.h"
 #include "SRLTFR.h"
-#include "SDHC.h"
-#include "DISK.h"
 #include "TIME.h"
 #include "TIMER.h"
 #include "TEPM.h"
@@ -93,8 +90,8 @@ static void OSHA_vLoadProcessStackASM(struct tq_struct*);
 static void OS_vRunQueues(void);
 
 /* module data */
-OS_tstKERNELTaskNodePool OS_stKERNELTaskNodePool;
-OS_tstCLIENTTaskNodePool OS_stCLIENTTaskNodePool;
+static OS_tstKERNELTaskNodePool OS_stKERNELTaskNodePool __attribute__((section(".bss.$RAM2")));
+static OS_tstCLIENTTaskNodePool OS_stCLIENTTaskNodePool __attribute__((section(".bss.$RAM2")));
 
 uint32 OS_u32CLIENTStartTaskCount;
 uint32 OS_u32CLIENTCyclicTaskCount;

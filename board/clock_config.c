@@ -40,7 +40,7 @@ product: Clocks v4.0
  
 /* This is a template for board specific configuration created by MCUXpresso IDE Project Wizard.*/
 
-#include "MK64F12.h"
+#include "MKS20F12.h"
 #include "clock_config.h"
 
 /**

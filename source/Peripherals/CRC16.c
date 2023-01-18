@@ -11,7 +11,7 @@
 /*                                                                            */
 /******************************************************************************/
 #include <SYS.h>
-#include "mk64f12.h"
+#include "mks20f12.h"
 #include "SIM.h"
 #ifdef KERNEL
 

@@ -399,9 +399,9 @@ void LSU4X_vADCCallBack(IOAPI_tenEHIOResource enEHIOResource, uint32 u32ADCResul
 
 	switch (enEHIOResource)
 	{
-		case EH_IO_IIC1_SCL:
+		case EH_VIO_IMPADC0:
 		{
-			LSU4X_atNernstSenseVoltsDC[0] = CONV_tADCToVolts(EH_IO_IIC1_SCL, u32ADCResult);
+			LSU4X_atNernstSenseVoltsDC[0] = CONV_tADCToVolts(EH_VIO_IMPADC0, u32ADCResult);
 			break;
 		}
 		case EH_I_ADD1:
@@ -448,12 +448,12 @@ void LSU4X_vADCCallBack(IOAPI_tenEHIOResource enEHIOResource, uint32 u32ADCResul
 			}
 			break;
 		}
-		case EH_IO_TMR18:
+		case EH_IO_GPSE10:
 		{
 			u32DCDL = u32ADCResult;
 			break;
 		}
-		case EH_IO_TMR17:
+		case EH_VIO_IMPADC1:
 		{
 			u32ADCResult = u32ADCResult - u32DCDL;
 			LSU4X_ai32PumpCurrentADC[0] = (sint32)u32ADCResult;

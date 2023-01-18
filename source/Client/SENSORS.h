@@ -94,6 +94,18 @@ typedef enum
 #define VVTCD_nPullupEnablePin              EH_IO_IIC1_SCL
 #endif //BUILD_SPARKDOG_TEENSY_ADAPT
 
+#ifdef BUILD_SPARKDOG_MKS20
+#define VRA_nPullupEnablePin                EH_IO_GP1
+#define VRB_nPullupEnablePin                EH_IO_GP2
+#define VRA_nVREnablePin                    EH_VIO_EXPBIT1
+#define VRB_nVREnablePin                    EH_VIO_EXPBIT2
+#define VR_nHystHighPin                     EH_IO_GP9
+#define VR_nHystLowPin                      EH_IO_GP8
+#define VR_nPhaseTelltalePin                EH_IO_Invalid
+#define VVTAB_nPullupEnablePin              EH_VIO_EXPBIT30
+#define VVTCD_nPullupEnablePin              EH_VIO_EXPBIT31
+#endif //BUILD_SPARKDOG_TEENSY_ADAPT
+
 
 #ifdef BUILD_SPARKDOG_PF
 #define CRANK_nInput                        EH_IO_TMR11
@@ -103,6 +115,12 @@ typedef enum
 #define CRANK_nInput                        EH_IO_TMR10
 #define CAM_nInput                          EH_IO_TMR11
 #endif //BUILD_SPARKDOG_TEENSY_ADAPT
+
+#ifdef BUILD_SPARKDOG_MKS20
+#define CRANK_nInput                        EH_IO_TMR10
+#define CAM_nInput                          EH_IO_TMR9
+#define AFM_FREQ_nInput                     EH_IO_TMR8
+#endif //BUILD_SPARKDOG_MKS20
 
 #ifdef BUILD_BSP_AFM_FREQ
 

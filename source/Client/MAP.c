@@ -64,7 +64,7 @@ void MAP_vStart(puint32 const pu32Arg)
 	if (EH_IO_Invalid != USERCAL_stRAMCAL.u16MAPADResource)
 	{
 		enEHIOResource = USERCAL_stRAMCAL.u16MAPADResource;
-		enEHIOType = IOAPI_enADSE;
+		enEHIOType = IOAPI_enGPSE;
 		stADCCB.enSamplesAv = ADCAPI_en32Samples;
 		stADCCB.pfResultCB = &MAP_vADCCallBack;
 		stADCCB.enTrigger = ADCAPI_enTrigger4;

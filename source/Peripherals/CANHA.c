@@ -36,7 +36,7 @@ uint32 CANHA_u32InitBus(IOAPI_tenEHIOResource enEHIOResource, IOAPI_tstPortConfi
 	sint32 i32IDX = CANHA_u32GetCANIndex(enEHIOResource);
 	uint32 u32MuxSel = ~0ul;
 
-#if defined(BUILD_MK60) || defined(BUILD_MK64)
+#if defined(BUILD_MK60) || defined(BUILD_MK64) || defined(BUILD_MKS20)
 	REGSET_tstReg32Val astCANReg32Val[54];	
 	uint8 u8RegIDX = 0;
 	uint8 u8TimingIDX;

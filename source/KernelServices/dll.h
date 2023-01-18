@@ -53,8 +53,16 @@
 #define DLL_nSPIVirtualChannelCount		(EH_VIO_UART1 - EH_VIO_SPI1)
 #define DLL_nUARTVirtualChannelCount	(EH_VIO_CAN1 - EH_VIO_UART1)
 #define DLL_nCANVirtualChannelCount		(EH_VIO_USB - EH_VIO_CAN1)
+
+#if defined(BUILD_MK60)
 #define DLL_nUSBVirtualChannelCount		(EH_VIO_ENET_CH1 - EH_VIO_USB)
-#define DLL_nENETVirtualChannelCount	(EH_VIO_FTM0 - EH_VIO_ENET_CH1)
+#define DLL_nENETVirtualChannelCount	(EH_VIO_TPM0 - EH_VIO_ENET_CH1)
+#endif //defined(BUILD_MK60)
+
+#if defined(BUILD_MKS20)
+#define DLL_nUSBVirtualChannelCount		1
+#define DLL_nENETVirtualChannelCount	0
+#endif //defined(BUILD_MKS20)
 
 #define DLL_nIICTXQueueByteCount			(DLL_nIICTXWorkBuffMaxBytes * 2u) + 1u
 #define DLL_nSPITXQueueByteCount			(DLL_nSPITXWorkBuffMaxBytes * 2u) + 1u
@@ -104,7 +112,7 @@
 	#warning "TX buffer size"
 #endif
 
-#define DLL_nVirtualChannelCount (EH_VIO_FTM0 - EH_VIO_IIC1)
+#define DLL_nVirtualChannelCount (EH_VIO_TPM0 - EH_VIO_IIC1)
 #define DLL_nTXBytesBufferSize	25u
 
 typedef void (*pfCallBackDLLToModule)(uint8*);

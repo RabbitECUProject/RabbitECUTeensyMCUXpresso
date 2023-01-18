@@ -34,6 +34,7 @@ typedef enum
 	TEPMAPI_enSetHigh,
 	TEPMAPI_enSetLow,
 	TEPMAPI_enToggle,
+	TEPMAPI_enImmediatePulse,
 	TEPMAPI_enCapRising,
 	TEPMAPI_enCapFalling,
 	TEPMAPI_enCapAny,

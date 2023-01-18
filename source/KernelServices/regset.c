@@ -13,7 +13,7 @@
 
 #include <DECLARATIONS.h>
 #include <string.h>
-#include "mk64f12.h"
+#include "mks20f12.h"
 #include "regset.h"
 #include "OS.h"
 

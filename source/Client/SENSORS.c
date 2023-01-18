@@ -72,19 +72,19 @@ void SENSORS_vStart(puint32 const pu32Arg)
 
 	
 	/* Request and initialise FTM for CRANK_nInput */
-	enEHIOResource = EH_VIO_FTM3;
+	enEHIOResource = EH_VIO_TPM0;
 	enEHIOType = IOAPI_enTEPM;	
 	USER_vSVC(SYSAPI_enRequestIOResource, (void*)&enEHIOResource,	(void*)NULL, (void*)NULL);
 	
 	/* ONLY CONFIGURE THE TC3 MODULE ONCE PER PROJECT! */
-	if (SYSAPI_enOK == pstSVCDataStruct->enSVCResult)	
+	if (SYSAPI_enOK == pstSVCDataStruct->enSVCResult)
 	{
-		stTEPMResourceCB.enEHIOResource = EH_VIO_FTM3;
+		stTEPMResourceCB.enEHIOResource = EH_VIO_TPM0;
 		stTEPMResourceCB.enPreScalar = SENSORS_nFastFTMDivisor;
-		stTEPMResourceCB.enCountType = TEPMAPI_enCountUp;		
+		stTEPMResourceCB.enCountType = TEPMAPI_enCountUp;
 					
 		USER_vSVC(SYSAPI_enInitialiseIOResource, (void*)&enEHIOResource,
-		(void*)&enEHIOType,	(void*)&stTEPMResourceCB);	
+		(void*)&enEHIOType,	(void*)&stTEPMResourceCB);
 	}	
 		
 	/* Request and initialise CRANK_nInput */
@@ -258,7 +258,7 @@ void SENSORS_vStart(puint32 const pu32Arg)
 	if (EH_IO_Invalid != USERCAL_stRAMCAL.u16AFRADResource)
 	{
 		/* Request and initialise the AFR ADC input channel */
-		boOK = SETUP_boSetupADSE(USERCAL_stRAMCAL.u16AFRADResource, IOAPI_enADSE, ADCAPI_en32Samples, &SENSORS_vADCCallBack, ADCAPI_enTrigger2, pu32Arg);
+		boOK = SETUP_boSetupADSE(USERCAL_stRAMCAL.u16AFRADResource, IOAPI_enGPSE, ADCAPI_en32Samples, &SENSORS_vADCCallBack, ADCAPI_enTrigger2, pu32Arg);
 
 		if (TRUE == boOK)
 		{
@@ -269,7 +269,7 @@ void SENSORS_vStart(puint32 const pu32Arg)
 	if (EH_IO_Invalid != USERCAL_stRAMCAL.u16PPSMADResource)
 	{
 		/* Request and initialise the PPSM ADC input channel */
-		boOK = SETUP_boSetupADSE(USERCAL_stRAMCAL.u16PPSMADResource, IOAPI_enADSE, ADCAPI_en32Samples, &SENSORS_vADCCallBack, ADCAPI_enTrigger2, pu32Arg);
+		boOK = SETUP_boSetupADSE(USERCAL_stRAMCAL.u16PPSMADResource, IOAPI_enGPSE, ADCAPI_en32Samples, &SENSORS_vADCCallBack, ADCAPI_enTrigger2, pu32Arg);
 
 		if (TRUE == boOK)
 		{
@@ -280,7 +280,7 @@ void SENSORS_vStart(puint32 const pu32Arg)
 	if (EH_IO_Invalid != USERCAL_stRAMCAL.u16PPSSADResource)
 	{
 		/* Request and initialise the PPSS ADC input channel */
-		boOK = SETUP_boSetupADSE(USERCAL_stRAMCAL.u16PPSSADResource, IOAPI_enADSE, ADCAPI_en32Samples, &SENSORS_vADCCallBack, ADCAPI_enTrigger2, pu32Arg);
+		boOK = SETUP_boSetupADSE(USERCAL_stRAMCAL.u16PPSSADResource, IOAPI_enGPSE, ADCAPI_en32Samples, &SENSORS_vADCCallBack, ADCAPI_enTrigger2, pu32Arg);
 
 		if (TRUE == boOK)
 		{
@@ -291,7 +291,7 @@ void SENSORS_vStart(puint32 const pu32Arg)
 	if (EH_IO_Invalid != USERCAL_stRAMCAL.au16AuxInputResource[0])
 	{
 		/* Request and initialise the PPSS ADC input channel */
-		boOK = SETUP_boSetupADSE(USERCAL_stRAMCAL.au16AuxInputResource[0], IOAPI_enADSE, ADCAPI_en32Samples, &SENSORS_vADCCallBack, ADCAPI_enTrigger2, pu32Arg);
+		boOK = SETUP_boSetupADSE(USERCAL_stRAMCAL.au16AuxInputResource[0], IOAPI_enGPSE, ADCAPI_en32Samples, &SENSORS_vADCCallBack, ADCAPI_enTrigger2, pu32Arg);
 
 		if (TRUE == boOK)
 		{
@@ -302,7 +302,7 @@ void SENSORS_vStart(puint32 const pu32Arg)
 	if (EH_IO_Invalid != USERCAL_stRAMCAL.au16AuxInputResource[1])
 	{
 		/* Request and initialise the PPSS ADC input channel */
-		boOK = SETUP_boSetupADSE(USERCAL_stRAMCAL.au16AuxInputResource[1], IOAPI_enADSE, ADCAPI_en32Samples, &SENSORS_vADCCallBack, ADCAPI_enTrigger2, pu32Arg);
+		boOK = SETUP_boSetupADSE(USERCAL_stRAMCAL.au16AuxInputResource[1], IOAPI_enGPSE, ADCAPI_en32Samples, &SENSORS_vADCCallBack, ADCAPI_enTrigger2, pu32Arg);
 
 		if (TRUE == boOK)
 		{
@@ -313,7 +313,7 @@ void SENSORS_vStart(puint32 const pu32Arg)
 	if (EH_IO_Invalid != USERCAL_stRAMCAL.au16AuxInputResource[2])
 	{
 		/* Request and initialise the PPSS ADC input channel */
-		boOK = SETUP_boSetupADSE(USERCAL_stRAMCAL.au16AuxInputResource[2], IOAPI_enADSE, ADCAPI_en32Samples, &SENSORS_vADCCallBack, ADCAPI_enTrigger2, pu32Arg);
+		boOK = SETUP_boSetupADSE(USERCAL_stRAMCAL.au16AuxInputResource[2], IOAPI_enGPSE, ADCAPI_en32Samples, &SENSORS_vADCCallBack, ADCAPI_enTrigger2, pu32Arg);
 
 		if (TRUE == boOK)
 		{
@@ -324,7 +324,7 @@ void SENSORS_vStart(puint32 const pu32Arg)
 	if (EH_IO_Invalid != USERCAL_stRAMCAL.au16AuxInputResource[3])
 	{
 		/* Request and initialise the PPSS ADC input channel */
-		boOK = SETUP_boSetupADSE(USERCAL_stRAMCAL.au16AuxInputResource[3], IOAPI_enADSE, ADCAPI_en32Samples, &SENSORS_vADCCallBack, ADCAPI_enTrigger2, pu32Arg);
+		boOK = SETUP_boSetupADSE(USERCAL_stRAMCAL.au16AuxInputResource[3], IOAPI_enGPSE, ADCAPI_en32Samples, &SENSORS_vADCCallBack, ADCAPI_enTrigger2, pu32Arg);
 
 		if (TRUE == boOK)
 		{

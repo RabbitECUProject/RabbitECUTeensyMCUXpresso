@@ -25,12 +25,25 @@
 #define TEPM_REENTRANCY_OFF
 #define TEPM_REENTRANCY_HW_OFF
 
+#define TEPM_FUEL_PWM_EXPORT_MODULE TPM0
+#define TEPM_FUEL_PWM_EXPORT_CHANNEL 1
+
 #ifdef BUILD_SPARKDOG_PF
-#define TEPM_PRIO_RESOURCE EH_IO_TMR11
+	#if defined(BUILD_MK64)
+	#define TEPM_PRIO_RESOURCE EH_IO_TMR11
+	#endif //BUILD_MK64
+	#if defined(BUILD_MKS20)
+	#define TEPM_PRIO_RESOURCE EH_IO_TMR10
+	#endif //BUILD_MKS20
 #endif //BUILD_SPARKDOG_PF
 
 #ifdef BUILD_SPARKDOG_TEENSY_ADAPT
-#define TEPM_PRIO_RESOURCE EH_IO_TMR10
+	#if defined(BUILD_MK64)
+	#define TEPM_PRIO_RESOURCE EH_IO_TMR10
+	#endif //BUILD_MK64
+	#if defined(BUILD_MKS20)
+	#define TEPM_PRIO_RESOURCE EH_IO_TMR10
+	#endif //BUILD_MKS20
 #endif //BUILD_SPARKDOG_TEENSY_ADAPT
 
 #ifdef BUILD_MK60
@@ -41,10 +54,14 @@
 #define TEPM_nEventChannels	18u
 #endif //BUILD_MK64
 
+#ifdef BUILD_MKS20
+#define TEPM_nEventChannels	10u
+#endif //BUILD_MKS20
+
 #define TEPM_nEventsMax			30u
 #define TEPM_nMastersMax		1u
 
-
+#if defined(BUILD_MK60) || defined(BUILD_MK64)
 typedef enum
 {
 	FTM_enFTM0,
@@ -53,14 +70,26 @@ typedef enum
 	FTM_enFTM3,
 	FTM_enFTMModuleCount
 } FTM_tenFTMModule;	
+#endif // defined(BUILD_MK60) || defined(BUILD_MK64)
+
+#if defined(BUILD_MKS20)
+typedef enum
+{
+	TPM_enTPM0,
+	TPM_enTPM1,
+	TPM_enTPM2,
+	TPM_enTPM3,
+	TPM_enTPMModuleCount
+} TPM_tenTPMModule;
+#endif //defined(BUILD_MKS20)
 
 #ifdef BUILD_MK60
 #define TEPM_nChannelInfo               \
 {                                       \
-	{EH_IO_TMR1, FTM_enFTM0, 7u, 4u},	\
-	{EH_IO_TMR2, FTM_enFTM0, 6u, 4u},	\
-	{EH_IO_TMR3, FTM_enFTM0, 5u, 4u},	\
-	{EH_IO_TMR4, FTM_enFTM0, 4u, 4u},	\
+	{EH_IO_TMR1, FTM_enTPM0, 7u, 4u},	\
+	{EH_IO_TMR2, FTM_enTPM0, 6u, 4u},	\
+	{EH_IO_TMR3, FTM_enTPM0, 5u, 4u},	\
+	{EH_IO_TMR4, FTM_enTPM0, 4u, 4u},	\
 	{EH_IO_TMR5, FTM_enFTM3, 3u, 4u},	\
 	{EH_IO_TMR6, FTM_enFTM3, 2u, 4u},	\
 	{EH_IO_TMR7, FTM_enFTM3, 1u, 4u},	\
@@ -69,17 +98,17 @@ typedef enum
 	{EH_IO_TMR10, FTM_enFTM3, 5u, 6u},	\
 	{EH_IO_TMR11, FTM_enFTM3, 6u, 6u},	\
 	{EH_IO_TMR12, FTM_enFTM3, 7u, 6u},	\
-	{EH_IO_TMR13, FTM_enFTM0, 3u, 4u},	\
-	{EH_IO_TMR14, FTM_enFTM0, 2u, 4u},	\
-	{EH_IO_TMR15, FTM_enFTM0, 1u, 4u},	\
-	{EH_IO_TMR16, FTM_enFTM0, 0u, 4u},	\
-	{EH_IO_ADSE4, FTM_enFTM1, 0u, 6u},  \
-	{EH_IO_GPSE9, FTM_enFTM1, 0u, 3u},  \
-	{EH_IO_GPSE8, FTM_enFTM1, 1u, 3u},  \
-	{EH_IO_ADSE5, FTM_enFTM2, 0u, 6u},  \
-	{EH_IO_GPSE7, FTM_enFTM2, 0u, 3u},  \
-	{EH_IO_CAN1T, FTM_enFTM2, 0u, 3u},  \
-	{EH_IO_CAN1R, FTM_enFTM2, 1u, 3u}   \
+	{EH_IO_TMR13, FTM_enTPM0, 3u, 4u},	\
+	{EH_IO_TMR14, FTM_enTPM0, 2u, 4u},	\
+	{EH_IO_TMR15, FTM_enTPM0, 1u, 4u},	\
+	{EH_IO_TMR16, FTM_enTPM0, 0u, 4u},	\
+	{EH_IO_ADSE4, FTM_enTPM1, 0u, 6u},  \
+	{EH_IO_GPSE9, FTM_enTPM1, 0u, 3u},  \
+	{EH_IO_GPSE8, FTM_enTPM1, 1u, 3u},  \
+	{EH_IO_ADSE5, FTM_enTPM2, 0u, 6u},  \
+	{EH_IO_GPSE7, FTM_enTPM2, 0u, 3u},  \
+	{EH_IO_CAN1T, FTM_enTPM2, 0u, 3u},  \
+	{EH_IO_CAN1R, FTM_enTPM2, 1u, 3u}   \
 }
 #endif //BUILD_MK60
 
@@ -87,24 +116,40 @@ typedef enum
 #define TEPM_nChannelInfo               \
 {                                       \
 	{EH_IO_TMR1, FTM_enFTM3, 0u, 0u, 3u},	\
-	{EH_IO_TMR2, FTM_enFTM0, 0u, 0u, 3u},	\
-	{EH_IO_TMR3, FTM_enFTM0, 1u, 0u, 3u},	\
-	{EH_IO_TMR4, FTM_enFTM0, 1u, 0u, 3u},	\
+	{EH_IO_TMR2, FTM_enTPM0, 0u, 0u, 3u},	\
+	{EH_IO_TMR3, FTM_enTPM0, 1u, 0u, 3u},	\
+	{EH_IO_TMR4, FTM_enTPM0, 1u, 0u, 3u},	\
 	{EH_IO_TMR5, FTM_enFTM3, 4u, 0u, 3u},	\
 	{EH_IO_TMR6, FTM_enFTM3, 2u, 0u, 3u},	\
 	{EH_IO_TMR7, FTM_enFTM3, 3u, 0u, 3u},	\
-	{EH_IO_TMR8, FTM_enFTM0, 2u, 0u, 3u},	\
-	{EH_IO_TMR9, FTM_enFTM0, 3u, 0u, 3u},	\
-	{EH_IO_TMR10, FTM_enFTM0, 5u, 0u, 3u},	\
-	{EH_IO_TMR11, FTM_enFTM0, 6u, 0u, 3u},	\
+	{EH_IO_TMR8, FTM_enTPM0, 2u, 0u, 3u},	\
+	{EH_IO_TMR9, FTM_enTPM0, 3u, 0u, 3u},	\
+	{EH_IO_TMR10, FTM_enTPM0, 5u, 0u, 3u},	\
+	{EH_IO_TMR11, FTM_enTPM0, 6u, 0u, 3u},	\
 	{EH_IO_TMR12, FTM_enFTM3, 1u, 0u, 3u},	\
-	{EH_IO_TMR13, FTM_enFTM2, 0u, 0u, 3u},	\
-	{EH_IO_TMR14, FTM_enFTM2, 1u, 0u, 3u},	\
+	{EH_IO_TMR13, FTM_enTPM2, 0u, 0u, 3u},	\
+	{EH_IO_TMR14, FTM_enTPM2, 1u, 0u, 3u},	\
 	{EH_IO_TMR15, FTM_enFTM3, 4u, 0u, 2u},	\
 	{EH_IO_TMR16, FTM_enFTM3, 5u, 0u, 2u},	\
 	{EH_IO_TMR17, FTM_enFTM3, 6u, 0u, 2u},  \
 	{EH_IO_TMR18, FTM_enFTM3, 7u, 0u, 2u},  \
 }	
+#endif //BUILD_MK64
+
+#ifdef BUILD_MKS20
+#define TEPM_nChannelInfo               \
+{                                       \
+	{EH_IO_TMR1, FTM_enTPM0, 5u, 0u, 3u},	\
+	{EH_IO_TMR2, FTM_enTPM0, 0u, 0u, 3u},	\
+	{EH_IO_TMR3, FTM_enTPM0, 1u, 0u, 3u},	\
+	{EH_IO_TMR4, FTM_enTPM0, 2u, 0u, 3u},	\
+	{EH_IO_TMR5, FTM_enTPM1, 0u, 0u, 3u},	\
+	{EH_IO_TMR6, FTM_enTPM1, 1u, 0u, 3u},	\
+	{EH_IO_TMR7, FTM_enTPM2, 0u, 0u, 3u},	\
+	{EH_IO_TMR8, FTM_enTPM2, 1u, 0u, 3u},	\
+	{EH_IO_TMR9, FTM_enTPM0, 3u, 0u, 4u},	\
+	{EH_IO_TMR10, FTM_enTPM0, 4u, 0u, 4u},	\
+}
 #endif //BUILD_MK60
 
 #ifdef BUILD_MK60
@@ -159,13 +204,44 @@ typedef enum
 }
 #endif //BUILD_MK64
 
+#ifdef BUILD_MKS20
+#define TEPM_nChannelFastInfo \
+{                    \
+	{EH_IO_TMR2},    \
+	{EH_IO_TMR3},    \
+	{EH_IO_TMR4},    \
+	{EH_IO_TMR9},    \
+	{EH_IO_TMR10},   \
+	{EH_IO_TMR1},    \
+	{EH_IO_Invalid}, \
+	{EH_IO_Invalid}, \
+	{EH_IO_TMR5},    \
+	{EH_IO_TMR6},    \
+	{EH_IO_Invalid}, \
+	{EH_IO_Invalid}, \
+	{EH_IO_Invalid}, \
+	{EH_IO_Invalid}, \
+	{EH_IO_Invalid}, \
+	{EH_IO_Invalid}, \
+	{EH_IO_TMR7},    \
+	{EH_IO_TMR8},    \
+	{EH_IO_Invalid}, \
+	{EH_IO_Invalid}, \
+	{EH_IO_Invalid}, \
+	{EH_IO_Invalid}, \
+	{EH_IO_Invalid}, \
+	{EH_IO_Invalid}, \
+}
+#endif //BUILD_MKS20
+
+
 #ifdef BUILD_MK60
 #define TEPM_nMasterInfo  \
 {                   \
-	{EH_VIO_FTM0},  \
-	{EH_VIO_FTM0},  \
-	{EH_VIO_FTM0},  \
-	{EH_VIO_FTM0},  \
+	{EH_VIO_TPM0},  \
+	{EH_VIO_TPM0},  \
+	{EH_VIO_TPM0},  \
+	{EH_VIO_TPM0},  \
 	{EH_VIO_FTM3},  \
 	{EH_VIO_FTM3},  \
 	{EH_VIO_FTM3},  \
@@ -174,17 +250,17 @@ typedef enum
 	{EH_VIO_FTM3},  \
 	{EH_VIO_FTM3},  \
 	{EH_VIO_FTM3},  \
-	{EH_VIO_FTM0},  \
-	{EH_VIO_FTM0},  \
-	{EH_VIO_FTM0},  \
-	{EH_VIO_FTM0},  \
-	{EH_VIO_FTM1},  \
-	{EH_VIO_FTM1},  \
-	{EH_VIO_FTM1},  \
-	{EH_VIO_FTM2},  \
-	{EH_VIO_FTM2},  \
-	{EH_VIO_FTM2},  \
-	{EH_VIO_FTM2}   \
+	{EH_VIO_TPM0},  \
+	{EH_VIO_TPM0},  \
+	{EH_VIO_TPM0},  \
+	{EH_VIO_TPM0},  \
+	{EH_VIO_TPM1},  \
+	{EH_VIO_TPM1},  \
+	{EH_VIO_TPM1},  \
+	{EH_VIO_TPM2},  \
+	{EH_VIO_TPM2},  \
+	{EH_VIO_TPM2},  \
+	{EH_VIO_TPM2}   \
 }	
 #endif
 
@@ -192,19 +268,19 @@ typedef enum
 #define TEPM_nMasterInfo  \
 {                   \
 	{EH_VIO_FTM3},  \
-	{EH_VIO_FTM0},  \
-	{EH_VIO_FTM0},  \
-	{EH_VIO_FTM0},  \
-	{EH_VIO_FTM0},  \
+	{EH_VIO_TPM0},  \
+	{EH_VIO_TPM0},  \
+	{EH_VIO_TPM0},  \
+	{EH_VIO_TPM0},  \
 	{EH_VIO_FTM3},  \
 	{EH_VIO_FTM3},  \
-	{EH_VIO_FTM0},  \
-	{EH_VIO_FTM0},  \
-	{EH_VIO_FTM0},  \
-	{EH_VIO_FTM0},  \
+	{EH_VIO_TPM0},  \
+	{EH_VIO_TPM0},  \
+	{EH_VIO_TPM0},  \
+	{EH_VIO_TPM0},  \
 	{EH_VIO_FTM3},  \
-	{EH_VIO_FTM2},  \
-	{EH_VIO_FTM2},  \
+	{EH_VIO_TPM2},  \
+	{EH_VIO_TPM2},  \
 	{EH_VIO_FTM3},  \
 	{EH_VIO_FTM3},  \
 	{EH_VIO_FTM3},  \
@@ -212,12 +288,44 @@ typedef enum
 }
 #endif
 
+#ifdef BUILD_MKS20
+#define TEPM_nMasterInfo  \
+{                   \
+	{EH_VIO_TPM0},  \
+	{EH_VIO_TPM0},  \
+	{EH_VIO_TPM0},  \
+	{EH_VIO_TPM0},  \
+	{EH_VIO_TPM1},  \
+	{EH_VIO_TPM1},  \
+	{EH_VIO_TPM2},  \
+	{EH_VIO_TPM2},  \
+	{EH_VIO_TPM0},  \
+	{EH_VIO_TPM0},  \
+}
+#endif //BUILD_MKS20
 
-#define TEPM_xInitInterrupts(x)									\
-if (FTM0 == x){TEPM_vInitInterrupts(FTM0_IRQn);}	\
-if (FTM1 == x){TEPM_vInitInterrupts(FTM1_IRQn);}	\
-if (FTM2 == x){TEPM_vInitInterrupts(FTM2_IRQn);}	\
-if (FTM3 == x){TEPM_vInitInterrupts(FTM3_IRQn);}	\
+#ifdef BUILD_MK60
+	#define TEPM_xInitInterrupts(x)                     \
+	if (FTM0 == x){TEPM_vInitInterrupts(FTM0_IRQn);}	\
+	if (FTM1 == x){TEPM_vInitInterrupts(FTM1_IRQn);}	\
+	if (FTM2 == x){TEPM_vInitInterrupts(FTM2_IRQn);}	\
+	if (FTM3 == x){TEPM_vInitInterrupts(FTM3_IRQn);}
+#endif //defined(BUILD_MK60)
+
+#ifdef BUILD_MK64
+	#define TEPM_xInitInterrupts(x)                     \
+	if (FTM0 == x){TEPM_vInitInterrupts(FTM0_IRQn);}	\
+	if (FTM1 == x){TEPM_vInitInterrupts(FTM1_IRQn);}	\
+	if (FTM2 == x){TEPM_vInitInterrupts(FTM2_IRQn);}	\
+	if (FTM3 == x){TEPM_vInitInterrupts(FTM3_IRQn);}
+#endif //defined(BUILD_MK64)
+
+#ifdef BUILD_MKS20
+	#define TEPM_xInitInterrupts(x)                     \
+	if (TPM0 == x){TEPM_vInitInterrupts(TPM0_IRQn);}	\
+	if (TPM1 == x){TEPM_vInitInterrupts(TPM1_IRQn);}	\
+	if (TPTM2 == x){TEPM_vInitInterrupts(TPM2_IRQn);}
+#endif //defined(BUILD_MKS20)
 
 typedef struct
 {
@@ -276,5 +384,6 @@ void TEPM_vSetFuelCutsMask(uint32, uint32, uint32);
 void TEPM_vSetSparkCutsMask(uint32, uint32, uint32);
 void TEPM_vConfigureMissingToothInterrupt(void);
 void TEPM_vSetNextMissingToothInterrupt(IOAPI_tenEHIOResource, TEPMAPI_ttEventTime, uint32);
+void TEPM_vConfigureFuelPWMExport(uint32*);
 #endif // TEPM_H
 

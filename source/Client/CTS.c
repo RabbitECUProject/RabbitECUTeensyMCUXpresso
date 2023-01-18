@@ -73,7 +73,7 @@ void CTS_vStart(puint32 const pu32Arg)
 	if ((FALSE == USERCAL_stRAMCAL.boCTSCANPrimary) && (EH_IO_Invalid != USERCAL_stRAMCAL.u16CTSADResource))
 	{
 		/* Request and initialise the CTS ADC input channel */
-		SETUP_boSetupADSE(USERCAL_stRAMCAL.u16CTSADResource, IOAPI_enADSE, ADCAPI_en32Samples, &CTS_vADCCallBack, ADCAPI_enTrigger2, pu32Arg);
+		SETUP_boSetupADSE(USERCAL_stRAMCAL.u16CTSADResource, IOAPI_enGPSE, ADCAPI_en32Samples, &CTS_vADCCallBack, ADCAPI_enTrigger2, pu32Arg);
 	}
 	
 	/* Request and initialise required Kernel managed spread for coolant sensor */
@@ -336,7 +336,7 @@ void CTS_vRun(puint32 const pu32Arg)
 		enEHIOResource = USERCAL_stRAMCAL.enThermoFanRelay;
 		enTriState = TRUE == CTS_boRadFanOn ? IOAPI_enHigh : IOAPI_enLow;
 
-		if (EH_IO_IIC1_SDA > enEHIOResource)
+		if (IO_Total_Discrete_Count > enEHIOResource)
 		{
 			USER_vSVC(SYSAPI_enAssertDIOResource, (void*)&enEHIOResource,
 			(void*)&enTriState,	(void*)NULL);

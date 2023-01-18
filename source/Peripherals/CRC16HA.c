@@ -48,7 +48,7 @@ void CRC16HA_vTerminate(uint32* const u32Stat)
 
 uint16 CRC16HA_u16CalcCRC(uint16 u16CRC, uint8* pu8Data, uint16 u16Len)
 {
-#if defined(BUILD_MK60) || defined(BUILD_MK64)
+#if defined(BUILD_MK60) || defined(BUILD_MK64) || defined(BUILD_MKS20)
 	uint16 u16IDX;
 	CRC_Type* pstCRC0 = (CRC_Type*)CRC_BASE;
 
@@ -74,7 +74,7 @@ return CRC16HA_u16CalcTableCRC(u16CRC, pu8Data, u16Len);
 
 puint16 CRC16HA_pu16CalcCRC(uint16 u16CRC, uint8* pu8Data, uint16 u16Len)
 {
-#if defined(BUILD_MK60) || defined(BUILD_MK64)
+#if defined(BUILD_MK60) || defined(BUILD_MK64) || defined(BUILD_MKS20)
 	uint16 u16IDX;
 	CRC_Type* pstCRC0 = (CRC_Type*)CRC_BASE;
 

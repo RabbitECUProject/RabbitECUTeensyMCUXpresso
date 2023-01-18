@@ -23,15 +23,23 @@
 #include "types.h"
 #include "SIM.h"
 
-#define DACHA_nDACCount 		2u
+
 
 #ifdef BUILD_MK60
+#define DACHA_nDACCount 		2u
 #include "mk60f12.h"
 typedef DAC_Type tstDACModule;
 #endif
 
 #ifdef BUILD_MK64
+#define DACHA_nDACCount 		2u
 #include "mk64f12.h"
+typedef DAC_Type tstDACModule;
+#endif //BUILD_MK64
+
+#ifdef BUILD_MKS20
+#define DACHA_nDACCount 		1u
+#include "mks20f12.h"
 typedef DAC_Type tstDACModule;
 #endif //BUILD_MK64
 

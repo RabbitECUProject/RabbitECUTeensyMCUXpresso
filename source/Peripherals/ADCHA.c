@@ -14,7 +14,7 @@
 #include <stddef.h>
 #include <SYS.h>
 #include <TYPES.h>
-#include "mk64f12.h"
+#include "mks20f12.h"
 #include "CRC16.h"
 #include "CPUAbstract.h"
 #include "regset.h"
@@ -25,7 +25,6 @@
 #include "ADCAPI.h"
 #include "SIM.h"
 #include "IRQ.h"
-#include "dscrio.h"
 #include "adcha.h"
 
 const REGSET_tstReg32Val ADCHA_rastADCReg32Val[] = ADCHA_nReg32Set;
@@ -63,6 +62,11 @@ void ADCHA_vStart(uint32* const pu32Stat)
 	ADCHA_xInitialise(ADC0, ADC0_IRQn);
 	REGSET_vInitReg32(ADCHA_rastADCReg32Val);
 #endif //BUILD_MK64
+
+#if defined(BUILD_MKS20)
+	ADCHA_xInitialise(ADC0, ADC0_IRQn);
+	REGSET_vInitReg32(ADCHA_rastADCReg32Val);
+#endif //BUILD_MKS20
 
 #ifdef BUILD_SAM3X8E
     tstADCModule* pstADCModule = ADC;
@@ -124,7 +128,7 @@ bool ADCHA_boInitiateConversion(ADCHA_tstADCConversion* pstADCConversion, ADCHA_
 	bool boADCInitPending = TRUE;
 	tstADCModule* pstADC;
 
-#if defined(BUILD_MK60) || defined(BUILD_MK64)
+#if defined(BUILD_MK60) || defined(BUILD_MK64) || defined(BUILD_MKS20)
 	uint32 u32Conversion;
 	pstADC = ADCHA_pstGetADCModule(pstADCConversion->stADCChannel.enADCModule);
 	
@@ -244,6 +248,14 @@ tstADCModule* ADCHA_pstGetADCModule(ADCHA_tenADCModule enADCModule)
 	}
 #endif //BUILD_MK64
 
+#if defined(BUILD_MKS20)
+	switch(enADCModule)
+	{
+		case ADCHA_enADC0: pstADC = ADC0; break;
+		default: pstADC = NULL; break;
+	}
+#endif //BUILD_MK64
+
 #ifdef BUILD_SAM3X8E
 switch(enADCModule)
 {
@@ -276,7 +288,7 @@ uint32 ADCHA_u32GetAvailableResultCount(tstADCModule* pstADC)
 void ADCHA_vCalibrate(tstADCModule* pstADC, uint32 u32ADCIDX, uint32 u32CalFlag)
 {
 #ifdef ADC_CALIBRATE
-#if defined(BUILD_MK60) || defined(BUILD_MK64)
+#if defined(BUILD_MK60) || defined(BUILD_MK64)|| defined (BUILD_MKS20)
 	uint16 u16Temp;
 	uint16 u16CRC;
 	ADCHA_tstADCCalStruct* pstADCCalStruct = (ADCHA_tstADCCalStruct*)FEEHA_ADCREC_ADDRESS + u32ADCIDX;
@@ -355,7 +367,7 @@ IOAPI_tenEHIOResource ADCHA_enGetResourceAndResult(ADCHA_tenADCModule enADCModul
 {
     IOAPI_tenEHIOResource enEHIOResource;
 
-#if defined(BUILD_MK60) || defined(BUILD_MK64)
+#if defined(BUILD_MK60) || defined(BUILD_MK64) || defined(BUILD_MKS20)
 	/* Get the queue, channel and resource */
 	//u32ADCChannel = ADC_SC1_ADCH_MASK & pstADC->SC1[0];//matthew check here against channel
 	enEHIOResource = ADCHA_raenIOResource[32 * enADCModule + u32ADCChannel];
@@ -375,7 +387,7 @@ IOAPI_tenEHIOResource ADCHA_enGetResourceAndResult(ADCHA_tenADCModule enADCModul
 
 void ADCHA_vInitConversion(IOAPI_tenEHIOResource enIOResource, ADCHA_tstADCConversion* pstADCConversion, ADCAPI_tstADCCB* pstADCCB, uint32 u32QueueIDX)
 {
-#if defined(BUILD_MK60) || defined (BUILD_MK64)
+#if defined(BUILD_MK60) || defined (BUILD_MK64) || defined(BUILD_MKS20)
 	pstADCConversion->stADCChannel.enEHIOResource = enIOResource;
 	pstADCConversion->stADCChannel.enADCModule = ADCHA_rastADCChannel[enIOResource].enADCModule;
 	pstADCConversion->stADCChannel.u32ADChannel = ADCHA_rastADCChannel[enIOResource].u32ADChannel;
@@ -406,7 +418,7 @@ bool ADCHA_boGetModuleBusy(ADCHA_tenADCModule enADCModule)
     bool boModuleBusy;
 	tstADCModule* pstADC = ADCHA_pstGetADCModule(enADCModule);
 
-#if defined(BUILD_MK60) || defined(BUILD_MK64)
+#if defined(BUILD_MK60) || defined(BUILD_MK64) || defined(BUILD_MKS20)
     pstADC = ADCHA_pstGetADCModule(enADCModule);
 	boModuleBusy = (ADC_SC1_ADCH_MASK == (ADC_SC1_ADCH_MASK & pstADC->SC1[0])) ? FALSE : TRUE;
 #endif //BUILD_MK6X

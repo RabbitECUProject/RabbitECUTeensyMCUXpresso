@@ -22,9 +22,9 @@
 #include "IRQ.h"
 #include "SIM.h"
 
-#if defined(BUILD_MK60) || defined(BUILD_MK64)
+#if defined(BUILD_MK60) || defined(BUILD_MK64) || defined(BUILD_MKS20)
 typedef ADC_Type tstADCModule;
-#endif
+#endif //defined(BUILD_MK60) || defined(BUILD_MK64) || defined(BUILD_MKS20)
 
 #ifdef BUILD_SAM3X8E
 #include "pmc.h"
@@ -55,6 +55,14 @@ typedef Adc tstADCModule;
 	{ NULL, 0, REGSET_enOverwrite }  \
 }
 #endif //BUILD_MK64
+
+#ifdef BUILD_MKS20
+#define ADCHA_nReg32Set  \
+{    \
+	{(volatile uint32*)(ADC0_BASE + offsetof(ADC_Type, CFG1)), (uint32)(ADC_CFG1_MODE(1) + ADC_CFG1_ADICLK(0) + ADC_CFG1_ADIV(1) + ADC_CFG1_ADLSMP_MASK), REGSET_enOverwrite},		\
+	{ NULL, 0, REGSET_enOverwrite }  \
+}
+#endif //BUILD_MKS20
 
 
 #ifdef BUILD_SAM3X8E
@@ -169,6 +177,58 @@ typedef Adc tstADCModule;
    {EH_IO_GP14, ADCHA_enADCInvalid, 0, FALSE, FALSE, FALSE}     \
 }
 #endif
+
+#ifdef BUILD_MKS20
+#define ADCHA_nChannelInfo                                              \
+{                                                                       \
+    {EH_IO_GPSE1, ADCHA_enADC0, 4,  0, ADCHA_enChannelA, false},		\
+	{EH_IO_GPSE2, ADCHA_enADC0, 5,  0, ADCHA_enChannelA, false},		\
+	{EH_IO_GPSE3, ADCHA_enADC0, 23,  0, ADCHA_enChannelA, false},		\
+	{EH_IO_GPSE4, ADCHA_enADC0, 12,  0, ADCHA_enChannelA, false},		\
+	{EH_IO_GPSE5, ADCHA_enADC0, 13,  0, ADCHA_enChannelA, false},		\
+	{EH_IO_GPSE6, ADCHA_enADC0, 14,  0, ADCHA_enChannelA, false},		\
+	{EH_IO_GPSE7, ADCHA_enADC0, 15,  0, ADCHA_enChannelA, false},		\
+	{EH_IO_GPSE8, ADCHA_enADC0, 4,  0, ADCHA_enChannelB, false},		\
+	{EH_IO_GPSE9, ADCHA_enADC0, 5,  0, ADCHA_enChannelB, false},		\
+	{EH_IO_GPSE10, ADCHA_enADC0, 6,  0, ADCHA_enChannelB, false},		\
+	{EH_IO_GPSE11, ADCHA_enADC0, 7,  0, ADCHA_enChannelB, false},		\
+	{EH_I_ADD1, ADCHA_enADC0, 4,  0, ADCHA_enChannelA, true},		\
+	{EH_I_ADD2, ADCHA_enADC0, 4,  0, ADCHA_enChannelA, true},		\
+	{EH_I_ADD3, ADCHA_enADC0, 4,  0, ADCHA_enChannelA, true},		\
+	{EH_I_ADD4, ADCHA_enADC0, 4,  0, ADCHA_enChannelA, true},		\
+	{EH_I_ADD5, ADCHA_enADC0, 4,  0, ADCHA_enChannelA, true},		\
+	{EH_I_CMP1, ADCHA_enADCInvalid, 0, FALSE, FALSE, FALSE},     \
+	{EH_I_CMP2, ADCHA_enADCInvalid, 0, FALSE, FALSE, FALSE},     \
+	{EH_I_CMP3, ADCHA_enADCInvalid, 0, FALSE, FALSE, FALSE},     \
+	{IO_AD_Count, ADCHA_enADCInvalid, 0, FALSE, FALSE, FALSE},     \
+	{EH_IO_CAN1T, ADCHA_enADCInvalid, 0, FALSE, FALSE, FALSE},     \
+	{EH_IO_CAN1R, ADCHA_enADCInvalid, 0, FALSE, FALSE, FALSE},     \
+	{EH_IO_UART1_TX, ADCHA_enADCInvalid, 0, FALSE, FALSE, FALSE},     \
+	{EH_IO_UART1_RX, ADCHA_enADCInvalid, 0, FALSE, FALSE, FALSE},     \
+	{EH_IO_SPI1_MISO, ADCHA_enADCInvalid, 0, FALSE, FALSE, FALSE},     \
+	{EH_IO_SPI1_MOSI, ADCHA_enADCInvalid, 0, FALSE, FALSE, FALSE},     \
+	{EH_IO_SPI1_CLK, ADCHA_enADCInvalid, 0, FALSE, FALSE, FALSE},     \
+	{EH_IO_TMR1, ADCHA_enADCInvalid, 0, FALSE, FALSE, FALSE},     \
+	{EH_IO_TMR2, ADCHA_enADCInvalid, 0, FALSE, FALSE, FALSE},     \
+	{EH_IO_TMR3, ADCHA_enADCInvalid, 0, FALSE, FALSE, FALSE},     \
+	{EH_IO_TMR4, ADCHA_enADCInvalid, 0, FALSE, FALSE, FALSE},     \
+	{EH_IO_TMR5, ADCHA_enADC0, 9,  0, ADCHA_enChannelA, false},		\
+	{EH_IO_TMR6, ADCHA_enADC0, 10,  0, ADCHA_enChannelA, false},		\
+	{EH_IO_TMR7, ADCHA_enADCInvalid, 0, FALSE, FALSE, FALSE},     \
+	{EH_IO_TMR8, ADCHA_enADCInvalid, 0, FALSE, FALSE, FALSE},     \
+	{EH_IO_TMR9, ADCHA_enADCInvalid, 0, FALSE, FALSE, FALSE},     \
+	{EH_IO_TMR10, ADCHA_enADCInvalid, 0, FALSE, FALSE, FALSE},     \
+	{EH_IO_GP1, ADCHA_enADCInvalid, 0, FALSE, FALSE, FALSE},     \
+	{EH_IO_GP2, ADCHA_enADCInvalid, 0, FALSE, FALSE, FALSE},     \
+	{EH_IO_GP3, ADCHA_enADCInvalid, 0, FALSE, FALSE, FALSE},     \
+	{EH_IO_GP4, ADCHA_enADCInvalid, 0, FALSE, FALSE, FALSE},     \
+	{EH_IO_GP5, ADCHA_enADCInvalid, 0, FALSE, FALSE, FALSE},     \
+	{EH_IO_GP6, ADCHA_enADCInvalid, 0, FALSE, FALSE, FALSE},     \
+	{EH_IO_GP7, ADCHA_enADCInvalid, 0, FALSE, FALSE, FALSE},     \
+	{EH_IO_GP8, ADCHA_enADCInvalid, 0, FALSE, FALSE, FALSE},     \
+	{EH_IO_GP9, ADCHA_enADCInvalid, 0, FALSE, FALSE, FALSE}      \
+}
+#endif // BUILD_MKS20
 
 #if defined(BUILD_SAM3X8E) && defined(BUILD_ARDUINO_DUE)
 #define ADCHA_nChannelInfo                                                  \
@@ -428,6 +488,76 @@ typedef Adc tstADCModule;
 }
 #endif //BUILD_MK64
 
+#ifdef BUILD_MKS20
+#define ADCHA_nIOResourceMap   \
+{                   \
+	IO_Total_Count, \
+	IO_Total_Count,	\
+	IO_Total_Count, \
+	IO_Total_Count,	\
+	EH_I_ADD1,      \
+	EH_I_ADD2,      \
+	EH_I_ADD3,      \
+	EH_I_ADD4,      \
+	EH_IO_GPSE1,	\
+	EH_IO_GPSE8,	\
+	EH_IO_GPSE2,	\
+	EH_IO_GPSE9,	\
+	IO_Total_Count, \
+	EH_IO_GPSE10,   \
+	IO_Total_Count, \
+	EH_IO_GPSE11,   \
+	EH_IO_TMR5,		\
+	IO_Total_Count, \
+	EH_IO_TMR6,		\
+	IO_Total_Count, \
+	IO_Total_Count,	\
+	IO_Total_Count,	\
+	IO_Total_Count,	\
+	IO_Total_Count,	\
+	EH_IO_GPSE4,	\
+	IO_Total_Count, \
+	EH_IO_GPSE5,	\
+	IO_Total_Count, \
+	EH_IO_GPSE6,	\
+	IO_Total_Count, \
+	EH_IO_GPSE7,	\
+	IO_Total_Count, \
+	IO_Total_Count, \
+	IO_Total_Count, \
+	IO_Total_Count, \
+	IO_Total_Count, \
+	IO_Total_Count, \
+	IO_Total_Count, \
+	IO_Total_Count, \
+	IO_Total_Count, \
+	IO_Total_Count,	\
+	IO_Total_Count,	\
+	IO_Total_Count,	\
+	IO_Total_Count,	\
+	IO_Total_Count,	\
+	IO_Total_Count,	\
+	EH_IO_GPSE3,	\
+	IO_Total_Count,	\
+	IO_Total_Count,	\
+	IO_Total_Count,	\
+	IO_Total_Count,	\
+	IO_Total_Count,	\
+	IO_Total_Count,	\
+	IO_Total_Count,	\
+	IO_Total_Count,	\
+	IO_Total_Count,	\
+	IO_Total_Count,	\
+	IO_Total_Count,	\
+	IO_Total_Count,	\
+	IO_Total_Count,	\
+	IO_Total_Count,	\
+	IO_Total_Count,	\
+	IO_Total_Count,	\
+	IO_Total_Count,	\
+}
+#endif //BUILD_MKS20
+
 #ifdef BUILD_SAM3X8E
 #define ADCHA_nIOResourceMap   \
 {                              \
@@ -479,23 +609,34 @@ ADCHA_xRequestPortClock(x);           \
 ADCHA_xCalibrate(x);                  \
 ADCHA_xInitInterrupts(x, y);
 
-
 #define ADCHA_xRequestPortClock(x)\
 if ((ADC0 == x) && (0 == (ADCHA_u32PortClockRequested & 1))){SIM_vSetReg32(SIM_SCGC6, SIM_SCGC6_ADC0_MASK);ADCHA_u32PortClockRequested |= 1;}\
 if ((ADC1 == x) && (0 == (ADCHA_u32PortClockRequested & 2))){SIM_vSetReg32(SIM_SCGC3, SIM_SCGC3_ADC1_MASK);ADCHA_u32PortClockRequested |= 2;}
 
-
 #define ADCHA_xCalibrate(x)  \
 if (ADC0 == x){ADCHA_vCalibrate(ADC0, 0, 1);}\
 if (ADC1 == x){ADCHA_vCalibrate(ADC1, 1, 2);}
-
 
 #define ADCHA_xInitInterrupts(x, y)       \
 if (ADC0 == x){ADCHA_vInitInterrupts(y);}	\
 if (ADC1 == x){ADCHA_vInitInterrupts(y);}
 #endif //BUILD MK64
 
+#ifdef BUILD_MKS20
+#define ADCHA_xInitialise(x, y)		\
+ADCHA_xRequestPortClock(x);           \
+ADCHA_xCalibrate(x);                  \
+ADCHA_xInitInterrupts(x, y);
 
+#define ADCHA_xRequestPortClock(x)\
+if ((ADC0 == x) && (0 == (ADCHA_u32PortClockRequested & 1))){SIM_vSetReg32(SIM_SCGC6, SIM_SCGC6_ADC0_MASK);ADCHA_u32PortClockRequested |= 1;}
+
+#define ADCHA_xCalibrate(x)  \
+if (ADC0 == x){ADCHA_vCalibrate(ADC0, 0, 1);}
+
+#define ADCHA_xInitInterrupts(x, y)       \
+if (ADC0 == x){ADCHA_vInitInterrupts(y);}
+#endif //BUILD MKS20
 
 #ifdef BUILD_SAM3X8E
 #define ADCHA_xInitialise(x, y)  
@@ -522,6 +663,15 @@ typedef enum
 } ADCHA_tenADCModule;
 #endif //BUILD_MK64
 
+#ifdef BUILD_MKS20
+typedef enum
+{
+	ADCHA_enADC0,
+	ADCHA_enADCModuleCount,
+	ADCHA_enADCInvalid
+} ADCHA_tenADCModule;
+#endif //BUILD_MKS20
+
 #ifdef BUILD_SAM3X8E
 typedef enum
 {
@@ -531,7 +681,7 @@ typedef enum
 } ADCHA_tenADCModule;
 #endif //BUILD_SAM3X8E
 
-#if defined(BUILD_MK60) || defined(BUILD_MK64)
+#if defined(BUILD_MK60) || defined(BUILD_MK64) || defined(BUILD_MKS20)
 typedef enum
 {
 	ADCHA_enChannelA = 0,
@@ -539,6 +689,7 @@ typedef enum
 	ADCHA_enChannelCount
 } ADCHA_tenChannelAB;
 #endif //BUILD_MK6X
+
 
 #ifdef BUILD_SAM3X8E
 typedef enum
@@ -548,7 +699,7 @@ typedef enum
 } ADCHA_tenChannelAB;
 #endif //BUILD_SAM3X8E
 
-#if defined(BUILD_MK60) || defined(BUILD_MK64)
+#if defined(BUILD_MK60) || defined(BUILD_MK64) || defined(BUILD_MKS20)
 typedef struct
 {
 	IOAPI_tenEHIOResource enEHIOResource;
@@ -570,7 +721,7 @@ typedef struct
 } ADCHA_tstADCChannel;
 #endif//BUILD_SAM3X8E
 
-#if defined(BUILD_MK60) || defined(BUILD_MK64)
+#if defined(BUILD_MK60) || defined(BUILD_MK64) || defined(BUILD_MKS20)
 typedef struct
 {
 	uint32 u32OFS;

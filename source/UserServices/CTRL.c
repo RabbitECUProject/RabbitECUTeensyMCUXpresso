@@ -10,7 +10,7 @@
 #include <CTRLAPI.h>
 #include <DECLARATIONS.h>
 #include <string.h>
-#include "mk64f12.h"
+#include "mks20f12.h"
 #include "OS.h"
 #include "MATH.h"
 #include "CTRL.h"

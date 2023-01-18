@@ -10,7 +10,7 @@
 /******************************************************************************/
 #include <DECLARATIONS.h>
 #include <KERNELIO.h>
-#include "mk64f12.h"
+#include "mks20f12.h"
 #include "OS.h"
 #include "DAC.h"
 #include "PERCAN.h"
@@ -35,16 +35,19 @@ static void IO_vClearMasterList(void);
 
 void IO_vInitDIOResource(IOAPI_tenEHIOResource enIOResource, IOAPI_tenEHIOType enIOType, IOAPI_tenDriveStrength enDriveStrength)
 {
-	if (0u != IO_rastEHPadResource[enIOResource].u32PortBit)
-	/* Init DIO only if port bit non zero signifies DIO supported */
-	{	
-		PIM_vInitPortBit(IO_rastEHPadResource[enIOResource].enPort, enIOType, IO_rastEHPadResource[enIOResource].u32PortBit);	
+	if (IO_Total_Discrete_Count > enIOResource)
+	{
+		if (0u != IO_rastEHPadResource[enIOResource].u32PortBit)
+		/* Init DIO only if port bit non zero signifies DIO supported */
+		{
+			PIM_vInitPortBit(IO_rastEHPadResource[enIOResource].enPort, enIOType, IO_rastEHPadResource[enIOResource].u32PortBit);
+		}
 	}
 }
 
 void IO_vInitADCResource(IOAPI_tenEHIOResource enIOResource, IOAPI_tenEHIOType enEHIOType, ADCAPI_tstADCCB* pstADCCB)
 {
-	if (((0u != IO_rastEHPadResource[enIOResource].boIsADSE) && (IOAPI_enADSE == enEHIOType))
+	if (((0u != IO_rastEHPadResource[enIOResource].boIsADSE) && (IOAPI_enGPSE == enEHIOType))
 		|| ((0u != IO_rastEHPadResource[enIOResource].boIsADD) && (IOAPI_enADD == enEHIOType)))
 	/* Init DIO only if port bit non zero signifies DIO supported */
 	{	
@@ -72,7 +75,7 @@ SYSAPI_tenSVCResult IO_enInitCommsResource(IOAPI_tenEHIOResource enEHIOResource,
 	SYSAPI_tenSVCResult enSVCResult;
 	uint32 u32MuxSel;
 	
-	if ((EH_VIO_IIC1 == enEHIOResource) || (EH_VIO_IIC2 == enEHIOResource))
+	if (EH_VIO_IIC1 == enEHIOResource)
 	{
 #ifdef BUILD_PBL
 #elif defined(BUILD_SBL)
@@ -87,14 +90,13 @@ SYSAPI_tenSVCResult IO_enInitCommsResource(IOAPI_tenEHIOResource enEHIOResource,
 	
 	else if ((EH_VIO_UART1 == enEHIOResource) 
 				|| (EH_VIO_UART2 == enEHIOResource) 
-				|| (EH_VIO_UART3 == enEHIOResource) 
-				|| (EH_VIO_UART4 == enEHIOResource) 
-				|| (EH_VIO_UART5 == enEHIOResource) 	
-				|| (EH_VIO_UART6 == enEHIOResource))
+				|| (EH_VIO_UART3 == enEHIOResource))
 	{
 		enSVCResult = UART_enInitBus(enEHIOResource, pstPortConfigCB);
-		IO_vSetIOMux(pstPortConfigCB->stPinConfig.uPinInfo.stUARTPinInfo.enRXPin, IOAPI_enUARTBus, 3u);
-		IO_vSetIOMux(pstPortConfigCB->stPinConfig.uPinInfo.stUARTPinInfo.enTXPin, IOAPI_enUARTBus, 3u);
+		// caveat this is dependent on MCU alternate functions mapping per datasheet
+		IO_vSetIOMux(pstPortConfigCB->stPinConfig.uPinInfo.stUARTPinInfo.enRXPin, IOAPI_enUARTBus, 2u);
+		IO_vSetIOMux(pstPortConfigCB->stPinConfig.uPinInfo.stUARTPinInfo.enTXPin, IOAPI_enUARTBus, 2u);
+
 	}	
 	
 #ifdef EH_VIO_CAN2
@@ -229,11 +231,18 @@ SYSAPI_tenSVCResult IO_enInitTEPMChannel(IOAPI_tenEHIOResource enEHIOResource, T
 
 void IO_vAssertDIOResource(IOAPI_tenEHIOResource enIOResource, IOAPI_tenTriState enTriState)
 {
-	if (0u != IO_rastEHPadResource[enIOResource].u32PortBit)
-	/* Assert DIO only if port bit non zero signifies DIO supported */
-	{	
-		PIM_vAssertPortBit(IO_rastEHPadResource[enIOResource].enPort, IO_rastEHPadResource[enIOResource].u32PortBit, enTriState);	
-	}		
+	if (IO_Total_Discrete_Count > enIOResource)
+	{
+		if (0u != IO_rastEHPadResource[enIOResource].u32PortBit)
+		/* Assert DIO only if port bit non zero signifies DIO supported */
+		{
+			PIM_vAssertPortBit(IO_rastEHPadResource[enIOResource].enPort, IO_rastEHPadResource[enIOResource].u32PortBit, enTriState);
+		}
+	}
+	else
+	{
+		// TODO virtual
+	}
 }
 
 bool IO_boGetDIOResource(IOAPI_tenEHIOResource enIOResource)

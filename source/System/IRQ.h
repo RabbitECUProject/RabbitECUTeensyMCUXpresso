@@ -16,7 +16,7 @@
 #ifndef IRQ_H
 #define IRQ_H
 
-#include "mk64f12.h"
+#include "mks20f12.h"
 #include "CANHA.h"
 #include "CPUAbstract.h"
 #include "declarations.h"
@@ -33,6 +33,10 @@
 
 #if defined(BUILD_MK60) || defined(BUILD_MK64)
 #define MK6X_FTM_PRIO_IRQ FTM3_IRQn
+#endif
+
+#if defined(BUILD_MKS20)
+#define MK6X_FTM_PRIO_IRQ TPM0_IRQn
 #endif
 
 #include "dll.h"

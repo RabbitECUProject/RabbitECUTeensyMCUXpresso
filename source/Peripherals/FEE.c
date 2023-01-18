@@ -34,7 +34,7 @@ bool FEE_boCheckPartition(void)
 {
 	bool boRetVal = false;
 
-#if defined(BUILD_MK60) || defined(BUILD_MK64)
+#if defined(BUILD_MK60) || defined(BUILD_MK64) || defined(BUILD_MKS20)
 	return FEEHA_boCheckPartition();
 #endif
 
@@ -49,6 +49,7 @@ bool FEE_boSetWorkingData(puint8 pu8WorkingAddress, uint16 u16WorkingDataCount)
 {
 	bool boWorkingDataOK = FALSE;
 	
+	// todo is this necessary?
 	if (((puint8)FEEHA_WORK_DATA_START <= pu8WorkingAddress) &&
 			((puint8)FEEHA_WORK_DATA_END >= pu8WorkingAddress) &&
 			((uint16)FEEHA_WORK_DATA_MAX > u16WorkingDataCount) &&

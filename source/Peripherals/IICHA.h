@@ -44,6 +44,14 @@
 };
 #endif //BUILD_MK64
 
+#ifdef BUILD_MKS20
+#define IICHA_nReg8SetIIC0 																																												\
+{											\
+	{ NULL, 0, REGSET_enOverwrite }																																								\
+};
+#endif //BUILD_MK64
+
+
 #ifdef BUILD_SAM3X8E
 #define IICHA_nReg8SetIIC0           \
 {                                    \
@@ -67,6 +75,14 @@
 };
 #endif  //BUILD_MK64
 
+#ifdef BUILD_MKS20
+#define IICHA_nReg8SetIIC1                                                                                      \
+{                                                                                                               \
+	{ NULL, 0, REGSET_enOverwrite }                                                                             \
+};
+#endif  //BUILD_MK64
+
+
 #ifdef BUILD_SAM3X8E
 #define IICHA_nReg8SetIIC1            \
 {                                     \
@@ -87,17 +103,17 @@
 	{28, 7},                \
 	{32, 7},                \
 	{36, 9},                \
-	{40, 9},							\
-	{44, 11},							\
-	{48, 11},							\
-	{56, 13},							\
-	{68, 13},							\
-	{48, 9},							\
-	{56, 9},							\
-	{64, 13},							\
-	{72, 13},							\
-	{80, 17},							\
-	{88, 17},							\
+	{40, 9},                \
+	{44, 11},                \
+	{48, 11},                \
+	{56, 13},                \
+	{68, 13},                \
+	{48, 9},                \
+	{56, 9},                \
+	{64, 13},                \
+	{72, 13},                \
+	{80, 17},                \
+	{88, 17},                \
 	{104, 21},						\
 	{128, 21},						\
 	{80, 9},							\
@@ -162,13 +178,13 @@ typedef struct
 	uint32 u32SDAHold;
 } IICHA_tstDivisorMap;
 
-#ifdef BUILD_MK60
+#if defined(BUILD_MK60) || defined(BUILD_MK64)
 typedef I2C_Type tstI2CModule;
-#endif //BUILD_MK60
+#endif //defined(BUILD_MK60) || defined(BUILD_MK64)
 
-#ifdef BUILD_MK64
-typedef I2C_Type tstI2CModule;
-#endif //BUILD_MK64
+#if defined(BUILD_MKS20)
+typedef LPI2C_Type tstI2CModule;
+#endif //defined(BUILD_MKS20)
 
 #ifdef BUILD_SAM3X8E
 typedef Twi tstI2CModule;

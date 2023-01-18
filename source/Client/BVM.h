@@ -40,6 +40,10 @@
 #define BVM_nADInput   EH_IO_GPSE2
 #endif //BUILD_SPARKDOG_PF
 
+#ifdef BUILD_SPARKDOG_MKS20
+#define BVM_nADInput   EH_IO_GPSE8
+#endif //BUILD_SPARKDOG_PF
+
 #ifdef EXTERN
 	#undef EXTERN
 #endif	

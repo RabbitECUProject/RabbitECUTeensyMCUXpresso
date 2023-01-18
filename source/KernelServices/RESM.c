@@ -80,12 +80,6 @@ uint32 RESM_u32GetMasterEHIOResourceList(IOAPI_tenEHIOResource enEHIOResource, I
 		case EH_IO_TMR8:
 		case EH_IO_TMR9:
 		case EH_IO_TMR10:
-		case EH_IO_TMR11:
-		case EH_IO_TMR12:
-		case EH_IO_TMR13:
-		case EH_IO_TMR14:
-		case EH_IO_TMR15:
-		case EH_IO_TMR16:	
 		{
 #ifdef BUILD_KERNEL_OR_KERNEL_APP
 			TEPM_boGetMasterEHIOResourceList(enEHIOResource, penEHIOResource, &u32MasterCount);

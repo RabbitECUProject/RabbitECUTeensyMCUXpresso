@@ -90,14 +90,14 @@ void EST_vStart(puint32 const pu32Arg)
 	USER_vSVC(SYSAPI_enSetupSyncPointsPattern, (void*)&USERCAL_stRAMCAL.aUserSyncPointsTable[0], (void*)&USERCAL_stRAMCAL.u32SyncPhaseRepeats, NULL);
 
 	/* Request and initialise FTM for missing tooth interrupt */
-	enEHIOResource = EH_VIO_FTM1;
+	enEHIOResource = EH_VIO_TPM1;
 	enEHIOType = IOAPI_enTEPM;
 	USER_vSVC(SYSAPI_enRequestIOResource, (void*)&enEHIOResource,	(void*)NULL, (void*)NULL);
 
-	/* ONLY CONFIGURE THE FTM1 MODULE ONCE PER PROJECT! */
+	/* ONLY CONFIGURE THE TPM1 MODULE ONCE PER PROJECT! */
 	if (SYSAPI_enOK == pstSVCDataStruct->enSVCResult)
 	{
-		stTEPMResourceCB.enEHIOResource = EH_VIO_FTM1;
+		stTEPMResourceCB.enEHIOResource = EH_VIO_TPM1;
 		stTEPMResourceCB.enPreScalar = SENSORS_nFastFTMDivisor;
 		stTEPMResourceCB.enCountType = TEPMAPI_enCountUp;
 
@@ -107,32 +107,16 @@ void EST_vStart(puint32 const pu32Arg)
 
 	/* Configure the missing tooth interrupt channel */
 	USER_vSVC(SYSAPI_enConfigureMissingToothInterrupt, (void*)NULL, (void*)NULL, (void*)NULL);
-
-	/* Request and initialise FTM for igniters */
-	enEHIOResource = EH_VIO_FTM0;
-	enEHIOType = IOAPI_enTEPM;
-	USER_vSVC(SYSAPI_enRequestIOResource, (void*)&enEHIOResource,	(void*)NULL, (void*)NULL);
-
-	/* ONLY CONFIGURE THE FTM0 MODULE ONCE PER PROJECT! */
-	if (SYSAPI_enOK == pstSVCDataStruct->enSVCResult)
-	{
-		stTEPMResourceCB.enEHIOResource = EH_VIO_FTM0;
-		stTEPMResourceCB.enPreScalar = SENSORS_nFastFTMDivisor;
-		stTEPMResourceCB.enCountType = TEPMAPI_enCountUp;
-
-		USER_vSVC(SYSAPI_enInitialiseIOResource, (void*)&enEHIOResource,
-		(void*)&enEHIOType,	(void*)&stTEPMResourceCB);
-	}
 	
-	/* Request and initialise FTM2 for igniters */
-	enEHIOResource = EH_VIO_FTM2;
+	/* Request and initialise TPM2 for igniters */
+	enEHIOResource = EH_VIO_TPM2;
 	enEHIOType = IOAPI_enTEPM;
 	USER_vSVC(SYSAPI_enRequestIOResource, (void*)&enEHIOResource,	(void*)NULL, (void*)NULL);
 
 	/* ONLY CONFIGURE THE TC2 MODULE ONCE PER PROJECT! */
 	if (SYSAPI_enOK == pstSVCDataStruct->enSVCResult)
 	{
-		stTEPMResourceCB.enEHIOResource = EH_VIO_FTM2;
+		stTEPMResourceCB.enEHIOResource = EH_VIO_TPM2;
 		stTEPMResourceCB.enPreScalar = SENSORS_nFastFTMDivisor;
 		stTEPMResourceCB.enCountType = TEPMAPI_enCountUp;
 
@@ -774,7 +758,7 @@ void EST_vRun(puint32 const pu32Arg)
 			enEHIOResource = USERCAL_stRAMCAL.enESTBypass;
 			enTriState = IOAPI_enLow;
 
-			if (EH_IO_IIC1_SDA > enEHIOResource)
+			if (IO_Total_Discrete_Count > enEHIOResource)
 			{
 				USER_vSVC(SYSAPI_enAssertDIOResource, (void*)&enEHIOResource,
 				(void*)&enTriState,	(void*)NULL);
@@ -790,7 +774,7 @@ void EST_vRun(puint32 const pu32Arg)
 			enEHIOResource = USERCAL_stRAMCAL.enESTBypass;
 			enTriState = IOAPI_enHigh;
 
-			if (EH_IO_IIC1_SDA > enEHIOResource)
+			if (IO_Total_Discrete_Count > enEHIOResource)
 			{
 				USER_vSVC(SYSAPI_enAssertDIOResource, (void*)&enEHIOResource,
 				(void*)&enTriState,	(void*)NULL);

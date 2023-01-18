@@ -36,6 +36,12 @@ typedef GPIO_Type tstGPIOModule;
 #include "mk64f12.h"
 #endif //BUILD_MK64
 
+#if defined(BUILD_MKS20)
+typedef PORT_Type tstPortModule;
+typedef GPIO_Type tstGPIOModule;
+#include "mks20f12.h"
+#endif //BUILD_MKS20
+
 #ifdef BUILD_SAM3X8E
 typedef Pio tstGPIOModule;
 #endif
@@ -66,6 +72,20 @@ typedef Pio tstGPIOModule;
 };
 #endif //BUILD_MK64
 
+#ifdef BUILD_MKS20
+#define PIMHA_nReg32Set                                                                                                       \
+{                                                                                                                           \
+    { (volatile uint32*)(PORTB_BASE + offsetof(PORT_Type, PCR[16])), (uint32)PORT_PCR_MUX(3), REGSET_enOr },              \
+    { (volatile uint32*)(PORTB_BASE + offsetof(PORT_Type, PCR[17])), (uint32)PORT_PCR_MUX(3), REGSET_enOr },              \
+    { (volatile uint32*)(PORTC_BASE + offsetof(PORT_Type, PCR[16])), (uint32)PORT_PCR_MUX(3), REGSET_enOverwrite },       \
+    { (volatile uint32*)(PORTC_BASE + offsetof(PORT_Type, PCR[17])), (uint32)PORT_PCR_MUX(3), REGSET_enOverwrite },       \
+    { (volatile uint32*)(PORTE_BASE + offsetof(PORT_Type, PCR[24])), (uint32)PORT_PCR_MUX(2), REGSET_enOverwrite },       \
+    { (volatile uint32*)(PORTE_BASE + offsetof(PORT_Type, PCR[25])), (uint32)PORT_PCR_MUX(2), REGSET_enOverwrite },       \
+    { NULL, 0, REGSET_enOverwrite}                                                                                          \
+};
+#endif //BUILD_MKS20
+
+
 #ifdef BUILD_SAM3X8E
 #define PIMHA_nReg32Set                                                                                                       \
 {                                                                                                                           \
@@ -73,7 +93,7 @@ typedef Pio tstGPIOModule;
 };
 #endif //BUILD_SAM3X8E
 
-#if defined(BUILD_MK60) || defined(BUILD_MK64)
+#if defined(BUILD_MK60) || defined(BUILD_MK64) || defined(BUILD_MKS20)
 #define PIMHA_nPortPointerMap \
 {                           \
     PORTA,                \
@@ -94,7 +114,7 @@ typedef Pio tstGPIOModule;
 }
 #endif //BUILD_SAM3X8E						
 
-#if defined(BUILD_MK60) || defined(BUILD_MK64)
+#if defined(BUILD_MK60) || defined(BUILD_MK64) || defined(BUILD_MKS20)
 #define PIMHA_nGPIOPointerMap \
 {                           \
     PTA,                  \
@@ -116,7 +136,7 @@ typedef Pio tstGPIOModule;
 }
 #endif					
 
-#if defined(BUILD_MK60) || defined(BUILD_MK64)
+#if defined(BUILD_MK60) || defined(BUILD_MK64) || defined(BUILD_MKS20)
 #define PIMHA_nPortClockMasks \
 {                           \
     SIM_SCGC5_PORTA_MASK, \
@@ -151,6 +171,14 @@ PIM_u32PortClockRequested |= x
 SIM_vSetReg32(SIM_SCGC5, x);        \
 PIM_u32PortClockRequested |= x
 #endif //BUILD_MK64
+
+#ifdef BUILD_MKS20
+#define PIMHA_xRequestPortClock(x)    \
+/* turn on PORTA clock */           \
+SIM_vSetReg32(SIM_SCGC5, x);        \
+PIM_u32PortClockRequested |= x
+#endif //BUILD_MKS20
+
 
 #ifdef BUILD_SAM3X8E
 #define PIMHA_xRequestPortClock(x) SIMHA_boEnablePeripheralClock(x)

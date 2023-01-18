@@ -70,7 +70,7 @@ typedef struct
 	uint32 biChannel : 4;
 } CANHA_tstCANCS;
 
-#ifdef BUILD_MK60
+#if defined(BUILD_MK60) || defined(BUILD_MK64) || defined(BUILD_MKS20)
 typedef struct  
 {
 	uint32 u32CS;
@@ -80,15 +80,6 @@ typedef struct
 } CANHA_tstCANMB;
 #endif //BUILD_MK60
 
-#ifdef BUILD_MK64
-typedef struct
-{
-	uint32 u32CS;
-	uint32 u32ID;
-	uint32 u32DWH;
-	uint32 u32DWL;
-} CANHA_tstCANMB;
-#endif //BUILD_MK64
 
 #ifdef BUILD_SAM3X8E
 typedef struct
@@ -112,6 +103,11 @@ typedef CAN_Type tstCANModule;
 
 #ifdef BUILD_MK64
 #include "mk64f12.h"
+typedef CAN_Type tstCANModule;
+#endif //BUILD_MK64
+
+#ifdef BUILD_MKS20
+#include "mks20f12.h"
 typedef CAN_Type tstCANModule;
 #endif //BUILD_MK64
 

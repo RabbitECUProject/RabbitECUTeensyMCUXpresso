@@ -14,7 +14,7 @@
 #include <DECLARATIONS.h>
 #include <string.h>
 #include <SYS.h>
-#include "mk64f12.h"
+#include "mks20f12.h"
 #include "os.h"
 #include "time.h"
 

@@ -26,25 +26,28 @@
 #include "sys.h"
 #include "types.h"
 
+#if defined(BUILD_MK60) || defined(BUILD_MK64) || defined(BUILD_MKS20)
 
-#if defined(BUILD_MK60) || defined(BUILD_MK64)
 #include "SSD_Types.h"
 #include "SSD_FTFx.h"
 #include "SSD_FTFx_Internal.h"
-//#include "NormalDemo.h"
+
+#endif //defined(BUILD_MK60) || defined(BUILD_MK64) || defined(BUILD_MKS20)
+
+#if defined(BUILD_MK60) || defined(BUILD_MK64)
 
 #define M8(adr)    (*((volatile unsigned char  *) (adr)))
 #define M16(adr)   (*((volatile unsigned short *) (adr)))
 #define M32(adr)   (*((volatile unsigned long  *) (adr)))
 
 // FEE programming interface address ranges
-#define FEEHA_PFLASH_START 			0x00000000u    		// Program Flash base address
-#define FEEHA_PFLASH_END	 			0x0007FFFFu				// Program Flash end address
-#define FEEHA_DFLASH_START 			0x10000000u   		// Data    Flash base address
-#define FEEHA_DFLASH_END	 			0x1001FFFFu				// Data		 Flash end address
-#define FEEHA_EEPROM_START			0x14000000u				// EEprom	 Base address
-#define FEEHA_EEPROM_END				0x14003FFFu				// EEprom  Base address
-#define FEEHA_WORK_DATA_START		    0x20000000u
+#define FEEHA_PFLASH_START 			0x00000000u                 // Program Flash base address
+#define FEEHA_PFLASH_END            0x0007FFFFu                 // Program Flash end address
+#define FEEHA_DFLASH_START 			0x10000000u                 // Data Flash base address
+#define FEEHA_DFLASH_END            0x1001FFFFu                 // Data Flash end address
+#define FEEHA_EEPROM_START			0x14000000u                 // EEprom Base address
+#define FEEHA_EEPROM_END            0x14003FFFu                 // EEprom Base address
+#define FEEHA_WORK_DATA_START       0x20000000u
 #define FEEHA_WORK_DATA_END			0x2001FFFFu
 #define FEEHA_WORK_DATA_MAX			0x4000u
 
@@ -69,38 +72,81 @@
 #define FEEHA_DFLASH_SCTR_PHRS  (FEEHA_DFLASH_SCTR_BYTES / FEEHA_DFLASH_BYTES_PHRS)
 #define FEEHA_EEPROM_SCTR_PHRS  (FEEHA_EEPROM_SCTR_BYTES / FEEHA_EEPROM_BYTES_PHRS)
 
+#endif  defined(BUILD_MK60) || defined(BUILD_MK64)
+
+#if defined(BUILD_MKS20)
+#include "SSD_Types.h"
+#include "SSD_FTFx.h"
+#include "SSD_FTFx_Internal.h"
+
+#define M8(adr)    (*((volatile unsigned char  *) (adr)))
+#define M16(adr)   (*((volatile unsigned short *) (adr)))
+#define M32(adr)   (*((volatile unsigned long  *) (adr)))
+
+// FEE programming interface address ranges
+#define FEEHA_PFLASH_START 			0x00000000u                 // Program Flash base address
+#define FEEHA_PFLASH_END            0x0003FFFFu                 // Program Flash end address
+#define FEEHA_FLASH_NVM_RECS        0x00030000u                 // Program Flash NVM records base address
+#define FEEHA_WORK_DATA_START       0x20000000u
+#define FEEHA_WORK_DATA_END			0x2001FFFFu
+#define FEEHA_WORK_DATA_MAX			0x4000u
+
+// FEE sector sizes
+#define FEEHA_PFLASH_SCTR_BYTES	2048u							// Program Flash bytes per sector
+#define FEEHA_PFLASH_BYTES_PHRS	0x10							// Program Flash bytes per phrase
+#define FEEHA_PFLASH_BYTES_WORD	0x08							// Program Flash bytes per word
+#define FEEHA_EEPROM_BYTES_WORD	0x01							// EEprom        bytes per word
+
+#define FEEHA_PFLASH_SCTR_WORDS	(FEEHA_PFLASH_SCTR_BYTES / FEEHA_PFLASH_BYTES_WORD)
+#define FEEHA_PFLASH_SCTR_PHRS  (FEEHA_PFLASH_SCTR_BYTES / FEEHA_PFLASH_BYTES_PHRS)
+
+#endif  //defined(BUILD_MKS20)
+
+
+#if defined(BUILD_MK60) || defined(BUILD_MK64) || defined(BUILD_MKS20)
+
 // FEE Commands
-#define FEEHA_CMD_READ1SB 0x00            				// Verify block erased
-#define FEEHA_CMD_READ1SS 0x01            				// Verify section erased
-#define FEEHA_CMD_PRGCHK	0x02										// Checks programmed phrases at margin read
-#define FEEHA_CMD_READIFR	0x03										// READ IFR field
-#define FEEHA_CMD_PRG     0x07										// Program 8 bytes
-#define FEEHA_CMD_ERASEB	0x08										// Erase Flash block
-#define FEEHA_CMD_ERASES	0x09										// Erase Flash sector
-#define FEEHA_CMD_PRGS    0x0B										// program data from section program buffer
-#define FEEHA_CMD_READ1SL	0x40										// Verify all blocks erased
-#define FEEHA_CMD_ERASEL	0x44										// Erase all blocks
+#define FEEHA_CMD_READ1SB 0x00                          // Verify block erased
+#define FEEHA_CMD_READ1SS 0x01                          // Verify section erased
+#define FEEHA_CMD_PRGCHK  0x02                          // Checks programmed phrases at margin read
+#define FEEHA_CMD_READIFR 0x03                          // READ IFR field
+#define FEEHA_CMD_PRG     0x07                          // Program 8 bytes
+#define FEEHA_CMD_ERASEB  0x08                          // Erase Flash block
+#define FEEHA_CMD_ERASES  0x09                          // Erase Flash sector
+#define FEEHA_CMD_PRGS    0x0B                          // program data from section program buffer
+#define FEEHA_CMD_READ1SL 0x40                          // Verify all blocks erased
+#define FEEHA_CMD_ERASEL  0x44                          // Erase all blocks
 
 // FEE constants
-#define FEEHA_PFLASH_PRT3	0xFF
+#define FEEHA_PFLASH_PRT3 0xFF
 #define FEEHA_PFLASH_PRT2 0xFF
 #define FEEHA_PFLASH_PRT1 0xFF
 #define FEEHA_PFLASH_PRT0 0xFE
-#define FEEHA_DFLASH_PROT	0xFF
-#define FEEHA_EFLASH_PROT	0xFF
+#define FEEHA_DFLASH_PROT 0xFF
+#define FEEHA_EFLASH_PROT 0xFF
 #define FEEHA_SEC         0x02
 
 // FEE records addresses
 #define FEEHA_ADCREC_ADDRESS 0x14003FC0u
 
-// FEE macros
-#define FEEHA_xWaitCmdToComplete()	((pstFTFE -> FSTAT) & FTFE_FSTAT_CCIF_MASK) != FTFE_FSTAT_CCIF_MASK
+#if defined(BUILD_MK60) || defined(BUILD_MK64)
+#define FTFPREFIX(name) FTFE##name
+#define FTFMODULE FTFE
+#endif //defined(BUILD_MK60) || defined(BUILD_MK64)
 
-typedef FTFE_Type tstFTFEModule;
+#if defined(BUILD_MKS20)
+#define FTFPREFIX(name) FTFA##name
+#define FTFMODULE FTFA
+#endif //defined(BUILD_MKS20)
+
+// FEE macros
+#define FEEHA_xWaitCmdToComplete()	((pstFTFE -> FSTAT) & FTFPREFIX(_FSTAT_CCIF_MASK)) != FTFPREFIX(_FSTAT_CCIF_MASK)
+typedef FTFPREFIX(_Type) tstFTFEModule;
 typedef FLASH_SSD_CONFIG tstFTFEConfig;
 
+#endif //BUILD_MKXX
 
-#endif //BUILD_MK6X
+
 
 #ifdef BUILD_SAM3X8E
 typedef Efc tstFTFEModule;
@@ -173,6 +219,17 @@ typedef struct
 }
 #endif //BUILD_MK64
 
+#ifdef BUILD_MKS20
+#define FEEHA_nReg8Set 																																																\
+{																																																										\
+	{ (volatile uint8*)(FTFA_BASE + offsetof(FTFA_Type, FPROT3)), (uint8)FEEHA_PFLASH_PRT3, REGSET_enOverwrite }, 	\
+	{ (volatile uint8*)(FTFA_BASE + offsetof(FTFA_Type, FPROT2)), (uint8)FEEHA_PFLASH_PRT2, REGSET_enOverwrite }, 	\
+	{ (volatile uint8*)(FTFA_BASE + offsetof(FTFA_Type, FPROT1)), (uint8)FEEHA_PFLASH_PRT1, REGSET_enOverwrite }, 	\
+	{ (volatile uint8*)(FTFA_BASE + offsetof(FTFA_Type, FPROT0)), (uint8)FEEHA_PFLASH_PRT0, REGSET_enOverwrite }, 	\
+	{ NULL, 0, REGSET_enOverwrite }																		\
+}
+#endif //BUILD_MKS20
+
 #ifdef BUILD_SAM3X8E
 #define FEEHA_nReg8Set                   \
 {                                        \
@@ -189,9 +246,8 @@ bool FEEHA_boSetWorkingData(puint8, uint16);
 bool FEEHA_boNVMWorkingCopy(bool, bool);
 bool FEEHA_boNVMClear(void);
 bool FEEHA_boPartition(void);
-bool FEEHA_boWriteControlBlock(COMMONNL_tstRXLargeBuffer* const, 
-															 uint8* const, 
-															 uint32);
+bool FEEHA_boWriteControlBlock(COMMONNL_tstRXLargeBuffer* const,
+		uint8* const, uint32);
 bool FEEHA_boUpdateControlBlock(uint32);
 bool FEEHA_boEraseForDownload(puint8, uint32);
 bool FEEHA_boWriteNVM(puint8, puint8, uint32);

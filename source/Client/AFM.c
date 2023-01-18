@@ -56,7 +56,7 @@ void AFM_vStart(puint32 const pu32Arg)
 	ADCAPI_tstADCCB stADCCB;
 	
 	enEHIOResource = USERCAL_stRAMCAL.u16AFMADResource;
-	enEHIOType = IOAPI_enADSE;
+	enEHIOType = IOAPI_enGPSE;
 	stADCCB.enSamplesAv = ADCAPI_en32Samples;
 	stADCCB.pfResultCB = &AFM_vADCCallBack;
 	stADCCB.enTrigger = ADCAPI_enTrigger4;

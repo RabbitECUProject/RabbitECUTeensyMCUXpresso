@@ -23,9 +23,9 @@
 
 #include "USERMATH.H"
 
-uint8 USERMATH_au8TimeConstantData[] = USERMATH_nTimeConstantData;
-uint32 USERMATH_rau32SquareRoot[] = USERMATH_nSQRT_DATA;
-uint16 USERMATH_rau16CRCData[] = CRC16_DATA;
+static const uint8 USERMATH_au8TimeConstantData[] = USERMATH_nTimeConstantData;
+static const uint32 USERMATH_rau32SquareRoot[] = USERMATH_nSQRT_DATA;
+static const uint16 USERMATH_rau16CRCData[] = CRC16_DATA;
 
 
 /* GLOBAL FUNCTION DEFINITIONS ************************************************/

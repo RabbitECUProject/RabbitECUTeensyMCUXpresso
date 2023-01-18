@@ -69,8 +69,10 @@
 #ifdef GOLF_MK6_CAL
 #include "Golf_Mk6.h"
 	#ifndef BUILD_SPARKDOG_PF
-		#error "Bad build config"
-	#endif
+	    #ifndef BUILD_SPARKDOG_MKS20
+		    #error "Bad build config"
+        #endif //BUILD_SPARKDOG_MKS20
+	#endif //BUILD_SPARKDOG_PF
 #endif
 
 #ifdef TEST_60_M2

@@ -14,7 +14,7 @@
 #ifndef SYSABSTRACT_H
 #define SYSABSTRACT_H
 
-#include "mk64f12.h"
+#include "mks20f12.h"
 #define get_fattime TIME_u32GetFATTime 
 
 

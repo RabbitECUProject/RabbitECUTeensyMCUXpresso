@@ -79,8 +79,10 @@ void CEM_vStart(uint32* const u32Stat)
 	CTS_boCTSReady = FALSE;
 	CEM_u8SimpleMissingSync = 0;
 	CEM_u32CrankErrorCounts = 0;
-	//CEM_u8PhaseRepeats = 1;//matthew must be dynamic!!!
 	
+	// todo remove
+	CEM_boPosConfirmed = 1;
+
 	memset((void*)&CEM_au16RisingCrankEdge, 0, sizeof(CEM_au16RisingCrankEdge)); 
 	memset((void*)&CEM_au16FallingCrankEdge, 0, sizeof(CEM_au16FallingCrankEdge));	
 	CEM_u8RisingEdgesCount = 0;
@@ -1089,7 +1091,7 @@ static bool CEM_boGetVVT1CamSyncState(void)
 {
 	IOAPI_tenTriState enTriState;
 
-	enTriState = IO_enGetDIOResourceState(EH_IO_TMR18);
+	enTriState = IO_enGetDIOResourceState(CEM_VVT1_RESOURCE);
 
 	return (IOAPI_enHigh == enTriState);
 }
@@ -1298,7 +1300,6 @@ static void CEM_vSequenceReset(IOAPI_tenEHIOResource enEHIOResource, TEPMAPI_ttE
 
 		}
 	}
-
 	
 	if (1 < CEM_u32GlobalCycleOriginCount)
 	{

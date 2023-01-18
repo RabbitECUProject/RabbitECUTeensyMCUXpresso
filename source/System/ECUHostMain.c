@@ -5,7 +5,7 @@
 #include <DECLARATIONS.h>
 #include "TQUEUE.h"
 #include <TASK.h>
-#include "mk64f12.h"
+#include "mks20f12.h"
 #include "OS.h"
 #include "CPUAbstract.h"
 #include "fsl_clock.h"
@@ -21,7 +21,7 @@ int ECUHostMain(void){
 	uint32 u32Stat;
 	puint32 pu32PBLWord = (puint32)0x1ffffffc;
 
-	if (0xAA550001 != *pu32PBLWord)	
+	if (0x55AA0001 != *pu32PBLWord)
 	{	
 		SystemCoreClockUpdate();                      /* Get Core Clock Frequency */
 		SysTick_Config(SystemCoreClock / 1000);       /* Generate interrupt each 1 ms */
@@ -31,11 +31,11 @@ int ECUHostMain(void){
 		CPU_xExitCritical();
 	}		
 	
-	CLOCK_SetXtal0Freq(16000000);
+	CLOCK_SetXtal0Freq(8000000);
 	OS_u32SysTickInterval = SystemCoreClock / 1000;
 	OS_vStart(&u32Stat);
 
-	*pu32PBLWord = 0x55aa0001;
+	*pu32PBLWord = 0xaa550001;
 	
 	while(1)
 	{

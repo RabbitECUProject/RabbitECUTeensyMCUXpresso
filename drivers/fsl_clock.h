@@ -1,10 +1,36 @@
 /*
+ * The Clear BSD License
  * Copyright (c) 2015, Freescale Semiconductor, Inc.
  * Copyright (c) 2016 - 2017 , NXP
  * All rights reserved.
  *
  *
- * SPDX-License-Identifier: BSD-3-Clause
+ * Redistribution and use in source and binary forms, with or without modification,
+ * are permitted (subject to the limitations in the disclaimer below) provided
+ * that the following conditions are met:
+ *
+ * o Redistributions of source code must retain the above copyright notice, this list
+ *   of conditions and the following disclaimer.
+ *
+ * o Redistributions in binary form must reproduce the above copyright notice, this
+ *   list of conditions and the following disclaimer in the documentation and/or
+ *   other materials provided with the distribution.
+ *
+ * o Neither the name of copyright holder nor the names of its
+ *   contributors may be used to endorse or promote products derived from this
+ *   software without specific prior written permission.
+ *
+ * NO EXPRESS OR IMPLIED LICENSES TO ANY PARTY'S PATENT RIGHTS ARE GRANTED BY THIS LICENSE.
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
 #ifndef _FSL_CLOCK_H_
@@ -43,7 +69,7 @@
  *
  * When set to 0, peripheral drivers will enable clock in initialize function
  * and disable clock in de-initialize function. When set to 1, peripheral
- * driver will not control the clock, application could control the clock out of
+ * driver will not control the clock, application could contol the clock out of
  * the driver.
  *
  * @note All drivers share this feature switcher. If it is set to 1, application
@@ -77,7 +103,7 @@
  * OSC0 using the CLOCK_InitOsc0. All other cores need to call the CLOCK_SetXtal0Freq
  * to get a valid clock frequency.
  */
-extern volatile uint32_t g_xtal0Freq;
+extern uint32_t g_xtal0Freq;
 
 /*! @brief External XTAL32/EXTAL32/RTC_CLKIN clock frequency.
  *
@@ -88,7 +114,7 @@ extern volatile uint32_t g_xtal0Freq;
  * the clock. All other cores need to call the CLOCK_SetXtal32Freq
  * to get a valid clock frequency.
  */
-extern volatile uint32_t g_xtal32Freq;
+extern uint32_t g_xtal32Freq;
 
 /*! @brief IRC48M clock frequency in Hz. */
 #define MCG_INTERNAL_IRC_48M 48000000U
@@ -109,34 +135,10 @@ extern volatile uint32_t g_xtal32Freq;
         kCLOCK_Rtc0 \
     }
 
-/*! @brief Clock ip name array for ENET. */
-#define ENET_CLOCKS  \
-    {                \
-        kCLOCK_Enet0 \
-    }
-
-/*! @brief Clock ip name array for PORT. */
-#define PORT_CLOCKS                                                          \
-    {                                                                        \
-        kCLOCK_PortA, kCLOCK_PortB, kCLOCK_PortC, kCLOCK_PortD, kCLOCK_PortE \
-    }
-
 /*! @brief Clock ip name array for SAI. */
-#define SAI_CLOCKS  \
-    {               \
-        kCLOCK_Sai0 \
-    }
-
-/*! @brief Clock ip name array for FLEXBUS. */
-#define FLEXBUS_CLOCKS  \
-    {                   \
-        kCLOCK_Flexbus0 \
-    }
-
-/*! @brief Clock ip name array for EWM. */
-#define EWM_CLOCKS  \
-    {               \
-        kCLOCK_Ewm0 \
+#define SAI_CLOCKS               \
+    {                            \
+        kCLOCK_Sai0, kCLOCK_Sai1 \
     }
 
 /*! @brief Clock ip name array for PIT. */
@@ -145,28 +147,40 @@ extern volatile uint32_t g_xtal32Freq;
         kCLOCK_Pit0 \
     }
 
+/*! @brief Clock ip name array for PORT. */
+#define PORT_CLOCKS                                                          \
+    {                                                                        \
+        kCLOCK_PortA, kCLOCK_PortB, kCLOCK_PortC, kCLOCK_PortD, kCLOCK_PortE \
+    }
+
+/*! @brief Clock ip name array for LPI2C. */
+#define LPI2C_CLOCKS                 \
+    {                                \
+        kCLOCK_Lpi2c0, kCLOCK_Lpi2c1 \
+    }
+
+/*! @brief Clock ip name array for LPUART. */
+#define LPUART_CLOCKS  \
+    {                  \
+        kCLOCK_Lpuart0 \
+    }
+
+/*! @brief Clock ip name array for EWM. */
+#define EWM_CLOCKS  \
+    {               \
+        kCLOCK_Ewm0 \
+    }
+
 /*! @brief Clock ip name array for DSPI. */
-#define DSPI_CLOCKS                           \
-    {                                         \
-        kCLOCK_Spi0, kCLOCK_Spi1, kCLOCK_Spi2 \
+#define DSPI_CLOCKS              \
+    {                            \
+        kCLOCK_Spi0, kCLOCK_Spi1 \
     }
 
 /*! @brief Clock ip name array for LPTMR. */
 #define LPTMR_CLOCKS  \
     {                 \
         kCLOCK_Lptmr0 \
-    }
-
-/*! @brief Clock ip name array for SDHC. */
-#define SDHC_CLOCKS  \
-    {                \
-        kCLOCK_Sdhc0 \
-    }
-
-/*! @brief Clock ip name array for FTM. */
-#define FTM_CLOCKS                                         \
-    {                                                      \
-        kCLOCK_Ftm0, kCLOCK_Ftm1, kCLOCK_Ftm2, kCLOCK_Ftm3 \
     }
 
 /*! @brief Clock ip name array for EDMA. */
@@ -182,39 +196,33 @@ extern volatile uint32_t g_xtal32Freq;
     }
 
 /*! @brief Clock ip name array for DAC. */
-#define DAC_CLOCKS               \
-    {                            \
-        kCLOCK_Dac0, kCLOCK_Dac1 \
+#define DAC_CLOCKS  \
+    {               \
+        kCLOCK_Dac0 \
     }
 
 /*! @brief Clock ip name array for ADC16. */
-#define ADC16_CLOCKS             \
-    {                            \
-        kCLOCK_Adc0, kCLOCK_Adc1 \
-    }
-
-/*! @brief Clock ip name array for MPU. */
-#define SYSMPU_CLOCKS  \
-    {                  \
-        kCLOCK_Sysmpu0 \
-    }
-
-/*! @brief Clock ip name array for VREF. */
-#define VREF_CLOCKS  \
+#define ADC16_CLOCKS \
     {                \
-        kCLOCK_Vref0 \
+        kCLOCK_Adc0  \
     }
 
-/*! @brief Clock ip name array for CMT. */
-#define CMT_CLOCKS  \
-    {               \
-        kCLOCK_Cmt0 \
+/*! @brief Clock ip name array for FLEXIO. */
+#define FLEXIO_CLOCKS  \
+    {                  \
+        kCLOCK_Flexio0 \
     }
 
 /*! @brief Clock ip name array for UART. */
-#define UART_CLOCKS                                                                        \
-    {                                                                                      \
-        kCLOCK_Uart0, kCLOCK_Uart1, kCLOCK_Uart2, kCLOCK_Uart3, kCLOCK_Uart4, kCLOCK_Uart5 \
+#define UART_CLOCKS                              \
+    {                                            \
+        kCLOCK_Uart0, kCLOCK_Uart1, kCLOCK_Uart2 \
+    }
+
+/*! @brief Clock ip name array for TPM. */
+#define TPM_CLOCKS                            \
+    {                                         \
+        kCLOCK_Tpm0, kCLOCK_Tpm1, kCLOCK_Tpm2 \
     }
 
 /*! @brief Clock ip name array for RNGA. */
@@ -229,28 +237,22 @@ extern volatile uint32_t g_xtal32Freq;
         kCLOCK_Crc0 \
     }
 
-/*! @brief Clock ip name array for I2C. */
-#define I2C_CLOCKS                            \
-    {                                         \
-        kCLOCK_I2c0, kCLOCK_I2c1, kCLOCK_I2c2 \
-    }
-
 /*! @brief Clock ip name array for PDB. */
 #define PDB_CLOCKS  \
     {               \
         kCLOCK_Pdb0 \
     }
 
+/*! @brief Clock ip name array for CMP. */
+#define CMP_CLOCKS  \
+    {               \
+        kCLOCK_Cmp0 \
+    }
+
 /*! @brief Clock ip name array for FTF. */
 #define FTF_CLOCKS  \
     {               \
         kCLOCK_Ftf0 \
-    }
-
-/*! @brief Clock ip name array for CMP. */
-#define CMP_CLOCKS                            \
-    {                                         \
-        kCLOCK_Cmp0, kCLOCK_Cmp1, kCLOCK_Cmp2 \
     }
 
 /*!
@@ -262,18 +264,11 @@ extern volatile uint32_t g_xtal32Freq;
 #define SYS_CLK kCLOCK_CoreSysClk
 #define BUS_CLK kCLOCK_BusClk
 
-#define I2C0_CLK_SRC BUS_CLK
-#define I2C1_CLK_SRC BUS_CLK
-#define I2C2_CLK_SRC BUS_CLK
 #define DSPI0_CLK_SRC BUS_CLK
 #define DSPI1_CLK_SRC BUS_CLK
-#define DSPI2_CLK_SRC BUS_CLK
 #define UART0_CLK_SRC SYS_CLK
 #define UART1_CLK_SRC SYS_CLK
 #define UART2_CLK_SRC BUS_CLK
-#define UART3_CLK_SRC BUS_CLK
-#define UART4_CLK_SRC BUS_CLK
-#define UART5_CLK_SRC BUS_CLK
 
 /*! @brief Clock name used to get clock frequency. */
 typedef enum _clock_name
@@ -283,7 +278,6 @@ typedef enum _clock_name
     kCLOCK_CoreSysClk,    /*!< Core/system clock                                         */
     kCLOCK_PlatClk,       /*!< Platform clock                                            */
     kCLOCK_BusClk,        /*!< Bus clock                                                 */
-    kCLOCK_FlexBusClk,    /*!< FlexBus clock                                             */
     kCLOCK_FlashClk,      /*!< Flash clock                                               */
     kCLOCK_FastPeriphClk, /*!< Fast peripheral clock                                     */
     kCLOCK_PllFllSelClk,  /*!< The clock after SIM[PLLFLLSEL].                           */
@@ -309,11 +303,12 @@ typedef enum _clock_name
 
 } clock_name_t;
 
-/*! @brief USB clock source definition. */
+/*! @brief Clock name used to get clock frequency. */
 typedef enum _clock_usb_src
 {
-    kCLOCK_UsbSrcPll0 = SIM_SOPT2_USBSRC(1U) | SIM_SOPT2_PLLFLLSEL(1U),   /*!< Use PLL0.      */
-    kCLOCK_UsbSrcIrc48M = SIM_SOPT2_USBSRC(1U) | SIM_SOPT2_PLLFLLSEL(3U), /*!< Use IRC48M.    */
+    kCLOCK_UsbSrcFll0 = SIM_SOPT2_USBSRC(1U) | SIM_SOPT2_PLLFLLSEL(0U),   /*!< Use MCGFLLCLK or MCGPLLCLK or IRC48M. */
+    kCLOCK_UsbSrcPll0 = SIM_SOPT2_USBSRC(1U) | SIM_SOPT2_PLLFLLSEL(1U),   /*!< Use MCGFLLCLK or MCGPLLCLK or IRC48M. */
+    kCLOCK_UsbSrcIrc48M = SIM_SOPT2_USBSRC(1U) | SIM_SOPT2_PLLFLLSEL(3U), /*!< Use MCGFLLCLK or MCGPLLCLK or IRC48M. */
     kCLOCK_UsbSrcExt = SIM_SOPT2_USBSRC(0U)                               /*!< Use USB_CLKIN. */
 } clock_usb_src_t;
 
@@ -349,32 +344,14 @@ typedef enum _clock_usb_src
 typedef enum _clock_ip_name
 {
     kCLOCK_IpInvalid = 0U,
-    kCLOCK_I2c2 = CLK_GATE_DEFINE(0x1028U, 6U),
-    kCLOCK_Uart4 = CLK_GATE_DEFINE(0x1028U, 10U),
-    kCLOCK_Uart5 = CLK_GATE_DEFINE(0x1028U, 11U),
-
-    kCLOCK_Enet0 = CLK_GATE_DEFINE(0x102CU, 0U),
-    kCLOCK_Dac0 = CLK_GATE_DEFINE(0x102CU, 12U),
-    kCLOCK_Dac1 = CLK_GATE_DEFINE(0x102CU, 13U),
-
-    kCLOCK_Spi2 = CLK_GATE_DEFINE(0x1030U, 12U),
-    kCLOCK_Sdhc0 = CLK_GATE_DEFINE(0x1030U, 17U),
-    kCLOCK_Ftm3 = CLK_GATE_DEFINE(0x1030U, 25U),
-    kCLOCK_Adc1 = CLK_GATE_DEFINE(0x1030U, 27U),
-
     kCLOCK_Ewm0 = CLK_GATE_DEFINE(0x1034U, 1U),
-    kCLOCK_Cmt0 = CLK_GATE_DEFINE(0x1034U, 2U),
-    kCLOCK_I2c0 = CLK_GATE_DEFINE(0x1034U, 6U),
-    kCLOCK_I2c1 = CLK_GATE_DEFINE(0x1034U, 7U),
+    kCLOCK_Lpi2c0 = CLK_GATE_DEFINE(0x1034U, 6U),
+    kCLOCK_Lpi2c1 = CLK_GATE_DEFINE(0x1034U, 7U),
     kCLOCK_Uart0 = CLK_GATE_DEFINE(0x1034U, 10U),
     kCLOCK_Uart1 = CLK_GATE_DEFINE(0x1034U, 11U),
     kCLOCK_Uart2 = CLK_GATE_DEFINE(0x1034U, 12U),
-    kCLOCK_Uart3 = CLK_GATE_DEFINE(0x1034U, 13U),
     kCLOCK_Usbfs0 = CLK_GATE_DEFINE(0x1034U, 18U),
     kCLOCK_Cmp0 = CLK_GATE_DEFINE(0x1034U, 19U),
-    kCLOCK_Cmp1 = CLK_GATE_DEFINE(0x1034U, 19U),
-    kCLOCK_Cmp2 = CLK_GATE_DEFINE(0x1034U, 19U),
-    kCLOCK_Vref0 = CLK_GATE_DEFINE(0x1034U, 20U),
 
     kCLOCK_Lptmr0 = CLK_GATE_DEFINE(0x1038U, 0U),
     kCLOCK_PortA = CLK_GATE_DEFINE(0x1038U, 9U),
@@ -382,27 +359,28 @@ typedef enum _clock_ip_name
     kCLOCK_PortC = CLK_GATE_DEFINE(0x1038U, 11U),
     kCLOCK_PortD = CLK_GATE_DEFINE(0x1038U, 12U),
     kCLOCK_PortE = CLK_GATE_DEFINE(0x1038U, 13U),
+    kCLOCK_Flexio0 = CLK_GATE_DEFINE(0x1038U, 31U),
 
     kCLOCK_Ftf0 = CLK_GATE_DEFINE(0x103CU, 0U),
     kCLOCK_Dmamux0 = CLK_GATE_DEFINE(0x103CU, 1U),
     kCLOCK_Flexcan0 = CLK_GATE_DEFINE(0x103CU, 4U),
     kCLOCK_Rnga0 = CLK_GATE_DEFINE(0x103CU, 9U),
+    kCLOCK_Lpuart0 = CLK_GATE_DEFINE(0x103CU, 10U),
     kCLOCK_Spi0 = CLK_GATE_DEFINE(0x103CU, 12U),
     kCLOCK_Spi1 = CLK_GATE_DEFINE(0x103CU, 13U),
     kCLOCK_Sai0 = CLK_GATE_DEFINE(0x103CU, 15U),
+    kCLOCK_Sai1 = CLK_GATE_DEFINE(0x103CU, 16U),
     kCLOCK_Crc0 = CLK_GATE_DEFINE(0x103CU, 18U),
-    kCLOCK_Usbdcd0 = CLK_GATE_DEFINE(0x103CU, 21U),
     kCLOCK_Pdb0 = CLK_GATE_DEFINE(0x103CU, 22U),
     kCLOCK_Pit0 = CLK_GATE_DEFINE(0x103CU, 23U),
-    kCLOCK_Ftm0 = CLK_GATE_DEFINE(0x103CU, 24U),
-    kCLOCK_Ftm1 = CLK_GATE_DEFINE(0x103CU, 25U),
-    kCLOCK_Ftm2 = CLK_GATE_DEFINE(0x103CU, 26U),
+    kCLOCK_Tpm0 = CLK_GATE_DEFINE(0x103CU, 24U),
+    kCLOCK_Tpm1 = CLK_GATE_DEFINE(0x103CU, 25U),
+    kCLOCK_Tpm2 = CLK_GATE_DEFINE(0x103CU, 26U),
     kCLOCK_Adc0 = CLK_GATE_DEFINE(0x103CU, 27U),
     kCLOCK_Rtc0 = CLK_GATE_DEFINE(0x103CU, 29U),
+    kCLOCK_Dac0 = CLK_GATE_DEFINE(0x103CU, 31U),
 
-    kCLOCK_Flexbus0 = CLK_GATE_DEFINE(0x1040U, 0U),
     kCLOCK_Dma0 = CLK_GATE_DEFINE(0x1040U, 1U),
-    kCLOCK_Sysmpu0 = CLK_GATE_DEFINE(0x1040U, 2U),
 } clock_ip_name_t;
 
 /*!@brief SIM configuration structure for clock setting. */
@@ -460,6 +438,7 @@ typedef struct _oscer_config
 {
     uint8_t enableMode; /*!< OSCERCLK enable mode. OR'ed value of @ref _oscer_enable_mode. */
 
+    uint8_t erclkDiv; /*!< Divider for OSCERCLK.*/
 } oscer_config_t;
 
 /*!
@@ -691,33 +670,61 @@ static inline void CLOCK_SetEr32kClock(uint32_t src)
 }
 
 /*!
- * @brief Set SDHC0 clock source.
+ * @brief Set LPUART clock source.
  *
- * @param src The value to set SDHC0 clock source.
+ * @param src The value to set LPUART clock source.
  */
-static inline void CLOCK_SetSdhc0Clock(uint32_t src)
+static inline void CLOCK_SetLpuart0Clock(uint32_t src)
 {
-    SIM->SOPT2 = ((SIM->SOPT2 & ~SIM_SOPT2_SDHCSRC_MASK) | SIM_SOPT2_SDHCSRC(src));
+    SIM->SOPT2 = ((SIM->SOPT2 & ~SIM_SOPT2_LPUARTSRC_MASK) | SIM_SOPT2_LPUARTSRC(src));
 }
 
 /*!
- * @brief Set enet timestamp clock source.
+ * @brief Set TPM clock source.
  *
- * @param src The value to set enet timestamp clock source.
+ * @param src The value to set TPM clock source.
  */
-static inline void CLOCK_SetEnetTime0Clock(uint32_t src)
+static inline void CLOCK_SetTpmClock(uint32_t src)
 {
-    SIM->SOPT2 = ((SIM->SOPT2 & ~SIM_SOPT2_TIMESRC_MASK) | SIM_SOPT2_TIMESRC(src));
+    SIM->SOPT2 = ((SIM->SOPT2 & ~SIM_SOPT2_TPMSRC_MASK) | SIM_SOPT2_TPMSRC(src));
 }
 
 /*!
- * @brief Set RMII clock source.
+ * @brief Set FLEXIO clock source.
  *
- * @param src The value to set RMII clock source.
+ * @param src The value to set FLEXIO clock source.
  */
-static inline void CLOCK_SetRmii0Clock(uint32_t src)
+static inline void CLOCK_SetFlexio0Clock(uint32_t src)
 {
-    SIM->SOPT2 = ((SIM->SOPT2 & ~SIM_SOPT2_RMIISRC_MASK) | SIM_SOPT2_RMIISRC(src));
+    SIM->SOPT2 = ((SIM->SOPT2 & ~SIM_SOPT2_FLEXIOSRC_MASK) | SIM_SOPT2_FLEXIOSRC(src));
+}
+
+/*! @brief Enable USB FS clock.
+ *
+ * @param src  USB FS clock source.
+ * @param freq The frequency specified by src.
+ * @retval true The clock is set successfully.
+ * @retval false The clock source is invalid to get proper USB FS clock.
+ */
+bool CLOCK_EnableUsbfs0Clock(clock_usb_src_t src, uint32_t freq);
+
+/*! @brief Disable USB FS clock.
+ *
+ * Disable USB FS clock.
+ */
+static inline void CLOCK_DisableUsbfs0Clock(void)
+{
+    CLOCK_DisableClock(kCLOCK_Usbfs0);
+}
+
+/*!
+ * @brief Set PLLFLLSEL clock source.
+ *
+ * @param src The value to set PLLFLLSEL clock source.
+ */
+static inline void CLOCK_SetPllFllSelClock(uint32_t src)
+{
+    SIM->SOPT2 = ((SIM->SOPT2 & ~SIM_SOPT2_PLLFLLSEL_MASK) | SIM_SOPT2_PLLFLLSEL(src));
 }
 
 /*!
@@ -731,13 +738,13 @@ static inline void CLOCK_SetTraceClock(uint32_t src)
 }
 
 /*!
- * @brief Set PLLFLLSEL clock source.
+ * @brief Set LPI2C0 clock source.
  *
- * @param src The value to set PLLFLLSEL clock source.
+ * @param src The value to set LPI2C0 clock source.
  */
-static inline void CLOCK_SetPllFllSelClock(uint32_t src)
+static inline void CLOCK_SetLpi2c0Clock(uint32_t src)
 {
-    SIM->SOPT2 = ((SIM->SOPT2 & ~SIM_SOPT2_PLLFLLSEL_MASK) | SIM_SOPT2_PLLFLLSEL(src));
+    SIM->SOPT2 = ((SIM->SOPT2 & ~SIM_SOPT2_LPI2C0SRC_MASK) | SIM_SOPT2_LPI2C0SRC(src));
 }
 
 /*!
@@ -760,22 +767,14 @@ static inline void CLOCK_SetRtcClkOutClock(uint32_t src)
     SIM->SOPT2 = ((SIM->SOPT2 & ~SIM_SOPT2_RTCCLKOUTSEL_MASK) | SIM_SOPT2_RTCCLKOUTSEL(src));
 }
 
-/*! @brief Enable USB FS clock.
+/*!
+ * @brief Set LPI2C1 clock source.
  *
- * @param src  USB FS clock source.
- * @param freq The frequency specified by src.
- * @retval true The clock is set successfully.
- * @retval false The clock source is invalid to get proper USB FS clock.
+ * @param src The value to set LPI2C1 clock source.
  */
-bool CLOCK_EnableUsbfs0Clock(clock_usb_src_t src, uint32_t freq);
-
-/*! @brief Disable USB FS clock.
- *
- * Disable USB FS clock.
- */
-static inline void CLOCK_DisableUsbfs0Clock(void)
+static inline void CLOCK_SetLpi2c1Clock(uint32_t src)
 {
-    CLOCK_DisableClock(kCLOCK_Usbfs0);
+    SIM->SOPT2 = ((SIM->SOPT2 & ~SIM_SOPT2_LPI2C1SRC_MASK) | SIM_SOPT2_LPI2C1SRC(src));
 }
 
 /*!
@@ -791,10 +790,9 @@ static inline void CLOCK_DisableUsbfs0Clock(void)
  *
  * @param outdiv4 Clock 4 output divider value.
  */
-static inline void CLOCK_SetOutDiv(uint32_t outdiv1, uint32_t outdiv2, uint32_t outdiv3, uint32_t outdiv4)
+static inline void CLOCK_SetOutDiv(uint32_t outdiv1, uint32_t outdiv2, uint32_t outdiv4)
 {
-    SIM->CLKDIV1 = SIM_CLKDIV1_OUTDIV1(outdiv1) | SIM_CLKDIV1_OUTDIV2(outdiv2) | SIM_CLKDIV1_OUTDIV3(outdiv3) |
-                   SIM_CLKDIV1_OUTDIV4(outdiv4);
+    SIM->CLKDIV1 = SIM_CLKDIV1_OUTDIV1(outdiv1) | SIM_CLKDIV1_OUTDIV2(outdiv2) | SIM_CLKDIV1_OUTDIV4(outdiv4);
 }
 
 /*!
@@ -831,13 +829,6 @@ uint32_t CLOCK_GetPlatClkFreq(void);
 uint32_t CLOCK_GetBusClkFreq(void);
 
 /*!
- * @brief Get the flexbus clock frequency.
- *
- * @return Clock frequency in Hz.
- */
-uint32_t CLOCK_GetFlexBusClkFreq(void);
-
-/*!
  * @brief Get the flash clock frequency.
  *
  * @return Clock frequency in Hz.
@@ -863,7 +854,23 @@ uint32_t CLOCK_GetEr32kClkFreq(void);
  *
  * @return Clock frequency in Hz.
  */
+
 uint32_t CLOCK_GetOsc0ErClkFreq(void);
+
+/*!
+ * @brief Get the OSC0 external reference divided clock frequency.
+ *
+ * @return Clock frequency in Hz.
+ */
+uint32_t CLOCK_GetOsc0ErClkDivFreq(void);
+
+
+/*!
+ * @brief Get the OSC0 external reference undivided clock frequency (OSC0ERCLK_UNDIV).
+ *
+ * @return Clock frequency in Hz.
+ */
+uint32_t CLOCK_GetOsc0ErClkUndivFreq(void);
 
 /*!
  * @brief Set the clock configure in SIM module.
@@ -983,8 +990,8 @@ static inline void CLOCK_SetLowPowerEnable(bool enable)
  * @param enableMode MCGIRCLK enable mode, OR'ed value of @ref _mcg_irclk_enable_mode.
  * @param ircs       MCGIRCLK clock source, choose fast or slow.
  * @param fcrdiv     Fast IRC divider setting (\c FCRDIV).
- * @retval kStatus_MCG_SourceUsed Because the internal reference clock is used as a clock source,
- * the configuration should not be changed. Otherwise, a glitch occurs.
+ * @retval kStatus_MCG_SourceUsed Because the internall reference clock is used as a clock source,
+ * the confuration should not be changed. Otherwise, a glitch occurs.
  * @retval kStatus_Success MCGIRCLK configuration finished successfully.
  */
 status_t CLOCK_SetInternalRefClkConfig(uint8_t enableMode, mcg_irc_mode_t ircs, uint8_t fcrdiv);
@@ -998,7 +1005,7 @@ status_t CLOCK_SetInternalRefClkConfig(uint8_t enableMode, mcg_irc_mode_t ircs, 
  *
  * @param oscsel MCG external reference clock source, MCG_C7[OSCSEL].
  * @retval kStatus_MCG_SourceUsed Because the external reference clock is used as a clock source,
- * the configuration should not be changed. Otherwise, a glitch occurs.
+ * the confuration should not be changed. Otherwise, a glitch occurs.
  * @retval kStatus_Success External reference clock set successfully.
  */
 status_t CLOCK_SetExternalRefClkConfig(mcg_oscsel_t oscsel);
@@ -1169,6 +1176,8 @@ static inline void OSC_SetExtRefClkConfig(OSC_Type *base, oscer_config_t const *
     reg |= config->enableMode;
 
     base->CR = reg;
+
+    base->DIV = OSC_DIV_ERPS(config->erclkDiv);
 }
 
 /*!
@@ -1409,7 +1418,7 @@ status_t CLOCK_SetPeeMode(void);
  * @brief Switches the MCG to FBE mode from the external mode.
  *
  * This function switches the MCG from external modes (PEE/PBE/BLPE/FEE) to the FBE mode quickly.
- * The external clock is used as the system clock source and PLL is disabled. However,
+ * The external clock is used as the system clock souce and PLL is disabled. However,
  * the FLL settings are not configured. This is a lite function with a small code size, which is useful
  * during the mode switch. For example, to switch from PEE mode to FEI mode:
  *
@@ -1427,7 +1436,7 @@ status_t CLOCK_ExternalModeToFbeModeQuick(void);
  * @brief Switches the MCG to FBI mode from internal modes.
  *
  * This function switches the MCG from internal modes (PEI/PBI/BLPI/FEI) to the FBI mode quickly.
- * The MCGIRCLK is used as the system clock source and PLL is disabled. However,
+ * The MCGIRCLK is used as the system clock souce and PLL is disabled. However,
  * FLL settings are not configured. This is a lite function with a small code size, which is useful
  * during the mode switch. For example, to switch from PEI mode to FEE mode:
  *
@@ -1480,7 +1489,7 @@ status_t CLOCK_BootToFeeMode(
  * @brief Sets the MCG to BLPI mode during system boot up.
  *
  * This function sets the MCG to BLPI mode from the reset mode. It can also be used to
- * set up the MCG during system boot up.
+ * set up the MCG during sytem boot up.
  *
  * @param  fcrdiv Fast IRC divider, FCRDIV.
  * @param  ircs   The internal reference clock to select, IRCS.
@@ -1492,10 +1501,10 @@ status_t CLOCK_BootToFeeMode(
 status_t CLOCK_BootToBlpiMode(uint8_t fcrdiv, mcg_irc_mode_t ircs, uint8_t ircEnableMode);
 
 /*!
- * @brief Sets the MCG to BLPE mode during system boot up.
+ * @brief Sets the MCG to BLPE mode during sytem boot up.
  *
  * This function sets the MCG to BLPE mode from the reset mode. It can also be used to
- * set up the MCG during system boot up.
+ * set up the MCG during sytem boot up.
  *
  * @param  oscsel OSC clock select, MCG_C7[OSCSEL].
  *

@@ -58,6 +58,20 @@ typedef enum
 } SIMHA_tenReg;
 #endif //BUILD_MK64
 
+#ifdef BUILD_MKS20
+typedef enum
+{
+	SIM_SCGC4,
+	SIM_SCGC5,
+	SIM_SCGC6,
+	SIM_SCGC7,
+	SIM_SOPT1,
+	SIM_SOPT2,
+	SIM_SOPT5,
+	SIM_SOPT7
+} SIMHA_tenReg;
+#endif //BUILD_MKS20
+
 #ifdef BUILD_SAM3X8E
 typedef enum
 {

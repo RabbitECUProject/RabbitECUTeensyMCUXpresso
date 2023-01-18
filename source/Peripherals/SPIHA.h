@@ -37,6 +37,11 @@
 #include "MCP23S08.h"
 #endif
 
+#ifdef BUILD_MKS20
+#include "mks20f12.h"
+#include "MCP23S08.h"
+#endif
+
 #include "SRLTFR.h"
 #include "sys.h"
 #include "types.h"
@@ -172,7 +177,7 @@ typedef struct
 	uint32 u32SDAHold;
 } SPIHA_tstDivisorMap;
 
-#if defined(BUILD_MK60) || defined(BUILD_MK64)
+#if defined(BUILD_MK60) || defined(BUILD_MK64) || defined(BUILD_MKS20)
 typedef SPI_Type tstSPIModule;
 #endif //BUILD_MK6X
 

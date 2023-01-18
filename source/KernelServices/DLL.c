@@ -34,7 +34,7 @@ const uint32 ETH_ru32DestinationIPAddress = ETH_nDestinationIPAddress;
 const uint16 DLL_rau16TXFrameMaxBytes[] = DLL_nMaxTXFrameBytes;		
 
 IOAPI_tstPortConfigCB DLL_astPortConfigCB[DLL_nVirtualChannelCount]; 
-DLL_tstRXDLLData DLL_stRXDLLData[DLL_nVirtualChannelCount];
+static DLL_tstRXDLLData DLL_stRXDLLData[DLL_nVirtualChannelCount] __attribute__((section(".bss.$RAM2")));;
 uint16 DLL_au16PacketSeq[DLL_nVirtualChannelCount];
 
 /* Circular TX queues */
@@ -503,9 +503,6 @@ bool DLL_boInitDLLChannel(IOAPI_tenEHIOResource enEHIOResource, IOAPI_tstPortCon
 			case EH_VIO_UART1:
 			case EH_VIO_UART2:
 			case EH_VIO_UART3:
-			case EH_VIO_UART4:
-			case EH_VIO_UART5:
-			case EH_VIO_UART6:
 			{
 				tClientHandleReq = DLL_xGetClientHandle();
 				tClientHandle  = (SYSAPI_ttClientHandle)RESM_u32RequestEHIOResource(pstCommsConfig->stPinConfig.uPinInfo.stUARTPinInfo.enRXPin, tClientHandleReq);
@@ -515,7 +512,6 @@ bool DLL_boInitDLLChannel(IOAPI_tenEHIOResource enEHIOResource, IOAPI_tstPortCon
 				break;
 			}
 			case EH_VIO_IIC1:
-			case EH_VIO_IIC2:
 			{
 				tClientHandleReq = DLL_xGetClientHandle();				
 				tClientHandle  = (SYSAPI_ttClientHandle)RESM_u32RequestEHIOResource(pstCommsConfig->stPinConfig.uPinInfo.stIICPinInfo.enSDAPin, tClientHandleReq);
@@ -536,16 +532,6 @@ bool DLL_boInitDLLChannel(IOAPI_tenEHIOResource enEHIOResource, IOAPI_tstPortCon
 				tClientHandle = tClientHandleReq;
 				break;
 			}
-			case EH_VIO_ENET_CH1:
-			case EH_VIO_ENET_CH2:
-			case EH_VIO_ENET_CH3:
-			case EH_VIO_ENET_CH4:
-			{
-				/* No additional pin resources are required for ENET - Kernel managed resource*/
-				tClientHandleReq = DLL_xGetClientHandle();
-				tClientHandle = tClientHandleReq;
-				break;
-			}	
 			case EH_VIO_CAN1:
 			{
 				tClientHandleReq = DLL_xGetClientHandle();
@@ -686,9 +672,6 @@ static bool DLL_boSendFrame(IOAPI_tenEHIOResource enEHIOResource, puint8 pu8TXDa
 		case EH_VIO_UART1:
 		case EH_VIO_UART2:
 		case EH_VIO_UART3:
-		case EH_VIO_UART4:
-		case EH_VIO_UART5:
-		case EH_VIO_UART6:	
 		{
 			switch (DLL_astPortConfigCB[DLLVirtualChannelIDX].enLLProtocol)
 			{	
@@ -720,27 +703,6 @@ static bool DLL_boSendFrame(IOAPI_tenEHIOResource enEHIOResource, puint8 pu8TXDa
 			}	
 			break;			
 		}
-		case	EH_VIO_ENET_CH1:
-		case	EH_VIO_ENET_CH2:
-		case	EH_VIO_ENET_CH3:
-		case	EH_VIO_ENET_CH4:
-		{
-			switch (DLL_astPortConfigCB[DLLVirtualChannelIDX].enLLProtocol)
-			{				
-				case PROTAPI_enLL802_3:
-				{			
-					DLL_vIPBufferTX(enEHIOResource, pu8TXData, u32TXByteCount);
-					boSyncSent = true;
-					break;
-				}
-				default:
-				{
-					break;
-				}
-			}
-			break;
-		}	
-
 		case EH_VIO_CAN1:
 #ifdef EH_VIO_CAN2
 		case EH_VIO_CAN2:
@@ -840,7 +802,7 @@ DLL_tDLLVirtualChannel DLL_tGetVirtualChannel(IOAPI_tenEHIOResource enEHIOResour
 {
 	DLL_tDLLVirtualChannel DLLVirtualChannel = -1;
 	
-	if ((EH_VIO_IIC1 <= enEHIOResource) && (EH_VIO_ENET_CH4 >= enEHIOResource))
+	if ((EH_VIO_IIC1 <= enEHIOResource) && (EH_VIO_USB >= enEHIOResource))
 	{
 		DLLVirtualChannel = enEHIOResource - EH_VIO_IIC1;
 	}
@@ -967,7 +929,6 @@ static puint8 DLL_pu8GetTXClientBuffer(IOAPI_tenEHIOResource enEHIOResource, pui
 	switch (enEHIOResource)
 	{
 		case EH_VIO_IIC1:
-		case EH_VIO_IIC2:
 		{
 			u8BufferIDXStart = 0;
 			u8BufferIDXEnd = DLL_nIICTXWorkBuffCount;
@@ -990,9 +951,6 @@ static puint8 DLL_pu8GetTXClientBuffer(IOAPI_tenEHIOResource enEHIOResource, pui
 		case EH_VIO_UART1:
 		case EH_VIO_UART2:
 		case EH_VIO_UART3:
-		case EH_VIO_UART4:
-		case EH_VIO_UART5:
-		case EH_VIO_UART6:
 		{
 			u8BufferIDXStart = DLL_nIICTXWorkBuffCount + 
 												 DLL_nSPITXWorkBuffCount;
@@ -1033,27 +991,6 @@ static puint8 DLL_pu8GetTXClientBuffer(IOAPI_tenEHIOResource enEHIOResource, pui
 			u32BufferBytes = DLL_nUSBTXWorkBuffMaxBytes;
 			break;
 		}
-
-		case EH_VIO_ENET_CH1:
-		case EH_VIO_ENET_CH2:
-		case EH_VIO_ENET_CH3:
-		case EH_VIO_ENET_CH4:
-		{
-			u8BufferIDXStart = DLL_nIICTXWorkBuffCount + 
-												 DLL_nSPITXWorkBuffCount +
-												 DLL_nUARTTXWorkBuffCount +
-												 DLL_nCANTXWorkBuffCount +
-												 DLL_nUSBTXWorkBuffCount;
-			u8BufferIDXEnd = DLL_nIICTXWorkBuffCount + 
-											 DLL_nSPITXWorkBuffCount + 
-											 DLL_nUARTTXWorkBuffCount +
-											 DLL_nCANTXWorkBuffCount +
-											 DLL_nUSBTXWorkBuffCount +
-											 DLL_nENETTXWorkBuffCount;
-			pu8Buffer = &DLL_au8TXENETBuffBuild[0][0];
-			u32BufferBytes = DLL_nENETTXWorkBuffMaxBytes;			
-			break;
-		}	
 		
 		default:
 		{

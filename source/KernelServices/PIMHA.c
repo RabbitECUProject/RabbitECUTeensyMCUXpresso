@@ -25,7 +25,7 @@
 
 const REGSET_tstReg32Val PIMHA_rastPIMReg32Val[] = PIMHA_nReg32Set;
 
-#if defined(BUILD_MK60) || defined(BUILD_MK64)
+#if defined(BUILD_MK60) || defined(BUILD_MK64) || defined(BUILD_MKS20)
 tstPortModule* PIMHA_rapstPIMPortTypeMap[] = PIMHA_nPortPointerMap;
 tstGPIOModule* PIMHA_rapstPIMGPIOTypeMap[] = PIMHA_nGPIOPointerMap;
 uint32 PIM_u32PortClockRequested;
@@ -34,16 +34,6 @@ uint32 PIM_u32PortClockRequested;
 #ifdef BUILD_SAM3X8E
 
 #endif //SAM3X8E
-
-#if defined BUILD_MK60
-#include "mk60f12.h"
-typedef GPIO_Type tstGPIOModule;
-#endif
-
-#if defined BUILD_MK64
-#include "mk64f12.h"
-typedef GPIO_Type tstGPIOModule;
-#endif
 
 
 #if defined(BUILD_SAM3X8E)
@@ -56,7 +46,7 @@ const uint32 PIMHA_rau32PIMClockMasks[] = PIMHA_nPortClockMasks;
 
 void PIMHA_vStart(uint32* const u32Stat)
 {
-#if defined(BUILD_MK60) || defined(BUILD_MK64)
+#if defined(BUILD_MK60) || defined(BUILD_MK64) || defined(BUILD_MKS20)
 	/* Request Kernel required port clocks */
 	PIMHA_xRequestPortClock(SIM_SCGC5_PORTA_MASK);
 	PIMHA_xRequestPortClock(SIM_SCGC5_PORTB_MASK);
@@ -95,7 +85,7 @@ void PIMHA_vAssertPortBit(PIMAPI_tenPort enPort, uint32 u32PortBit, IOAPI_tenTri
 	{
 		case IOAPI_enLow:
 		{
-#if defined(BUILD_MK60) || defined(BUILD_MK64)
+#if defined(BUILD_MK60) || defined(BUILD_MK64) || defined(BUILD_MKS20)
 			tstGPIOModule* pstGPIO = PIMHA_rapstPIMGPIOTypeMap[enPort];
 			pstGPIO->PDDR |= u32PortBit;
 			pstGPIO->PCOR = u32PortBit;
@@ -109,7 +99,7 @@ void PIMHA_vAssertPortBit(PIMAPI_tenPort enPort, uint32 u32PortBit, IOAPI_tenTri
 		}
 		case IOAPI_enHigh:
 		{
-#if defined(BUILD_MK60) || defined(BUILD_MK64)
+#if defined(BUILD_MK60) || defined(BUILD_MK64) || defined(BUILD_MKS20)
 			tstGPIOModule* pstGPIO = PIMHA_rapstPIMGPIOTypeMap[enPort];
 			pstGPIO->PDDR |= u32PortBit;
 			pstGPIO->PSOR = u32PortBit;
@@ -123,7 +113,7 @@ void PIMHA_vAssertPortBit(PIMAPI_tenPort enPort, uint32 u32PortBit, IOAPI_tenTri
 		}		
 		case IOAPI_enToggle:
 		{
-#if defined(BUILD_MK60) || defined(BUILD_MK64)
+#if defined(BUILD_MK60) || defined(BUILD_MK64) || defined(BUILD_MKS20)
 			volatile tstGPIOModule* pstGPIO = PIMHA_rapstPIMGPIOTypeMap[enPort];
 			pstGPIO->PDDR |= u32PortBit;
 			pstGPIO->PTOR = u32PortBit;
@@ -144,7 +134,7 @@ void PIMHA_vAssertPortBit(PIMAPI_tenPort enPort, uint32 u32PortBit, IOAPI_tenTri
 		}	
 		case IOAPI_enHiZ:
 		{
-#if defined(BUILD_MK60) || defined(BUILD_MK64)
+#if defined(BUILD_MK60) || defined(BUILD_MK64) || defined(BUILD_MKS20)
 			tstGPIOModule* pstGPIO = PIMHA_rapstPIMGPIOTypeMap[enPort];
 			pstGPIO->PDDR &= ~u32PortBit;
 			pstGPIO->PCOR = u32PortBit;
@@ -162,7 +152,7 @@ bool PIMHA_boGetPortBitState(PIMAPI_tenPort enPort, uint32 u32PortBit)
 {
 	bool boBitHigh = false;
 
-#if defined(BUILD_MK60) || defined(BUILD_MK64)
+#if defined(BUILD_MK60) || defined(BUILD_MK64) || defined(BUILD_MKS20)
 	volatile tstGPIOModule* pstGPIO = (tstGPIOModule*)PIMHA_rapstPIMGPIOTypeMap[enPort];
 	boBitHigh = 0 < ((pstGPIO->PDIR) & u32PortBit);
 #endif //BUILD_MK6X
@@ -180,7 +170,7 @@ bool PIMHA_boGetPortBitState(PIMAPI_tenPort enPort, uint32 u32PortBit)
 
 void PIMHA_vSetPortMux(PIMAPI_tenPort enPort, IOAPI_tenEHIOType enIOType, uint32 u32PortBit, uint32 u32MuxSel)
 {
-#if defined(BUILD_MK60) || defined(BUILD_MK64)
+#if defined(BUILD_MK60) || defined(BUILD_MK64) || defined(BUILD_MKS20)
 	uint16 u16PortBit = MATH_u32MaskToIDX(u32PortBit);
 	volatile tstPortModule* pstPort = (tstPortModule*)PIMHA_rapstPIMPortTypeMap[enPort];
 	uint16 u16RegOffset = offsetof(tstPortModule, PCR[u16PortBit]);

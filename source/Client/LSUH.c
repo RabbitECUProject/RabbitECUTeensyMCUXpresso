@@ -110,13 +110,13 @@ void LSUH_vStart(uint32 * const pu32Arg)
 	TEPMAPI_tstTEPMChannelCB stTEPMChannelCB;
 
 	/* Request and initialise FTM for EH_IO_TMR15 and EH_IO_TMR16 */
-	enEHIOResource = EH_VIO_FTM0;	
+	enEHIOResource = EH_VIO_TPM0;	
 	enEHIOType = IOAPI_enTEPM;	
 	USER_vSVC(SYSAPI_enRequestIOResource, (void*)&enEHIOResource,	(void*)NULL, (void*)NULL);
 	
 	if (SYSAPI_enOK == pstSVCDataStruct->enSVCResult)	
 	{
-		stTEPMResourceCB.enEHIOResource = EH_VIO_FTM0;
+		stTEPMResourceCB.enEHIOResource = EH_VIO_TPM0;
 		stTEPMResourceCB.enPreScalar = TEPMAPI_enDiv32;
 		stTEPMResourceCB.enCountType = TEPMAPI_enCountUp;		
 					
@@ -318,7 +318,7 @@ void LSUH_vRun(uint32* const pu32Arg )
 
 
 	LSUH_atHeaterSenseVolts[0] = CONV_tADCToVolts(
-			EH_IO_UART1_CTS, LSUH_au32HeaterLowADCDeltaFiltered[0]);
+			EH_IO_GPSE11, LSUH_au32HeaterLowADCDeltaFiltered[0]);
 	
 	LSUH_atHeaterAmps[0] = CONV_tOhmsVoltsToAmps(LSUH_nHeaterSenseOhms, LSUH_atHeaterSenseVolts[0]);
 	LSUH_atHeaterOhms[0] = CONV_tVoltsAmpsToOhms(BVM_tBattVolts - LSUH_atHeaterSenseVolts[0] - 800u,

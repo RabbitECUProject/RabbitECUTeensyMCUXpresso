@@ -114,7 +114,7 @@ void RELAYS_vStart(uint32 * const pu32Arg)
 					enEHIOResource = (IOAPI_tenEHIOResource)(u32Temp / 2);
 					enEHIOType = IOAPI_enDIOOutput;
 
-					if (EH_IO_IIC1_SDA > enEHIOResource)
+					if (IO_Total_Discrete_Count > enEHIOResource)
 					{
 						/* Only do this for a real pin not a virtual pin */
 						SETUP_vSetupDigitalIO(enEHIOResource, enEHIOType, enDriveStrength, pu32Arg);
@@ -400,7 +400,7 @@ void RELAYS_vRun(uint32* const pu32Arg)
 					enTriState = u32Temp & 0x01 ? IOAPI_enLow : IOAPI_enHigh;
 					enEHIOResource = (IOAPI_tenEHIOResource)(u32Temp / 2);
 
-					if (EH_IO_IIC1_SDA > enEHIOResource)
+					if (IO_Total_Discrete_Count > enEHIOResource)
 					{
 						USER_vSVC(SYSAPI_enAssertDIOResource, (void*)&enEHIOResource,
 						(void*)&enTriState,	(void*)NULL);

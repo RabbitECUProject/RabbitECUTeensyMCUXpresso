@@ -164,8 +164,11 @@ typedef enum
 	SYSAPI_enSetSparkCuts = 0x1082,
 	/* USER_vSVC(SYSAPI_enSetSparkCuts, puint32, puint32, NULL) */
 
-	SYSAPI_enConfigureMissingToothInterrupt = 0x1083
+	SYSAPI_enConfigureMissingToothInterrupt = 0x1083,
 	/* USER_vSVC(SYSAPI_enConfigureMissingToothInterrupt, NULL, NULL) */
+
+	SYSAPI_enConfigureFuelPWMExport = 0x1084
+	/* USER_vSVC(SYSAPI_enConfigureFuelPWMExport, NULL, NULL) */
 } SYSAPI_tenSVCID;
 
 typedef enum

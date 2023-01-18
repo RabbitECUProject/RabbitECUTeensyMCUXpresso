@@ -8,7 +8,7 @@
 /*                                                                            */
 /******************************************************************************/
 
-#include <TYPES.h>
+#include "TYPES.h"
 #include "CPUAbstract.h"
 
 bool CPU_boCriticalNestCounter;
@@ -39,7 +39,9 @@ void CPU_vExitCritical(void)
 
 void CPU_vDisableMPROT(void)
 {
+#if defined(BUILD_MK60) || defined(BUILD_MK64)
 	SYSMPU->CESR = 0;
+#endif
 }
 
 

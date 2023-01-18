@@ -45,17 +45,15 @@
 #define LSU4X_nWarmPrePumpMs		2000u
 /*CR1_105*/
 
-#define LSU4X_nSWHResource          EH_IO_GP6
-#define LSU4X_nSWLResource          EH_IO_GP7
-#define LSU4X_nIENResource          EH_IO_GPSE8
-#define LSU4X_nDACResource          EH_O_DAC1
+#define LSU4X_nSWHResource          EH_VIO_EXPBIT0
+#define LSU4X_nSWLResource          EH_VIO_EXPBIT1
+#define LSU4X_nIENResource          EH_IO_GP5
+#define LSU4X_nDACResource          EH_IO_GPSE3
 
 #define LSU4X_nADConfig   \
 {      \
 	{EH_I_ADD1,         IOAPI_enADD,  ADCAPI_en8Samples, ADCAPI_enDiffGain32, &LSU4X_vADCCallBack, ADCAPI_enTrigger1},	\
-	{EH_IO_TMR18, 		IOAPI_enADSE, ADCAPI_en4Samples, ADCAPI_enDiffGain8, &LSU4X_vADCCallBack, ADCAPI_enTrigger1},	\
-	{EH_IO_TMR17, 		IOAPI_enADSE, ADCAPI_en4Samples, ADCAPI_enDiffGain8, &LSU4X_vADCCallBack, ADCAPI_enTrigger1},	\
-	{EH_IO_IIC1_SCL,    IOAPI_enADSE, ADCAPI_en4Samples, ADCAPI_enDiffGain1, &LSU4X_vADCCallBack, ADCAPI_enTrigger1},	\
+    {EH_I_ADD3,         IOAPI_enADD,  ADCAPI_en8Samples, ADCAPI_enDiffGain32, &LSU4X_vADCCallBack, ADCAPI_enTrigger1},	\
 }
 
 

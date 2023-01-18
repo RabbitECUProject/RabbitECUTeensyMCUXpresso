@@ -61,7 +61,7 @@ void ATS_vStart(puint32 const pu32Arg)
 	if ((FALSE == USERCAL_stRAMCAL.boATSCANPrimary)	&& (EH_IO_Invalid != USERCAL_stRAMCAL.u16ATSADResource))
 	{
 		/* Request and initialise the ATS ADC input channel */
-		SETUP_boSetupADSE(USERCAL_stRAMCAL.u16ATSADResource, IOAPI_enADSE, ADCAPI_en32Samples, &ATS_vADCCallBack, ADCAPI_enTrigger2, pu32Arg);
+		SETUP_boSetupADSE(USERCAL_stRAMCAL.u16ATSADResource, IOAPI_enGPSE, ADCAPI_en32Samples, &ATS_vADCCallBack, ADCAPI_enTrigger2, pu32Arg);
 	}
 	
 	/* Request and initialise required Kernel managed spread for air sensor */

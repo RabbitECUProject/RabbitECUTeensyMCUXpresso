@@ -85,7 +85,7 @@ void FUEL_vStart(puint32 const pu32Arg)
 	if (EH_IO_Invalid != USERCAL_stRAMCAL.u16FRSADResource)
 	{
 		enEHIOResource = USERCAL_stRAMCAL.u16FRSADResource;
-		enEHIOType = IOAPI_enADSE;
+		enEHIOType = IOAPI_enGPSE;
 		stADCCB.enSamplesAv = ADCAPI_en32Samples;
 		stADCCB.pfResultCB = &FUEL_vADCCallBack;
 		stADCCB.enTrigger = ADCAPI_enTrigger4;
@@ -159,7 +159,30 @@ void FUEL_vStart(puint32 const pu32Arg)
 	FUEL_tStartHoldFraction[4] = (0x10000 * 2) / 720;	
 	FUEL_tStartHoldFraction[5] = (0x10000 * 5) / 720;	
 	FUEL_tStartHoldFraction[6] = (0x10000 * 5) / 720;	
-	FUEL_tStartHoldFraction[7] = (0x10000 * 5) / 720;									
+	FUEL_tStartHoldFraction[7] = (0x10000 * 5) / 720;
+
+#ifdef FUEL_MISSING_TOOTH_OUTPUT
+	/* Request and initialise missing tooth output */
+	if (0)
+	//if ((0xffff == USERCAL_stRAMCAL.au32InjectionSequence[3]) && (EH_IO_Invalid == USERCAL_stRAMCAL.aFuelIOResource[3]))
+	{
+		enEHIOResource = EH_IO_TMR4;
+		enEHIOType = IOAPI_enCaptureCompare;
+		USER_vSVC(SYSAPI_enRequestIOResource, (void*)&enEHIOResource,	(void*)NULL, (void*)NULL);
+
+		/* Initialise the TEPM channel missing tooth event output */
+		if (SYSAPI_enOK == pstSVCDataStruct->enSVCResult)
+		{
+			stTEPMChannelCB.enAction = TEPMAPI_enSetHigh;
+			stTEPMChannelCB.boInterruptEnable = TRUE;
+			stTEPMChannelCB.boAsyncRequestEnable = FALSE;
+			stTEPMChannelCB.u32Sequence = 0xffff;
+
+			USER_vSVC(SYSAPI_enInitialiseIOResource, (void*)&enEHIOResource,
+				(void*)&enEHIOType,	(void*)&stTEPMChannelCB);
+		}
+	}
+#endif //FUEL_MISSING_TOOTH_OUTPUT
 
 	/* Request and initialise Fuel Injector group A */
 	if ((0xffff > USERCAL_stRAMCAL.au32InjectionSequence[0]) && (EH_IO_Invalid > USERCAL_stRAMCAL.aFuelIOResource[0]))
@@ -205,7 +228,7 @@ void FUEL_vStart(puint32 const pu32Arg)
 			(void*)&FUEL_astTimedHoldKernelEvents[0], (void*)&tEventCount);	
 
 		if ((EH_IO_TMR1 <= USERCAL_stRAMCAL.aFuelIOResource[0]) &&
-			(EH_IO_TMR16 >= USERCAL_stRAMCAL.aFuelIOResource[0]))
+			(EH_IO_TMR10 >= USERCAL_stRAMCAL.aFuelIOResource[0]))
 		{
 			FUEL_u32FuelChannelsMask |=
 					(1 << (USERCAL_stRAMCAL.aFuelIOResource[0] - EH_IO_TMR1));
@@ -256,7 +279,7 @@ void FUEL_vStart(puint32 const pu32Arg)
 			(void*)&FUEL_astTimedHoldKernelEvents[0], (void*)&tEventCount);	
 
 		if ((EH_IO_TMR1 <= USERCAL_stRAMCAL.aFuelIOResource[1]) &&
-			(EH_IO_TMR16 >= USERCAL_stRAMCAL.aFuelIOResource[1]))
+			(EH_IO_TMR10 >= USERCAL_stRAMCAL.aFuelIOResource[1]))
 		{
 			FUEL_u32FuelChannelsMask |=
 					(1 << (USERCAL_stRAMCAL.aFuelIOResource[1] - EH_IO_TMR1));
@@ -307,7 +330,7 @@ void FUEL_vStart(puint32 const pu32Arg)
 			(void*)&FUEL_astTimedHoldKernelEvents[0], (void*)&tEventCount);
 
 		if ((EH_IO_TMR1 <= USERCAL_stRAMCAL.aFuelIOResource[2]) &&
-			(EH_IO_TMR16 >= USERCAL_stRAMCAL.aFuelIOResource[2]))
+			(EH_IO_TMR10 >= USERCAL_stRAMCAL.aFuelIOResource[2]))
 		{
 			FUEL_u32FuelChannelsMask |=
 					(1 << (USERCAL_stRAMCAL.aFuelIOResource[2] - EH_IO_TMR1));
@@ -358,7 +381,7 @@ void FUEL_vStart(puint32 const pu32Arg)
 			(void*)&FUEL_astTimedHoldKernelEvents[0], (void*)&tEventCount);		
 
 		if ((EH_IO_TMR1 <= USERCAL_stRAMCAL.aFuelIOResource[3]) &&
-			(EH_IO_TMR16 >= USERCAL_stRAMCAL.aFuelIOResource[3]))
+			(EH_IO_TMR10 >= USERCAL_stRAMCAL.aFuelIOResource[3]))
 		{
 			FUEL_u32FuelChannelsMask |=
 					(1 << (USERCAL_stRAMCAL.aFuelIOResource[3] - EH_IO_TMR1));
@@ -425,6 +448,27 @@ void FUEL_vStart(puint32 const pu32Arg)
 		USER_vSVC(SYSAPI_enConfigureKernelTEPMOutput, (void*)&enEHIOResource,
 			(void*)&FUEL_astTimedFuelPumpEvents[0], (void*)&tEventCount);
 	}
+
+#ifdef BUILD_SPARKDOG_MKS20
+	/* Initialise the Fuel PWM Export */
+	enEHIOResource = FUEL_nFuelPWMExportResource;
+	enEHIOType = IOAPI_enCaptureCompare;
+	USER_vSVC(SYSAPI_enRequestIOResource, (void*)&enEHIOResource, (void*)NULL, (void*)NULL);
+
+	/* Initialise the TEPM channel Fuel PWM Export */
+	if (SYSAPI_enOK == pstSVCDataStruct->enSVCResult)
+	{
+		stTEPMChannelCB.enAction = TEPMAPI_enSetLow;
+		stTEPMChannelCB.boInterruptEnable = FALSE;
+		stTEPMChannelCB.boAsyncRequestEnable = FALSE;
+		stTEPMChannelCB.u32Sequence = 0xffffffff;
+
+		USER_vSVC(SYSAPI_enInitialiseIOResource, (void*)&enEHIOResource,
+			(void*)&enEHIOType,	(void*)&stTEPMChannelCB);
+	}
+#endif //BUILD_SPARKDOG_MKS20
+
+	USER_vSVC(SYSAPI_enConfigureFuelPWMExport, (void*)&FUEL_tTimeHold[0], NULL, NULL);
 					
 	/* Request and initialise required Kernel managed spread for AfmTF */
 	FUEL_tSpreadAfmTFIDX = SETUP_tSetupSpread((void*)&FUEL_nXAFMAxisRef, (void*)&USERCAL_stRAMCAL.aUserCURVEAfmTFSpread, TYPE_enUInt32, 17, SPREADAPI_enSpread4ms, NULL);
@@ -633,7 +677,7 @@ void FUEL_vRun(puint32 const pu32Arg)
 			enEHIOResource = USERCAL_stRAMCAL.enFuelPumpRelay;
 			enTriState = IOAPI_enHigh;
 
-			if (EH_IO_IIC1_SDA > enEHIOResource)
+			if (IO_Total_Discrete_Count > enEHIOResource)
 			{
 				USER_vSVC(SYSAPI_enAssertDIOResource, (void*)&enEHIOResource,
 				(void*)&enTriState,	(void*)NULL);
@@ -649,7 +693,7 @@ void FUEL_vRun(puint32 const pu32Arg)
 			enEHIOResource = USERCAL_stRAMCAL.enFuelPumpRelay;
 			enTriState = IOAPI_enLow;
 
-			if (EH_IO_IIC1_SDA > enEHIOResource)
+			if (IO_Total_Discrete_Count > enEHIOResource)
 			{
 				USER_vSVC(SYSAPI_enAssertDIOResource, (void*)&enEHIOResource,
 				(void*)&enTriState,	(void*)NULL);

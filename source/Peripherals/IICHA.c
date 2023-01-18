@@ -53,7 +53,7 @@ SYSAPI_tenSVCResult IICHA_enInitBus(IOAPI_tenEHIOResource enEHIOResource, IOAPI_
 	
 	switch (enEHIOResource)
 	{
-#ifdef BUILD_MK60
+#if defined(BUILD_MK60) || defined(BUILD_MK64)
 		uint32 u32Mul;
 		uint32 u32DivCalc;
 		uint32 u32Div;
@@ -114,7 +114,7 @@ SYSAPI_tenSVCResult IICHA_enInitBus(IOAPI_tenEHIOResource enEHIOResource, IOAPI_
 	
 	if (SYSAPI_enOK	== enSVCResult)
 	{
-#ifdef BUILD_MK60
+#if defined(BUILD_MK60) || defined(BUILD_MK64)
 		pstIIC->F = (I2C_F_MULT(u32Mul) | I2C_F_ICR(u32Div));	
 		pstIIC->C1 |= I2C_C1_IICEN_MASK;		
 		IRQ_vEnableIRQ(enIRQType);
@@ -130,7 +130,7 @@ void IICHA_vInitTransfer(IOAPI_tstTransferCB* pstTransferCB)
 
 	switch (pstTransferCB->enEHIOResource)
 	{
-#ifdef BUILD_MK60
+#if defined(BUILD_MK60) || defined(BUILD_MK64)
 		case EH_VIO_IIC1:
 		{
 			IICHA_pstIIC = I2C0;
@@ -154,7 +154,7 @@ void IICHA_vInterrupt(IOAPI_tenEHIOResource enEHIOResource)
 {
 	if (NULL != IICHA_pstIIC)
 	{
-#ifdef BUILD_MK60
+#if defined(BUILD_MK60) || defined(BUILD_MK64)
 	IOAPI_tenPortMode enMode;
 		IICHA_pstIIC->S |= I2C_S_IICIF_MASK;
 		
@@ -187,7 +187,7 @@ static sint32 IICHA_u32GetIICIndex(IOAPI_tenEHIOResource enEHIOResource)
 {
 	sint32 i32IDX = -1;
 	
-	if ((EH_VIO_IIC1 <= enEHIOResource) && (EH_VIO_IIC2 >= enEHIOResource)) 
+	if ((EH_FIRST_IIC <= enEHIOResource) && (EH_LAST_IIC >= enEHIOResource))
 	{
 		i32IDX = enEHIOResource - EH_VIO_IIC1;
 	}

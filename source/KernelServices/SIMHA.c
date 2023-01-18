@@ -136,6 +136,46 @@ void SIMHA_vSetRegAddress(SIMHA_tenReg enReg, REGSET_tstReg32Val* pstReg32Val)
 			break;
 	}
 #endif //BUILD_MK64
+
+#if defined(BUILD_MKS20)
+	switch(enReg)
+	{
+		case SIM_SCGC4:
+			pstReg32Val->reg = (volatile uint32*)(SIM_BASE + offsetof(SIM_Type, SCGC4));
+			break;
+
+		case SIM_SCGC5:
+			pstReg32Val->reg = (volatile uint32*)(SIM_BASE + offsetof(SIM_Type, SCGC5));
+			break;
+
+		case SIM_SCGC6:
+			pstReg32Val->reg = (volatile uint32*)(SIM_BASE + offsetof(SIM_Type, SCGC6));
+			break;
+
+		case SIM_SCGC7:
+			pstReg32Val->reg = (volatile uint32*)(SIM_BASE + offsetof(SIM_Type, SCGC7));
+			break;
+
+		case SIM_SOPT1:
+			pstReg32Val->reg = (volatile uint32*)(SIM_BASE + offsetof(SIM_Type, SOPT1));
+			break;
+
+		case SIM_SOPT2:
+			pstReg32Val->reg = (volatile uint32*)(SIM_BASE + offsetof(SIM_Type, SOPT2));
+			break;
+
+		case SIM_SOPT5:
+			pstReg32Val->reg = (volatile uint32*)(SIM_BASE + offsetof(SIM_Type, SOPT5));
+			break;
+
+		case SIM_SOPT7:
+			pstReg32Val->reg = (volatile uint32*)(SIM_BASE + offsetof(SIM_Type, SOPT7));
+			break;
+
+		default:
+			break;
+	}
+#endif //BUILD_MKS20
 }
 
 bool SIMHA_boEnablePeripheralClock(IRQn_Type IRQn)

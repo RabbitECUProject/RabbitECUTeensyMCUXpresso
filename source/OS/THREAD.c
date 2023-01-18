@@ -20,7 +20,7 @@ typedef struct
 	uint32 u32ThreadStack[ SYS_THREAD_STACK_SIZE ];
 } THREAD_tastThreadStack;
 
-THREAD_tastThreadStack THREAD_astThreadStack[SYS_THREAD_MAX];
+static THREAD_tastThreadStack THREAD_astThreadStack[SYS_THREAD_MAX] __attribute__((section(".bss.$RAM2")));
 tq_struct* THREAD_pstStackOwner[SYS_THREAD_MAX] = { NULL };
 
 

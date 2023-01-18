@@ -12,7 +12,7 @@
 /*                                                                            */
 /******************************************************************************/
 
-#include "mk64f12.h"
+#include "mks20f12.h"
 #include "SIM.h"
 #include "regset.h"
 #include <stddef.h>

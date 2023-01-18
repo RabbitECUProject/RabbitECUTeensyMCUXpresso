@@ -1,14 +1,11 @@
 /*
 ** ###################################################################
-**     Processors:          MK64FN1M0CAJ12
-**                          MK64FN1M0VDC12
-**                          MK64FN1M0VLL12
-**                          MK64FN1M0VLQ12
-**                          MK64FN1M0VMD12
-**                          MK64FX512VDC12
-**                          MK64FX512VLL12
-**                          MK64FX512VLQ12
-**                          MK64FX512VMD12
+**     Processors:          MKS20FN128VFT12
+**                          MKS20FN128VLH12
+**                          MKS20FN128VLL12
+**                          MKS20FN256VFT12
+**                          MKS20FN256VLH12
+**                          MKS20FN256VLL12
 **
 **     Compilers:           Keil ARM C/C++ Compiler
 **                          Freescale C/C++ for Embedded ARM
@@ -16,67 +13,68 @@
 **                          IAR ANSI C/C++ Compiler for ARM
 **                          MCUXpresso Compiler
 **
-**     Reference manual:    K64P144M120SF5RM, Rev.2, January 2014
-**     Version:             rev. 2.9, 2016-03-21
-**     Build:               b180801
+**     Reference manual:    KS22P100M120SF0RM, Rev. 3, May, 2016
+**     Version:             rev. 2.1, 2017-06-09
+**     Build:               b171226
 **
 **     Abstract:
 **         Provides a system configuration function and a global variable that
 **         contains the system frequency. It configures the device and initializes
 **         the oscillator (PLL) that is part of the microcontroller device.
 **
+**     The Clear BSD License
 **     Copyright 2016 Freescale Semiconductor, Inc.
-**     Copyright 2016-2018 NXP
+**     Copyright 2016-2017 NXP
+**     All rights reserved.
 **
-**     SPDX-License-Identifier: BSD-3-Clause
+**     Redistribution and use in source and binary forms, with or without
+**     modification, are permitted (subject to the limitations in the
+**     disclaimer below) provided that the following conditions are met:
+**
+**     * Redistributions of source code must retain the above copyright
+**       notice, this list of conditions and the following disclaimer.
+**
+**     * Redistributions in binary form must reproduce the above copyright
+**       notice, this list of conditions and the following disclaimer in the
+**       documentation and/or other materials provided with the distribution.
+**
+**     * Neither the name of the copyright holder nor the names of its
+**       contributors may be used to endorse or promote products derived from
+**       this software without specific prior written permission.
+**
+**     NO EXPRESS OR IMPLIED LICENSES TO ANY PARTY'S PATENT RIGHTS ARE
+**     GRANTED BY THIS LICENSE. THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT
+**     HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
+**     WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+**     MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+**     DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+**     LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+**     CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+**     SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
+**     BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+**     WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
+**     OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
+**     IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 **
 **     http:                 www.nxp.com
 **     mail:                 support@nxp.com
 **
 **     Revisions:
-**     - rev. 1.0 (2013-08-12)
+**     - rev. 1.0 (2015-06-23)
 **         Initial version.
-**     - rev. 2.0 (2013-10-29)
-**         Register accessor macros added to the memory map.
-**         Symbols for Processor Expert memory map compatibility added to the memory map.
-**         Startup file for gcc has been updated according to CMSIS 3.2.
-**         System initialization updated.
-**         MCG - registers updated.
-**         PORTA, PORTB, PORTC, PORTE - registers for digital filter removed.
-**     - rev. 2.1 (2013-10-30)
-**         Definition of BITBAND macros updated to support peripherals with 32-bit acces disabled.
-**     - rev. 2.2 (2013-12-09)
-**         DMA - EARS register removed.
-**         AIPS0, AIPS1 - MPRA register updated.
-**     - rev. 2.3 (2014-01-24)
-**         Update according to reference manual rev. 2
-**         ENET, MCG, MCM, SIM, USB - registers updated
-**     - rev. 2.4 (2014-02-10)
-**         The declaration of clock configurations has been moved to separate header file system_MK64F12.h
-**         Update of SystemInit() and SystemCoreClockUpdate() functions.
-**     - rev. 2.5 (2014-02-10)
-**         The declaration of clock configurations has been moved to separate header file system_MK64F12.h
-**         Update of SystemInit() and SystemCoreClockUpdate() functions.
-**         Module access macro module_BASES replaced by module_BASE_PTRS.
-**     - rev. 2.6 (2014-08-28)
-**         Update of system files - default clock configuration changed.
-**         Update of startup files - possibility to override DefaultISR added.
-**     - rev. 2.7 (2014-10-14)
-**         Interrupt INT_LPTimer renamed to INT_LPTMR0, interrupt INT_Watchdog renamed to INT_WDOG_EWM.
-**     - rev. 2.8 (2015-02-19)
-**         Renamed interrupt vector LLW to LLWU.
-**     - rev. 2.9 (2016-03-21)
-**         Added MK64FN1M0CAJ12 part.
-**         GPIO - renamed port instances: PTx -> GPIOx.
+**     - rev. 2.0 (2015-10-10)
+**         Update according to Rev1 RM, Sep 2015.
+**     - rev. 2.1 (2017-06-09)
+**         Update according to Rev3 RM, May 2016.
 **
 ** ###################################################################
 */
 
 /*!
- * @file MK64F12
- * @version 2.9
- * @date 2016-03-21
- * @brief Device specific configuration file for MK64F12 (implementation file)
+ * @file MKS20F12
+ * @version 2.1
+ * @date 2017-06-09
+ * @brief Device specific configuration file for MKS20F12 (implementation file)
  *
  * Provides a system configuration function and a global variable that contains
  * the system frequency. It configures the device and initializes the oscillator
@@ -85,7 +83,6 @@
 
 #include <stdint.h>
 #include "fsl_device_registers.h"
-#include "MK64F12.h"
 
 
 /*----------------------------------------------------------------------------
@@ -141,7 +138,7 @@ void SystemInit (void) {
   /* SIM_SOPT1: OSC32KSEL=0 */
   SIM->SOPT1 &= (uint32_t)~0x00080000UL; /* System oscillator drives 32 kHz clock for various peripherals */
   /* SIM_SCGC1: OSC1=1 */
-  SIM->SCGC1 |= (uint32_t)0x20UL;
+  //SIM->SCGC1 |= (uint32_t)0x20UL;
   /* PORTA_PCR18: ISF=0,MUX=0 */
   PORTA->PCR[18] &= (uint32_t)~0x01000700UL;
   /* Switch to FBE Mode */
@@ -158,7 +155,7 @@ void SystemInit (void) {
   /* MCG_C4: DMX32=0,DRST_DRS=0 */
   MCG->C4 &= (uint8_t)~(uint8_t)0xE0U;
   /* MCG_C5: PLLREFSEL0=0,PLLCLKEN0=0,PLLSTEN0=0,??=0,??=0,PRDIV0=3 */
-  MCG->C5 = (uint8_t)0x03U;
+  MCG->C5 = (uint8_t)0x01U;
   /* MCG_C6: LOLIE0=0,PLLS=0,CME0=0,VDIV0=6 */
   MCG->C6 = (uint8_t)0x06U;
   /* MCG_C11: PLLREFSEL1=0,PLLCLKEN1=0,PLLSTEN1=0,PLLCS=0,??=0,PRDIV1=0 */

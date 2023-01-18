@@ -59,6 +59,7 @@ bool TEPM_aboTEPMChannelModeToothScheduled[TEPMHA_nEventChannels];
 bool TEPM_aboTEPMChannelModeRecursive[TEPMHA_nEventChannels];
 bool TEPM_au32TEPMChannelRecursionCount[TEPMHA_nEventChannels];
 bool TEPM_aboTEPMChannelModePWM[TEPMHA_nEventChannels];
+bool TEPM_aboTEPMChannelMissingTooth[TEPMHA_nEventChannels];
 bool TEPM_aboTEPMChannelAsyncRequestEnable[TEPMHA_nEventChannels];
 uint32 TEPM_au32TEPMChannelSequence[TEPMHA_nEventChannels];
 bool TEPM_aboSynchroniseEnable[TEPMHA_nEventChannels];
@@ -85,6 +86,7 @@ uint32 TEPM_u32SparkChannelCount;
 uint32 TEPM_u32FuelCutsCounter;
 uint32 TEPM_u32StartLinkPending;
 uint32 TEPM_u32FastCutCounter;
+uint32* TEPM_pu32FuelPWMExport;
 
 #ifdef TEPM_PRIO_INPUT_MK6X
 extern const TEPM_tstTEPMReverseChannel TEPMHA_rastTEPMReverseChannel[];
@@ -247,6 +249,10 @@ uint32 TEPM_u32InitTEPMChannel(IOAPI_tenEHIOResource enEHIOResource, TEPMAPI_tst
 	{
 		/* Special case for VVT input MS 8bit = 0x10 */
 		TEPM_au32TEPMChannelSequence[u32TableIDX] = pstTEPMChannelCB->u32Sequence;
+	}
+	else if (0xffff == pstTEPMChannelCB->u32Sequence)
+	{
+		TEPM_aboTEPMChannelMissingTooth[u32TableIDX] = TRUE;
 	}
 	else if (0x10000 <= pstTEPMChannelCB->u32Sequence)
 	{
@@ -498,13 +504,13 @@ void TEPM_vInterruptHandler(IOAPI_tenEHIOResource enEHVIOResource, void* pvData)
 	for (u32ChannelIDX = u32StartChannelIDX; u32ChannelIDX < u32EndChannelIDX; u32ChannelIDX++)
 	{
 #ifdef TEPM_SPEED_MK6X
-		if (FTM_CnSC_CHF_MASK == (FTM_CnSC_CHF_MASK & ((tstTimerModule*)pvModule)->CONTROLS[u32ChannelIDX].CnSC))
+		if (TPM_CnSC_CHF_MASK == (TPM_CnSC_CHF_MASK & ((tstTimerModule*)pvModule)->CONTROLS[u32ChannelIDX].CnSC))
 #else
 	    if (true == TEPMHA_boFlagIsSet(pvModule, u32ChannelIDX, &u32Flags, u32Sequence[u32Prio], u32Prio))
 #endif  //TEPM_SPEED_MK6X
 		{
 #ifdef TEPM_SPEED_MK6X
-		    if (FTM_CnSC_CHIE_MASK == (FTM_CnSC_CHIE_MASK & ((tstTimerModule*)pvModule)->CONTROLS[u32ChannelIDX].CnSC))
+		    if (TPM_CnSC_CHIE_MASK == (TPM_CnSC_CHIE_MASK & ((tstTimerModule*)pvModule)->CONTROLS[u32ChannelIDX].CnSC))
 #else
 		    if (true == TEMPHA_boInterruptEnabled(pvModule, u32ChannelIDX))
 #endif //TEPM_SPEED_MK6X
@@ -513,14 +519,18 @@ void TEPM_vInterruptHandler(IOAPI_tenEHIOResource enEHVIOResource, void* pvData)
 			enEHIOResource = TEPMHA_enGetTimerResourceFromVIOAndIndex(enEHVIOResource, u32ChannelIDX);
 			u32TableIDX = TEPMHA_u32GetFTMTableIndex(enEHIOResource);
 #else
-			u32Temp = 8 * ((uint32)(enEHVIOResource - EH_VIO_FTM0)) + u32ChannelIDX;
+			u32Temp = 8 * ((uint32)(enEHVIOResource - EH_VIO_TPM0)) + u32ChannelIDX;
 			enEHIOResource = TEPMHA_rastTEPMReverseChannel[u32Temp].enEHIOResource;
 			u32TableIDX = enEHIOResource - EH_IO_TMR1;
 #endif //TEPM_SPEED_MK6X
 				
 				if (TRUE == TEPM_aboTEPMChannelModeOutput[u32TableIDX])
 				{
-					if (TRUE == TEPM_aboTEPMChannelModePWM[u32TableIDX])
+					if (TRUE == TEPM_aboTEPMChannelMissingTooth[u32TableIDX])
+					{
+						TEPM_vMissingToothInterruptHandler(enEHVIOResource, pvData);
+					}
+					else if (TRUE == TEPM_aboTEPMChannelModePWM[u32TableIDX])
 					{
 						pvModule = TEPMHA_pvGetModuleFromEnum(TEPM_rastTEPMChannel[u32TableIDX].enModule);
 						u32ChannelIDX = TEPM_u32GetTimerHardwareChannel(enEHIOResource);
@@ -644,7 +654,7 @@ void TEPM_vInterruptHandler(IOAPI_tenEHIOResource enEHVIOResource, void* pvData)
 
 #ifdef TEPM_SPEED_MK6X
 		if ((u32PrioChannelIDX < u32EndChannelIDX) &&
-				(FTM_CnSC_CHIE_MASK == (FTM_CnSC_CHIE_MASK & ((tstTimerModule*)pvModule)->CONTROLS[u32ChannelIDX].CnSC)))
+				(TPM_CnSC_CHIE_MASK == (TPM_CnSC_CHIE_MASK & ((tstTimerModule*)pvModule)->CONTROLS[u32ChannelIDX].CnSC)))
 #else
 		if ((u32PrioChannelIDX < u32EndChannelIDX) && (true == TEMPHA_boInterruptEnabled(pvModule, u32PrioChannelIDX)))
 #endif //TEPM_SPEED_MK6X
@@ -653,7 +663,7 @@ void TEPM_vInterruptHandler(IOAPI_tenEHIOResource enEHVIOResource, void* pvData)
 			enEHIOResource = TEPMHA_enGetTimerResourceFromVIOAndIndex(enEHVIOResource, u32PrioChannelIDX);
 			u32TableIDX = TEPMHA_u32GetFTMTableIndex(enEHIOResource);
 #else
-			u32Temp = 8 * ((uint32)(enEHVIOResource - EH_VIO_FTM0)) + u32PrioChannelIDX;
+			u32Temp = 8 * ((uint32)(enEHVIOResource - EH_VIO_TPM0)) + u32PrioChannelIDX;
 			enEHIOResource = TEPMHA_rastTEPMReverseChannel[u32Temp].enEHIOResource;
 			u32TableIDX = enEHIOResource - EH_IO_TMR1;
 #endif //TEPM_SPEED_MK6X
@@ -682,7 +692,7 @@ void TEPM_vInterruptHandler(IOAPI_tenEHIOResource enEHVIOResource, void* pvData)
 				}
 #endif //TEPM_RENTRANCY_HW
 
-				if (FTM_CnSC_CHF_MASK == (FTM_CnSC_CHF_MASK & ((tstTimerModule*)pvModule)->CONTROLS[u32PrioChannelIDX].CnSC))
+				if (TPM_CnSC_CHF_MASK == (TPM_CnSC_CHF_MASK & ((tstTimerModule*)pvModule)->CONTROLS[u32PrioChannelIDX].CnSC))
 				{
 					pfTEPMEventCB = TEPM_atpfEventKernelCB[u32TableIDX];
 
@@ -759,10 +769,6 @@ void TEPM_vInterruptHandler(IOAPI_tenEHIOResource enEHVIOResource, void* pvData)
 
 void TEPM_vMissingToothInterruptHandler(IOAPI_tenEHIOResource enEHVIOResource, void* pvData)
 {
-#ifdef TELLTALE_MISSING
-	static bool flag;
-#endif //TELLTALE_MISSING
-
 	uint32 u32LastGap;
 
 	u32LastGap = TEPMHA_u32SetNextMissingToothInterrupt(0, 0, 0);
@@ -773,20 +779,6 @@ void TEPM_vMissingToothInterruptHandler(IOAPI_tenEHIOResource enEHVIOResource, v
 	TEPM_vRunEventToothProgramKernelQueues(FALSE, CEM_u32CycleToothEdgeCounter, u32LastGap);
 	CEM_u32ToothEdgeCounter++;
 	CEM_u32CycleToothEdgeCounter++;
-
-#ifdef TELLTALE_MISSING
-	if (flag)
-	{
-		PIM_vAssertPortBit(PIMAPI_enPHYS_PORT_E, 0x400, IOAPI_enLow);
-	}
-	else
-	{
-		PIM_vAssertPortBit(PIMAPI_enPHYS_PORT_E, 0x400, IOAPI_enHigh);
-	}
-
-	flag = !flag;
-#endif //TELLTALE_MISSING
-
 }
 
 IOAPI_tenTriState TEPM_enGetTimerDigitalState(IOAPI_tenEHIOResource enEHIOResource)
@@ -964,6 +956,13 @@ void TEPM_vStartEventProgramKernelQueues(bool boAsyncRequest, uint32 u32Sequence
 			boSyncProceed = false;
 		}
 	}
+
+#ifdef BUILD_SPARKDOG_MKS20
+	if (0x80 > u32SequenceIDX)
+	{
+		TEPMHA_vCapComAction(TEPMAPI_enImmediatePulse, TEPM_FUEL_PWM_EXPORT_MODULE, TEPM_FUEL_PWM_EXPORT_CHANNEL, 0, (*TEPM_pu32FuelPWMExport) / 4);
+	}
+#endif //BUILD_SPARKDOG_MKS20
 }
 
 void TEPM_vRunEventToothProgramKernelQueues(bool boAsyncRequest, uint32 u32ToothCount, uint32 u32ToothTime)
@@ -1076,6 +1075,15 @@ void TEPM_vRunEventToothProgramKernelQueues(bool boAsyncRequest, uint32 u32Tooth
 							u32ModulePhaseCorrect = TEPMHA_u32GetModulePhaseCorrect(TEPMHA_enTimerEnumFromModule(pvModule), u32ChannelIDX);
 							tEventTimeScheduled = u32Temp + CEM_tToothEventTimeLast + u32ModulePhaseCorrect;
 							tEventTimeScheduled &= TEPMHA_nCounterMask;
+
+							if (TEPMAPI_enSetHigh == pstToothTimedEvent->enAction)
+							{
+								IO_vAssertDIOResource(enEHIOResource, IOAPI_enLow);
+							}
+							else
+							{
+								IO_vAssertDIOResource(enEHIOResource, IOAPI_enHigh);
+							}
 
 							TEPMHA_vCapComAction(pstToothTimedEvent->enAction, pvModule, u32ChannelIDX, u32SubChannelIDX, tEventTimeScheduled);
 						}
@@ -1662,15 +1670,18 @@ void TEPM_vConfigureMissingToothInterrupt()
 
 void TEPM_vSetNextMissingToothInterrupt(IOAPI_tenEHIOResource enEHIOResource, TEPMAPI_ttEventTime tLastGap, uint32 u32Repeats)
 {
-	uint32 u32ModuleDelta;
 	uint32 u32TableIDX;
 	void* pvModule;
 
 	u32TableIDX = TEPMHA_u32GetFTMTableIndex(enEHIOResource);
 	pvModule = TEPMHA_pvGetModuleFromEnum(TEPM_rastTEPMChannel[u32TableIDX].enModule);
-	u32ModuleDelta = TEPMHA_u32GetFreeVal((void*)FTM1, 0) - TEPMHA_u32GetFreeVal(pvModule, 0);
 
-	(void)TEPMHA_u32SetNextMissingToothInterrupt(CEM_tEventTimeLast + u32ModuleDelta, tLastGap, u32Repeats);
+	(void)TEPMHA_u32SetNextMissingToothInterrupt(CEM_tEventTimeLast, tLastGap, u32Repeats);
+}
+
+TEPM_vConfigureFuelPWMExport(uint32* pu32FuelPWMExport)
+{
+	TEPM_pu32FuelPWMExport = pu32FuelPWMExport;
 }
 
 static void TEPM_vFirstStartLinkToothFractions(uint32 u32EventIDX, uint32 u32TableIDX, TEPMAPI_ttEventTime tFractionalEventTime)

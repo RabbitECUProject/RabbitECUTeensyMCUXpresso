@@ -17,15 +17,18 @@
 #ifndef BUILD_H
 #define BUILD_H
 
-#ifndef BUILD_MK64
-#define BUILD_MK64
+#ifndef BUILD_MKS20
+#define BUILD_MKS20
 #endif
+
+#define FUEL_MISSING_TOOTH_OUTPUT
 
 //#define BUILD_SPARKDOG_TEENSY_ADAPT
 #define BUILD_RABBIT_1_4
-#define BUILD_SPARKDOG_PF
-//#define PFDIV2FIX
-//#define BUILD_GDI_SIG_INVERT
+//#define BUILD_SPARKDOG_PF
+#define BUILD_SPARKDOG_MKS20
+#define PFDIV2FIX
+#define BUILD_GDI_SIG_INVERT
 #define BUILD_USER
 //#define BUILD_BSP_IAC_STEPPER
 #define BUILD_FME

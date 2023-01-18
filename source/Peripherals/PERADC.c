@@ -28,7 +28,7 @@
 #include "SIM.h"
 #include "sys.h"
 
-ADCHA_tstADCConversion ADC_astADCConversions[ADCHA_enQueueCount][ADC_nConversionsMax];
+static ADCHA_tstADCConversion ADC_astADCConversions[ADCHA_enQueueCount][ADC_nConversionsMax] __attribute__((section(".bss.$RAM2")));;
 CQUEUE_tstQueue ADC_astConversionQueue[ADCHA_enQueueCount];
 bool ADC_boCyclicQueuePending;
 ADC_tstADCResult ADC_astResult[ADCHA_enQueueCount][ADC_nConversionsMax];

@@ -11,7 +11,7 @@
 /******************************************************************************/
 #include <DECLARATIONS.h>
 #include <MACROS.h>
-#include "mk64f12.h"
+#include "mks20f12.h"
 #include <string.h>
 #include <SYS.h>
 #include <TYPES.h>
@@ -80,7 +80,7 @@ void FEEHA_vStartSBL(void)
 #if BUILD_SBL
 	FTFE_Type* pstFTFE = FTFE;	
 	
-	if (((pstFTFE -> FCNFG) & FTFE_FCNFG_RAMRDY_MASK) != FTFE_FCNFG_RAMRDY_MASK)	
+	if (((pstFTFE -> FCNFG) & FTFPREFIX(_FCNFG_RAMRDY_MASK) != FTFPREFIX(_FCNFG_RAMRDY_MASK)
 	{
 		/* Make FlexRAM available as RAM for programming */
 		pSetEEEEnable(&FEE_stFlashSSDConfig, 0xff);
@@ -121,7 +121,22 @@ bool FEEHA_boCheckPartition(void)
     	pu32NVRecordBase -= (FEEHA_WORK_DATA_MAX / sizeof(uint32));
     }
 #endif //BUILD_MK64
-	
+
+#if defined(BUILD_MKS20)
+    uint32* pu32NVRecordBase = (uint32*)(FEEHA_PFLASH_END - FEEHA_WORK_DATA_MAX + 1);
+
+    while ((uint32*)FEEHA_FLASH_NVM_RECS <= pu32NVRecordBase)
+    {
+    	if (~0 != *pu32NVRecordBase)
+    	{
+    		boPartitionOK = TRUE;
+    		break;
+    	}
+
+    	pu32NVRecordBase -= (FEEHA_WORK_DATA_MAX / sizeof(uint32));
+    }
+#endif //BUILD_MKS20
+
 	return boPartitionOK;
 }
 
@@ -347,6 +362,113 @@ bool FEEHA_boNVMWorkingCopy(bool boNVMToWorking, bool boCheckCRC16MakeCRC16)
 	}
 #endif //BUILD_MK60
 
+#if defined(BUILD_MKS20)
+	tstFTFEModule* pstFTFE;
+	uint32 u32RetCode = FTFx_OK;
+    pstFTFE = FTFMODULE;
+	uint32 u32NVMSectorCount;
+	uint32 u32NVMSectorIDX;
+	uint32 u32SourceWord;
+	uint32 u32DestinationWord;
+	uint8* pu8PartitionBase;
+
+	if ((0 < FEE_stWorkingPage.s16WorkingDataCount) &&
+		(NULL != FEE_stWorkingPage.pu8WorkingData) &&
+		(0 == FEE_u32InhibitNVMCount))
+	{
+		if (TRUE == boNVMToWorking)
+		/* Copy NVM page to working page */
+		{
+			uint8* pu8PartitionBase = FEEHA_pu8GetPartitionAddress();
+
+			if (((uint8*)~0) != pu8PartitionBase)
+			{
+				pu16CRC16Computed = (puint16)(CRC16_pu16CalcCRC(0xffff, (puint8)pu8PartitionBase,
+					FEE_stWorkingPage.s16WorkingDataCount - 2));
+
+				pu16CRC16Stored = (puint16)((uint32)pu8PartitionBase +
+					(uint32)FEE_stWorkingPage.s16WorkingDataCount - 2);
+
+				if (TRUE == boCheckCRC16MakeCRC16)
+				{
+					if (*pu16CRC16Stored == *pu16CRC16Computed)
+					{
+						memcpy((void*)FEE_stWorkingPage.pu8WorkingData,
+							(void*)pu8PartitionBase, FEE_stWorkingPage.s16WorkingDataCount);
+						boCopyOK = TRUE;
+					}
+					else
+					{
+						boCopyOK = FALSE;
+					}
+				}
+				else
+				{
+					//memcpy((void*)FEE_stWorkingPage.pu8WorkingData,
+					//	(void*)FEEHA_EEPROM_START, FEE_stWorkingPage.s16WorkingDataCount);
+					//boCopyOK = TRUE;
+				}
+			}
+		}
+		else
+		/* Copy working page to NVM page */
+		{
+			/* No copy for another 10 seconds */
+			FEE_u32InhibitNVMCount = 10000;
+
+			if (TRUE == boCheckCRC16MakeCRC16)
+			{
+				pu16CRC16Computed = (puint16)(CRC16_pu16CalcCRC(0xffff, FEE_stWorkingPage.pu8WorkingData,
+					FEE_stWorkingPage.s16WorkingDataCount - 2));
+
+				pu16CRC16Stored = (puint16)((uint32)FEE_stWorkingPage.pu8WorkingData +
+					(uint32)FEE_stWorkingPage.s16WorkingDataCount - 2);
+
+				/* Copy the computed CRC into the working page */
+				*pu16CRC16Stored = *pu16CRC16Computed;
+			}
+
+			if (((pstFTFE -> FSTAT) & FTFPREFIX(_FSTAT_ACCERR_MASK)) == FTFPREFIX(_FSTAT_ACCERR_MASK))
+			{
+				pstFTFE -> FSTAT &= FTFPREFIX(_FSTAT_ACCERR_MASK);
+			}
+
+			if (((pstFTFE -> FSTAT) & FTFPREFIX(_FSTAT_FPVIOL_MASK)) == FTFPREFIX(_FSTAT_FPVIOL_MASK))
+			{
+				pstFTFE -> FSTAT &= FTFPREFIX(_FSTAT_FPVIOL_MASK);
+			}
+
+			u32NVMSectorCount = FEE_stWorkingPage.s16WorkingDataCount / FEEHA_PFLASH_SCTR_BYTES;
+			u32NVMSectorCount = (0 == FEE_stWorkingPage.s16WorkingDataCount % FEEHA_PFLASH_SCTR_BYTES) ?
+										u32NVMSectorCount : u32NVMSectorCount + 1;
+			boCopyOK = TRUE;
+
+			pu8PartitionBase = FEEHA_pu8GetFreePartitionAddress();
+
+			if (((uint8*)~0) != pu8PartitionBase)
+			{
+				for (u32NVMSectorIDX = 0; u32NVMSectorIDX < u32NVMSectorCount; u32NVMSectorIDX++)
+				{
+					u32SourceWord = (uint32)FEE_stWorkingPage.pu8WorkingData + FEEHA_PFLASH_SCTR_BYTES * u32NVMSectorIDX;
+					u32DestinationWord = (uint32)pu8PartitionBase + FEEHA_PFLASH_SCTR_BYTES * u32NVMSectorIDX;
+
+					if (FTFx_OK == u32RetCode)
+					{
+						u32RetCode = FlashProgramPhrase(&FEE_stFlashSSDConfig,
+													u32DestinationWord,	FEEHA_PFLASH_SCTR_BYTES, u32SourceWord, &FlashCommandSequence);
+					}
+					else
+					{
+						boCopyOK = false;
+					}
+
+				}
+			}
+		}
+	}
+#endif //BUILD_MKS20
+
+
 #ifdef BUILD_SAM3X8E
 	if (TRUE == boNVMToWorking)
 	/* Copy NVM page to working page */
@@ -419,13 +541,13 @@ bool FEEHA_boWriteNVM(puint8 pu8SourceData, puint8 pu8DestData, uint32 u32DataBy
 	uint32 u32RetCode;
 
 
-#if defined(BUILD_MK60) || defined(BUILD_MK64)
-    pstFTFE = FTFE;
+#if defined(BUILD_MK60) || defined(BUILD_MK64) || defined(BUILD_MKS20)
+    pstFTFE = FTFMODULE;
 	u32RetCode = FTFx_OK;
 
-	if (((pstFTFE -> FSTAT) & FTFE_FSTAT_ACCERR_MASK) == FTFE_FSTAT_ACCERR_MASK)
+	if (((pstFTFE -> FSTAT) & FTFPREFIX(_FSTAT_ACCERR_MASK)) == FTFPREFIX(_FSTAT_ACCERR_MASK))
 	{
-		pstFTFE -> FSTAT &= FTFE_FSTAT_ACCERR_MASK;
+		pstFTFE -> FSTAT &= FTFPREFIX(_FSTAT_ACCERR_MASK);
 	}	
 	
 	if (TRUE == FEEHA_boGetSem(TRUE))
@@ -548,6 +670,17 @@ bool FEEHA_boNVMClear(void)
 	boClearOK = false == boEraseErr ? TRUE : FALSE;
 #endif //BUILD_MK64
 
+#if defined(BUILD_MKS20)
+	bool boEraseErr = TRUE;
+
+	if (0 == FEE_u32InhibitNVMCount)
+	{
+		boEraseErr = FEEHA_boEraseForDownload((uint8*)FEEHA_FLASH_NVM_RECS, FEEHA_PFLASH_END - FEEHA_FLASH_NVM_RECS + 1);
+	}
+
+	boClearOK = false == boEraseErr ? TRUE : FALSE;
+#endif //BUILD_MK64
+
 	return boClearOK;
 }
 
@@ -562,18 +695,20 @@ bool FEEHA_boEraseForDownload(puint8 pu8TargetAddress, uint32 u32EraseCount)
 	bool boEraseErr = false;
 	FEE_enPgmErrCode = enErrNone;
 	
-#if defined(BUILD_MK60) || defined(BUILD_MK64)
-    pstFTFE = FTFE;
-	if (((pstFTFE -> FSTAT) & FTFE_FSTAT_CCIF_MASK) == FTFE_FSTAT_CCIF_MASK)
+#if defined(BUILD_MK60) || defined(BUILD_MK64) || defined(BUILD_MKS20)
+
+	pstFTFE = FTFMODULE;
+
+	if (((pstFTFE -> FSTAT) & FTFPREFIX(_FSTAT_CCIF_MASK)) == FTFPREFIX(_FSTAT_CCIF_MASK))
 	{
-		if (((pstFTFE -> FSTAT) & FTFE_FSTAT_ACCERR_MASK) == FTFE_FSTAT_ACCERR_MASK)
+		if (((pstFTFE -> FSTAT) & FTFPREFIX(_FSTAT_ACCERR_MASK)) == FTFPREFIX(_FSTAT_ACCERR_MASK))
 		{
-			pstFTFE -> FSTAT &= FTFE_FSTAT_ACCERR_MASK;
+			pstFTFE -> FSTAT &= FTFPREFIX(_FSTAT_ACCERR_MASK);
 		}
 
-		if (((pstFTFE -> FSTAT) & FTFE_FSTAT_FPVIOL_MASK) == FTFE_FSTAT_FPVIOL_MASK)
+		if (((pstFTFE -> FSTAT) & FTFPREFIX(_FSTAT_FPVIOL_MASK)) == FTFPREFIX(_FSTAT_FPVIOL_MASK))
 		{
-			pstFTFE -> FSTAT &= FTFE_FSTAT_FPVIOL_MASK;			
+			pstFTFE -> FSTAT &= FTFPREFIX(_FSTAT_FPVIOL_MASK);
 		}	
 
 		if (0 == (uint32)pu8TargetAddress % 4)
@@ -626,7 +761,7 @@ bool FEEHA_boEraseForDownload(puint8 pu8TargetAddress, uint32 u32EraseCount)
 				{
 					u32ReturnCode = FlashVerifySection(&FEE_stFlashSSDConfig, (uint32)pu32SectorWord, u16WordCount, enMarginNormal, pFlashCommandSequence);
 					
-					if (((pstFTFE -> FSTAT) & FTFE_FSTAT_MGSTAT0_MASK) == FTFE_FSTAT_MGSTAT0_MASK)
+					if (((pstFTFE -> FSTAT) & FTFPREFIX(_FSTAT_MGSTAT0_MASK)) == FTFPREFIX(_FSTAT_MGSTAT0_MASK))
 					/* erase sector not blank */
 					{
 						u32ReturnCode = FlashEraseSector(&FEE_stFlashSSDConfig, (uint32)pu32SectorWord, FTFx_PSECTOR_SIZE, pFlashCommandSequence);
@@ -638,6 +773,7 @@ bool FEEHA_boEraseForDownload(puint8 pu8TargetAddress, uint32 u32EraseCount)
 				}	
 			}
 		}
+#if defined(BUILD_MK20) || defined(BUILD_MK64)
 		/* DFLASH erase */
 		else if (((uint32)pu32TargetAddress >= FEEHA_DFLASH_START) &&
 				(((uint32)pu32TargetAddress + u32EraseCount <= (FEEHA_DFLASH_END + 1))))
@@ -651,8 +787,10 @@ bool FEEHA_boEraseForDownload(puint8 pu8TargetAddress, uint32 u32EraseCount)
 		else
 		{
 			boEraseErr = true;
-		}	
+		}
+#endif //defined(BUILD_MK64) || defined(BUILD_MK60)
 	}
+
 #endif //BUILD_MK6X
 
 #ifdef BUILD_SAM3X8E
@@ -724,18 +862,18 @@ bool FEEHA_boWriteSector(void)
 	
 	FEE_enPgmErrCode = enErrNone;
 	
-#if defined(BUILD_MK60) || defined(BUILD_MK64)
-	pstFTFE = FTFE;
-	if (((pstFTFE -> FSTAT) & FTFE_FSTAT_CCIF_MASK) == FTFE_FSTAT_CCIF_MASK)
+#if defined(BUILD_MK60) || defined(BUILD_MK64) || defined(BUILD_MKS20)
+	pstFTFE = FTFMODULE;
+	if (((pstFTFE -> FSTAT) & FTFPREFIX(_FSTAT_CCIF_MASK)) == FTFPREFIX(_FSTAT_CCIF_MASK))
 	{
-		if (((pstFTFE -> FSTAT) & FTFE_FSTAT_ACCERR_MASK) == FTFE_FSTAT_ACCERR_MASK)
+		if (((pstFTFE -> FSTAT) & FTFPREFIX(_FSTAT_ACCERR_MASK)) == FTFPREFIX(_FSTAT_ACCERR_MASK))
 		{
-			pstFTFE -> FSTAT &= FTFE_FSTAT_ACCERR_MASK;
+			pstFTFE -> FSTAT &= FTFPREFIX(_FSTAT_ACCERR_MASK);
 		}
 
-		if (((pstFTFE -> FSTAT) & FTFE_FSTAT_FPVIOL_MASK) == 0)
+		if (((pstFTFE -> FSTAT) & FTFPREFIX(_FSTAT_FPVIOL_MASK)) == 0)
 		{
-			pstFTFE -> FSTAT &= FTFE_FSTAT_FPVIOL_MASK;			
+			pstFTFE -> FSTAT &= FTFPREFIX(_FSTAT_FPVIOL_MASK);
 		}		
 			
 		/* PFLASH program */
@@ -779,7 +917,7 @@ bool FEEHA_boWriteSector(void)
 			pu32SectorWord = (uint32*)((uint32)pu32ProgramWord - ((uint32)pu32ProgramWord % FEEHA_PFLASH_SCTR_WORDS));
 			returnCode = FlashVerifySection(&FEE_stFlashSSDConfig, (uint32)pu32SectorWord, u16WordCount, enMarginNormal, pFlashCommandSequence);
 				
-			if (((pstFTFE -> FSTAT) & FTFE_FSTAT_MGSTAT0_MASK) == FTFE_FSTAT_MGSTAT0_MASK)
+			if (((pstFTFE -> FSTAT) & FTFPREFIX(_FSTAT_MGSTAT0_MASK)) == FTFPREFIX(_FSTAT_MGSTAT0_MASK))
 			/* erase sector not blank */
 			{
 				boWriteErr = true;
@@ -844,7 +982,7 @@ bool FEEHA_boStart(uint32* const u32Stat)
 {
     bool boStartOK = false;
 
-#if defined(BUILD_MK60) || defined(BUILD_MK64)
+#if defined(BUILD_MK60) || defined(BUILD_MK64) || defined(BUILD_MKS20)
 	u8WriteCount = 0;
 	unsecure_key = 0xFFFFFFFE;
 
@@ -991,7 +1129,7 @@ static bool FEEHA_boGetSem(bool boGet)
 
 static void FEEHA_vInitFlashConfig(void)
 {
-#if defined(BUILD_MK60) || defined(BUILD_MK64)
+#if defined(BUILD_MK60) || defined(BUILD_MK64) || defined(BUILD_MKS20)
 	FEE_stFlashSSDConfig.ftfxRegBase = FTFx_REG_BASE;
 	FEE_stFlashSSDConfig.PFlashBlockBase = PFLASH_BLOCK_BASE;
 	FEE_stFlashSSDConfig.PFlashBlockSize = PBLOCK_SIZE;
@@ -1021,6 +1159,21 @@ static uint8* FEEHA_pu8GetPartitionAddress(void)
     	pu8NVRecordBase -= FEEHA_WORK_DATA_MAX;
     }
 #endif //BUILD_MK64
+
+#if defined(BUILD_MKS20)
+    pu8NVRecordBase = (uint8*)(FEEHA_PFLASH_END - FEEHA_WORK_DATA_MAX + 1);
+
+    while (((uint8*)FEEHA_PFLASH_START) <= pu8NVRecordBase)
+    {
+    	if (0xff != *pu8NVRecordBase) //caveat!!!!
+    	{
+    		break;
+    	}
+
+    	pu8NVRecordBase -= FEEHA_WORK_DATA_MAX;
+    }
+#endif //BUILD_MKS20
+
 
 	return pu8NVRecordBase;
 }
@@ -1055,6 +1208,33 @@ static uint8* FEEHA_pu8GetFreePartitionAddress(void)
     	}
     }
 #endif //BUILD_MK64
+
+#if defined(BUILD_MKS20)
+    pu8NVFreeBase = (uint8*)FEEHA_FLASH_NVM_RECS;
+    bool boEraseErr;
+
+    while (((uint8*)FEEHA_PFLASH_END) > pu8NVFreeBase)
+    {
+    	if (0xff == *pu8NVFreeBase) //caveat!!!!
+    	{
+    		pu8RetVal = pu8NVFreeBase;
+    		break;
+    	}
+
+    	pu8NVFreeBase += FEEHA_WORK_DATA_MAX;
+    }
+
+
+    if (((uint8*)~0) == pu8RetVal)
+    {
+    	boEraseErr = FEEHA_boEraseForDownload((uint8*)FEEHA_FLASH_NVM_RECS, FEEHA_PFLASH_END);
+
+    	if (FALSE == boEraseErr)
+    	{
+    		pu8RetVal = (uint8*)FEEHA_PFLASH_START;
+    	}
+    }
+#endif //BUILD_MKS20
 
 	return pu8RetVal;
 }

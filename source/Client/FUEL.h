@@ -24,6 +24,7 @@
 #include "sensors.h"
 #include "TEPM.h"
 #include "USER.h"
+#include "types.h"
 
 /* GLOBAL MACRO DEFINITIONS ***************************************************/
 #define FUEL_xUsToSlowTicks(x)          (((SENSORS_nSlowFTMFreq / 100u) * (x))	/ 10000u)		
@@ -38,6 +39,7 @@
 #define FUEL_nFuelSequenceCount			4
 #define FUEL_nSeqModeCountLimit			10
 #define FUEL_nSampleCount               5
+#define FUEL_nFuelPWMExportResource     EH_IO_TMR3
 
 #ifdef EXTERN
 	#undef EXTERN
@@ -87,6 +89,6 @@ void FUEL_vRun(uint32* const pu32Arg);
 void FUEL_vTerminate(uint32* const pu32Arg);
 void FUEL_vCallBack(puint32 const pu32Arg);
 void FUEL_vCalculateFuellingValues(void);
-void FUEL_vQuickCut(uint32 cut_cycles, uint32_t duration);
+void FUEL_vQuickCut(uint32 cut_percent, uint32 duration);
 
 #endif // FUEL_H

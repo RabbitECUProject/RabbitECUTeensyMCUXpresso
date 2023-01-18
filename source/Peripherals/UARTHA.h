@@ -22,6 +22,11 @@ typedef UART_Type tstUARTModule;
 typedef UART_Type tstUARTModule;
 #endif //BUILD_MK64
 
+#if defined(BUILD_MKS20)
+#include "mks20f12.h"
+typedef UART_Type tstUARTModule;
+#endif //BUILD_MS20
+
 #ifdef BUILD_SAM3X8E
 //#include "sam3x8e.h"
 typedef struct Uart tstUARTModule;
@@ -50,6 +55,16 @@ typedef struct Uart tstUARTModule;
 	{SYS_FREQ_BUS,	SIM_SCGC1,	SIM_SCGC1_UART5_MASK, UART5, UART5_RX_TX_IRQn}	\
 }
 #endif //BUILD_MK64
+
+#ifdef BUILD_MKS20
+#define UARTHA_nDataCB                                                          \
+{                                                                               \
+	{SYS_FREQ_CORE,	SIM_SCGC4,	SIM_SCGC4_UART0_MASK, UART0, UART0_RX_TX_IRQn},	\
+	{SYS_FREQ_BUS,	SIM_SCGC4,	SIM_SCGC4_UART1_MASK, UART1, UART1_RX_TX_IRQn},	\
+	{SYS_FREQ_BUS,	SIM_SCGC4,	SIM_SCGC4_UART2_MASK, UART2, UART2_RX_TX_IRQn},	\
+}
+#endif //BUILD_MKS20
+
 
 #ifdef BUILD_SAM3X8E
 #define UARTHA_nDataCB                                                          \

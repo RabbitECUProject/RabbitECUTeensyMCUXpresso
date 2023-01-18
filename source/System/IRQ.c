@@ -21,6 +21,10 @@
 #include "mk64f12.h"
 #endif //BUILD_MK64
 
+#ifdef BUILD_MKS20
+#include "mks20f12.h"
+#endif //BUILD_MKS20
+
 #include <core_cm4.h>
 #include <CLIENT.h>
 #include <DECLARATIONS.h>
@@ -47,15 +51,21 @@
 #endif //BUILD_PBL
 	
 
-SYSMPU_Type IRQ_stMPU;
 #ifdef BUILD_MK60
+SYSMPU_Type IRQ_stMPU;
 IRQRXCallBack IRQ_apfRXCallBack[100];
 IRQTXCallBack IRQ_apfTXCallBack[100];
 #endif //BUILD_MK60
 
 #ifdef BUILD_MK64
+SYSMPU_Type IRQ_stMPU;
 IRQRXCallBack IRQ_apfRXCallBack[100];
 IRQTXCallBack IRQ_apfTXCallBack[100];
+#endif //BUILD_MK64
+
+#ifdef BUILD_MKS20
+IRQRXCallBack IRQ_apfRXCallBack[94];
+IRQTXCallBack IRQ_apfTXCallBack[94];
 #endif //BUILD_MK64
 
 #ifdef BUILD_SAM3X8E
@@ -82,7 +92,7 @@ static void IRQ_vCommonCAN(tstCANModule*, IOAPI_tenEHIOResource, IRQn_Type enIRQ
 static void IRQ_vCommonSPI(tstSPIModule*, IOAPI_tenEHIOResource, IRQn_Type enIRQType);
 static void SVC_Handler_Main(void);
 
-#if defined(BUILD_MK60) || defined(BUILD_SAM3X8E) || defined(BUILD_MK64)
+#if defined(BUILD_MK60) || defined(BUILD_SAM3X8E) || defined(BUILD_MK64) || defined(BUILD_MKS20)
 void IRQ_vEnableIRQ(IRQn_Type enIRQType, IRQ_tenPRIO enPRIO, IRQRXCallBack pfRXCallBack, IRQTXCallBack pfTXCallBack)
 {
 	IRQ_apfRXCallBack[enIRQType] = pfRXCallBack;
@@ -96,7 +106,7 @@ void IRQ_vEnableIRQ(IRQn_Type enIRQType, IRQ_tenPRIO enPRIO, IRQRXCallBack pfRXC
 }
 #endif
 
-#if defined(BUILD_MK60) || defined(BUILD_SAM3X8E) || defined (BUILD_MK64)
+#if defined(BUILD_MK60) || defined(BUILD_SAM3X8E) || defined (BUILD_MKS20)
 void IRQ_vDisableIRQ(IRQn_Type enIRQType)
 {
 	IRQ_apfRXCallBack[enIRQType] = NULL;
@@ -360,8 +370,10 @@ void SysTick_Handler(void)
  *----------------------------------------------------------------------------*/
 void MemManage_Handler(void)
 {
+#if defined(BUILD_MK60) || defined(BUILD_MK64)
 	memcpy((void*)&IRQ_stMPU, (void*)SYSMPU_BASE, sizeof(SYSMPU_Type));
 	while(1);
+#endif //defined(BUILD_MK60) || defined(BUILD_MK64)
 }
 
 /*----------------------------------------------------------------------------
@@ -413,8 +425,10 @@ void ENET_Error_IRQHandler(void)
  *----------------------------------------------------------------------------*/
 void SPI2_IRQHandler(void)
 {
+#if defined(BUILD_MK60) || defined(BUILD_MK64)
 	SPI_Type* pstSPI = SPI2;
 	IRQ_vCommonSPI(pstSPI, EH_VIO_SPI1, SPI2_IRQn);
+#endif //defined(BUILD_MK60) || defined(BUILD_MK64)
 }
 
 
@@ -457,33 +471,51 @@ void UART2_ERR_IRQHandler(void){}
  *----------------------------------------------------------------------------*/
 void UART3_RX_TX_IRQHandler(void)
 {
+#if defined(BUILD_KERNEL_OR_KERNEL_APP) && (defined(BUILD_MK60) || defined(BUILD_MK64))
 	UART_Type* pstUART = UART3;
 	IRQ_vCommonUART(pstUART, EH_VIO_UART4, UART3_RX_TX_IRQn);
+#endif
 }
 
-void UART3_ERR_IRQHandler(void){}
+void UART3_ERR_IRQHandler(void)
+{
+#if defined(BUILD_KERNEL_OR_KERNEL_APP) && (defined(BUILD_MK60) || defined(BUILD_MK64))
+#endif
+}
 
 /*----------------------------------------------------------------------------
   UART4_Handlers
  *----------------------------------------------------------------------------*/
 void UART4_RX_TX_IRQHandler(void)
 {
+#if defined(BUILD_KERNEL_OR_KERNEL_APP) && (defined(BUILD_MK60) || defined(BUILD_MK64))
 	UART_Type* pstUART = UART4;
 	IRQ_vCommonUART(pstUART, EH_VIO_UART5, UART4_RX_TX_IRQn);
+#endif
 }
 
-void UART4_ERR_IRQHandler(void){}
+void UART4_ERR_IRQHandler(void)
+{
+#if defined(BUILD_KERNEL_OR_KERNEL_APP) && (defined(BUILD_MK60) || defined(BUILD_MK64))
+#endif
+}
 
 /*----------------------------------------------------------------------------
   UART5_Handlers
  *----------------------------------------------------------------------------*/
 void UART5_RX_TX_IRQHandler(void)
 {
+#if defined(BUILD_KERNEL_OR_KERNEL_APP) && (defined(BUILD_MK60) || defined(BUILD_MK64))
 	UART_Type* pstUART = UART5;
 	IRQ_vCommonUART(pstUART, EH_VIO_UART6, UART5_RX_TX_IRQn);
+#endif
 }
 
-void UART5_ERR_IRQHandler(void){}	
+void UART5_ERR_IRQHandler(void)
+{
+#if defined(BUILD_KERNEL_OR_KERNEL_APP) && (defined(BUILD_MK60) || defined(BUILD_MK64))
+#endif
+}
 	
 	
 /*----------------------------------------------------------------------------
@@ -508,7 +540,7 @@ void ADC0_IRQHandler(void)
 
 void ADC1_IRQHandler(void)
 {
-#ifdef BUILD_KERNEL_OR_KERNEL_APP
+#if defined(BUILD_KERNEL_OR_KERNEL_APP) && (defined(BUILD_MK60) || defined(BUILD_MK64))
 	IRQ_apfRXCallBack[ADC1_IRQn](EH_VIO_ADC1, NULL);
 #endif	
 }
@@ -531,33 +563,33 @@ void ADC3_IRQHandler(void)
 /*----------------------------------------------------------------------------
   FTMX_Handlers
  *----------------------------------------------------------------------------*/
-void FTM0_IRQHandler(void)
+void TPM0_IRQHandler(void)
 {
 #ifdef BUILD_KERNEL_OR_KERNEL_APP
 	uint32 u32Prio = 1;
-	IRQ_apfRXCallBack[FTM0_IRQn]((IOAPI_tenEHIOResource)EH_VIO_FTM0, (void*)&u32Prio);
+	IRQ_apfRXCallBack[TPM0_IRQn]((IOAPI_tenEHIOResource)EH_VIO_TPM0, (void*)&u32Prio);
 #endif	
 }
 
-void FTM1_IRQHandler(void)
+void TPM1_IRQHandler(void)
 {
 #ifdef BUILD_KERNEL_OR_KERNEL_APP
 	uint32 u32Prio = 1;
-	IRQ_apfRXCallBack[FTM1_IRQn]((IOAPI_tenEHIOResource)EH_VIO_FTM1, (void*)&u32Prio);
+	IRQ_apfRXCallBack[TPM1_IRQn]((IOAPI_tenEHIOResource)EH_VIO_TPM1, (void*)&u32Prio);
 #endif	
 }
 
-void FTM2_IRQHandler(void)
+void TPM2_IRQHandler(void)
 {
 #ifdef BUILD_KERNEL_OR_KERNEL_APP
 	uint32 u32Prio = 1;
-	IRQ_apfRXCallBack[FTM2_IRQn]((IOAPI_tenEHIOResource)EH_VIO_FTM2, (void*)&u32Prio);
+	IRQ_apfRXCallBack[TPM2_IRQn]((IOAPI_tenEHIOResource)EH_VIO_TPM2, (void*)&u32Prio);
 #endif	
 }
 
 void FTM3_IRQHandler(void)
 {
-#ifdef BUILD_KERNEL_OR_KERNEL_APP
+#if defined(BUILD_KERNEL_OR_KERNEL_APP) && (defined(BUILD_MK60) || defined(BUILD_MK64))
 	uint32 u32Prio = 1;
 	IRQ_apfRXCallBack[FTM3_IRQn]((IOAPI_tenEHIOResource)EH_VIO_FTM3, (void*)&u32Prio);
 #endif	
@@ -568,14 +600,14 @@ void FTM3_IRQHandler(void)
  *----------------------------------------------------------------------------*/
 void I2C0_IRQHandler(void)
 {
-#ifdef BUILD_KERNEL_OR_KERNEL_APP
+#if defined(BUILD_KERNEL_OR_KERNEL_APP) && (defined(BUILD_MK60) || defined(BUILD_MK64))
 	IRQ_apfRXCallBack[I2C0_IRQn](NULL, NULL);	
 #endif
 }
 
 void I2C1_IRQHandler(void)
 {
-#ifdef BUILD_KERNEL_OR_KERNEL_APP
+#if defined(BUILD_KERNEL_OR_KERNEL_APP) && (defined(BUILD_MK60) || defined(BUILD_MK64))
 	IRQ_apfRXCallBack[I2C1_IRQn](NULL, NULL);
 #endif	
 }
@@ -600,7 +632,7 @@ void CAN1_ORed_Message_buffer_IRQHandler(void)
 
 static void IRQ_vCommonCAN(tstCANModule* pstCAN, IOAPI_tenEHIOResource enEHIOResource, IRQn_Type enIRQType)
 {
-#if defined(BUILD_MK60) || defined(BUILD_MK64)
+#if defined(BUILD_MK60) || defined(BUILD_MK64) || defined(BUILD_MKS20)
 	CANHA_tstCANMB* pstCANMB;
 	uint32 u32IMask = 1;
 	uint32 u32MBIDX;

@@ -36,7 +36,6 @@ void SRLTFR_vRun(puint32 const pu32Arg)
 		switch (SRLTFR_astTransferInfo[SRLTFR_stTransferQueue.u32Head].enEHIOResource)
 		{
 			case EH_VIO_IIC1:
-			case EH_VIO_IIC2:	
 			{
 				/* Caveat here see SPI */
 				IIC_vInitTransfer(&SRLTFR_astTransferInfo[SRLTFR_stTransferQueue.u32Head]);

@@ -11,7 +11,7 @@
 /******************************************************************************/
 #define _UDSAL_C
 #include <TYPES.h>
-#include "mks20f12.h"
+#include "mk64f12.h"
 #include <DECLARATIONS.h>
 #include "UDSAL.h"
 
