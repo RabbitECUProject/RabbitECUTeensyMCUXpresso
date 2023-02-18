@@ -62,6 +62,7 @@ typedef enum
 #ifdef BUILD_SPARKDOG_MKS20
 #define EST_nMotor1EnablePin          EH_IO_GP7
 #define EST_nMotor2EnablePin          EH_IO_GP6
+#define EST_nExportPhasePin           EH_IO_GPSE9
 #endif //BUILD_SPARKDOG_MKS20
 
 #define EST_nSlowFTMDivisor           TEPMAPI_enDiv128

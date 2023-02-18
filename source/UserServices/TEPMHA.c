@@ -754,19 +754,24 @@ void TEPMHA_vCapComAction(TEPMAPI_tenAction enAction, void* pvModule, uint32 u32
 #if defined(BUILD_MKS20)
 		    pstTimerModule = (tstTimerModule*)pvModule;
 
-			/* Disable to change edge mode */
-		    pstTimerModule->CONTROLS[u32ChannelIDX].CnSC = 0;
+			/* Check if not set to toggle */
+			if (pstTimerModule->CONTROLS[u32ChannelIDX].CnSC !=
+					(TIMERPREFIX(_CnSC_MSA_MASK) | TIMERPREFIX(_CnSC_ELSA_MASK)))
+			{
+				/* Disable to change edge mode */
+				pstTimerModule->CONTROLS[u32ChannelIDX].CnSC = 0;
 
-			/* Wait for bits to clear */
-			while (0 != (pstTimerModule->CONTROLS[u32ChannelIDX].CnSC &
-					(TIMERPREFIX(_CnSC_MSA_MASK) | TIMERPREFIX(_CnSC_ELSB_MASK) | TIMERPREFIX(_CnSC_ELSA_MASK) | TIMERPREFIX(_CnSC_CHIE_MASK)))){}
+				/* Wait for bits to clear */
+				while (0 != (pstTimerModule->CONTROLS[u32ChannelIDX].CnSC &
+						(TIMERPREFIX(_CnSC_MSA_MASK) | TIMERPREFIX(_CnSC_ELSB_MASK) | TIMERPREFIX(_CnSC_ELSA_MASK) | TIMERPREFIX(_CnSC_CHIE_MASK)))){}
 
-			/* Set to toggle */
-			pstTimerModule->CONTROLS[u32ChannelIDX].CnSC =
-					TIMERPREFIX(_CnSC_MSA_MASK) | TIMERPREFIX(_CnSC_ELSA_MASK);
+				/* Set to toggle */
+				pstTimerModule->CONTROLS[u32ChannelIDX].CnSC =
+						TIMERPREFIX(_CnSC_MSA_MASK) | TIMERPREFIX(_CnSC_ELSA_MASK);
+			}
 
 			u32Temp = pstTimerModule->CNT;
-			u32Temp += 2;
+			u32Temp += 4;
 			u32Temp &= TEPMHA_nCounterMask;
 			pstTimerModule->CONTROLS[u32ChannelIDX].CnV = u32Temp;
 

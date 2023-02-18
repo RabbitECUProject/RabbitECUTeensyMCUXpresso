@@ -366,6 +366,14 @@ void EST_vStart(puint32 const pu32Arg)
 	SETUP_vSetDigitalIOHigh(EST_nMotor1EnablePin);
 	SETUP_vSetDigitalIOHigh(EST_nMotor2EnablePin);
 
+	/* Enable the EST export phase pin */
+	enEHIOResource = EST_nExportPhasePin;
+	enEHIOType = IOAPI_enDIOOutput;
+	enDriveStrength = IOAPI_enStrong;
+	SETUP_vSetupDigitalIO(enEHIOResource, enEHIOType, enDriveStrength, pu32Arg);
+
+	SETUP_vSetDigitalIOHigh(EST_nExportPhasePin);
+
 	/* Setup simple cam sync resource */
 	if (EH_IO_Invalid != USERCAL_stRAMCAL.enSimpleCamSyncSource)
 	{

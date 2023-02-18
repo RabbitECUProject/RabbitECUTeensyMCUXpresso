@@ -21,20 +21,11 @@ void CPU_vStart(void)
 void CPU_vEnterCritical(void)
 {
 	CPU_xEnterCritical();
-	//CPU_boCriticalNestCounter++;	
 }
 
 void CPU_vExitCritical(void)
 {
-	//if (1 == CPU_boCriticalNestCounter)
-	//{
-		CPU_xExitCritical();
-	//	CPU_boCriticalNestCounter = 0;
-	//}
-	//else
-	//{
-	//	CPU_boCriticalNestCounter--;			
-	//}
+	CPU_xExitCritical();
 }
 
 void CPU_vDisableMPROT(void)

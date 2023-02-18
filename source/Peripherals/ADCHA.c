@@ -140,7 +140,28 @@ bool ADCHA_boInitiateConversion(ADCHA_tstADCConversion* pstADCConversion, ADCHA_
 		pstADC->CFG2 |= (pstADCConversion->stADCChannel.enChannelAB << ADC_CFG2_MUXSEL_SHIFT) |
 									ADC_CFG2_ADHSC_MASK;
 						
-		pstADC->SC3 = (ADC_SC3_AVGS_MASK | ADC_SC3_AVGE_MASK | (pstADCConversion->stADCChannel.u32Samples));			
+		if (ADCAPI_en1Sample == pstADCConversion->stADCChannel.u32Samples)
+		{
+			pstADC->SC3 = (ADC_SC3_AVGE(0) | ADC_SC3_AVGS(0));
+		}
+		else if (ADCAPI_en4Samples == pstADCConversion->stADCChannel.u32Samples)
+		{
+			pstADC->SC3 = (ADC_SC3_AVGE(1) | ADC_SC3_AVGS(0));
+		}
+		else if (ADCAPI_en8Samples == pstADCConversion->stADCChannel.u32Samples)
+		{
+			pstADC->SC3 = (ADC_SC3_AVGE(1) | ADC_SC3_AVGS(1));
+		}
+		else if (ADCAPI_en16Samples == pstADCConversion->stADCChannel.u32Samples)
+		{
+			pstADC->SC3 = (ADC_SC3_AVGE(1) | ADC_SC3_AVGS(2));
+		}
+		else if (ADCAPI_en32Samples == pstADCConversion->stADCChannel.u32Samples)
+		{
+			pstADC->SC3 = (ADC_SC3_AVGE(1) | ADC_SC3_AVGS(3));
+		}
+
+		pstADC->SC3 = (ADC_SC3_AVGE(1) | ADC_SC3_AVGS(0) | (pstADCConversion->stADCChannel.u32Samples));
 		u32Conversion = ADC_SC1_ADCH_MASK & pstADCConversion->stADCChannel.u32ADChannel;
 		u32Conversion |= ADC_SC1_AIEN_MASK;
 			

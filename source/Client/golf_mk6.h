@@ -893,7 +893,7 @@
 /* u8UserPrimaryEdgeSetup */\
 0x1,\
 /* u8UserSecondaryEdgeSetup */\
-0x1,\
+0x2,\
 /* u8UserPrimaryVREnable */\
 1,\
 /* u8UserSecondaryVREnable */\
@@ -1076,7 +1076,7 @@ EH_IO_Invalid,\
 /* u16ESTCLGain */\
 40,\
 /* u8EnableAFMPrimaryInputClosed */\
-1,\
+0,\
 /* s16SequenceFuelOffset */\
 1,\
 /* s16SequenceFuelOffset */\
@@ -1886,7 +1886,7 @@ EH_IO_Invalid,\
 	13329u,\
 	14191u},\
 /* u8VariableFuelPressureEnable */\
-1,\
+0,\
 /* s32FuelPressureSensorGain */\
 30000,\
 /* s32FuelPressureSensorOffset */\

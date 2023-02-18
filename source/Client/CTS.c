@@ -73,7 +73,7 @@ void CTS_vStart(puint32 const pu32Arg)
 	if ((FALSE == USERCAL_stRAMCAL.boCTSCANPrimary) && (EH_IO_Invalid != USERCAL_stRAMCAL.u16CTSADResource))
 	{
 		/* Request and initialise the CTS ADC input channel */
-		SETUP_boSetupADSE(USERCAL_stRAMCAL.u16CTSADResource, IOAPI_enGPSE, ADCAPI_en32Samples, &CTS_vADCCallBack, ADCAPI_enTrigger2, pu32Arg);
+		SETUP_boSetupADSE(USERCAL_stRAMCAL.u16CTSADResource, IOAPI_enGPSE, ADCAPI_en1Sample, &CTS_vADCCallBack, ADCAPI_enTrigger2, pu32Arg);
 	}
 	
 	/* Request and initialise required Kernel managed spread for coolant sensor */

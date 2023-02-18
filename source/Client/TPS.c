@@ -74,7 +74,7 @@ void TPS_vStart(puint32 const pu32Arg)
 	
 	enEHIOResource = USERCAL_stRAMCAL.u16TPSADResource;
 	enEHIOType = IOAPI_enGPSE;
-	stADCCB.enSamplesAv = ADCAPI_en32Samples;
+	stADCCB.enSamplesAv = ADCAPI_en1Sample;
 	stADCCB.pfResultCB = &TPS_vADCCallBack;
 	stADCCB.enTrigger = ADCAPI_enTrigger4;				
 		
@@ -439,6 +439,9 @@ static void TPS_vADCCallBack(IOAPI_tenEHIOResource enEHIOResource, uint32 u32ADC
 {
 	TPS_u32ADCRaw = u32ADCResult;
 	TPS_boNewSample = TRUE;
+
+	static uint32 count = 0;
+	count++;
 }
 
 #endif //BUILD_USER

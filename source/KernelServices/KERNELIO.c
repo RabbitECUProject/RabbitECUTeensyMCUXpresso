@@ -49,7 +49,7 @@ void IO_vInitADCResource(IOAPI_tenEHIOResource enIOResource, IOAPI_tenEHIOType e
 {
 	if (((0u != IO_rastEHPadResource[enIOResource].boIsADSE) && (IOAPI_enGPSE == enEHIOType))
 		|| ((0u != IO_rastEHPadResource[enIOResource].boIsADD) && (IOAPI_enADD == enEHIOType)))
-	/* Init DIO only if port bit non zero signifies DIO supported */
+	/* Init analog input only if analog input type GPSE or ADD supported */
 	{	
 #if defined(BUILD_KERNEL) || defined(BUILD_KERNEL_APP)
 		ADC_vInitADCResource(enIOResource, enEHIOType, pstADCCB);			

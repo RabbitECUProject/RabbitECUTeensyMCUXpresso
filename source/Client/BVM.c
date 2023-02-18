@@ -60,7 +60,7 @@ void BVM_vStart(uint32 * const pu32Arg)
 	
 	enEHIOResource = BVM_nADInput;
 	enEHIOType = IOAPI_enGPSE;
-	stADCCB.enSamplesAv = ADCAPI_en32Samples;
+	stADCCB.enSamplesAv = ADCAPI_en4Samples;
 	stADCCB.pfResultCB = &BVM_vADCCallBack;
 	stADCCB.enTrigger = ADCAPI_enTrigger4;				
 		

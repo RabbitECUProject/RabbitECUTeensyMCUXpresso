@@ -57,6 +57,7 @@ EXTERN TEPMAPI_ttEventTime  FUEL_tStartFPSolenoidPeak;
 EXTERN TEPMAPI_ttEventTime  FUEL_tStartFPSolenoidDutyHigh;
 EXTERN TEPMAPI_ttEventTime  FUEL_tStartFPSolenoidDutyLow;
 EXTERN TEPMAPI_ttEventTime  FUEL_tFPAccumulate;
+EXTERN TEPMAPI_ttEventTime  FUEL_tTimeHoldExport;
 EXTERN TEPMAPI_ttEventTime  FUEL_tTimeHold[8];
 EXTERN GPM6_ttPulseUs       FUEL_tTimeHoldUs[8];
 //ASAM mode=readvalue name="Fuel Injector Hold ms" type=uint32 offset=0 min=0 max=40 m=0.001 b=0 units="ms" format=5.3 help="Fuel Injector Total ms"	

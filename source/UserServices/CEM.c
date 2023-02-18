@@ -79,9 +79,6 @@ void CEM_vStart(uint32* const u32Stat)
 	CTS_boCTSReady = FALSE;
 	CEM_u8SimpleMissingSync = 0;
 	CEM_u32CrankErrorCounts = 0;
-	
-	// todo remove
-	CEM_boPosConfirmed = 1;
 
 	memset((void*)&CEM_au16RisingCrankEdge, 0, sizeof(CEM_au16RisingCrankEdge)); 
 	memset((void*)&CEM_au16FallingCrankEdge, 0, sizeof(CEM_au16FallingCrankEdge));	

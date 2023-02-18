@@ -59,7 +59,7 @@ typedef Adc tstADCModule;
 #ifdef BUILD_MKS20
 #define ADCHA_nReg32Set  \
 {    \
-	{(volatile uint32*)(ADC0_BASE + offsetof(ADC_Type, CFG1)), (uint32)(ADC_CFG1_MODE(1) + ADC_CFG1_ADICLK(0) + ADC_CFG1_ADIV(1) + ADC_CFG1_ADLSMP_MASK), REGSET_enOverwrite},		\
+	{(volatile uint32*)(ADC0_BASE + offsetof(ADC_Type, CFG1)), (uint32)(ADC_CFG1_MODE(1) + ADC_CFG1_ADICLK(0) + ADC_CFG1_ADIV(1) + ADC_CFG1_ADLSMP(0)), REGSET_enOverwrite},		\
 	{ NULL, 0, REGSET_enOverwrite }  \
 }
 #endif //BUILD_MKS20

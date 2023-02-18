@@ -160,7 +160,7 @@ void SENSORS_vStart(puint32 const pu32Arg)
 		(void*)&enEHIOType,	(void*)&stTEPMChannelCB);
 	}
 
-#ifdef BUILD_SPARKDOG_TEENSY_ADAPT
+#if defined(BUILD_SPARKDOG_TEENSY_ADAPT) || defined(BUILD_SPARKDOG_MKS20)
 	stTimedEvent.enMethod = TEPMAPI_enLinkVVT1Input;
 #else
 	stTimedEvent.enMethod = TEPMAPI_enLinkFreqInput;
@@ -258,7 +258,7 @@ void SENSORS_vStart(puint32 const pu32Arg)
 	if (EH_IO_Invalid != USERCAL_stRAMCAL.u16AFRADResource)
 	{
 		/* Request and initialise the AFR ADC input channel */
-		boOK = SETUP_boSetupADSE(USERCAL_stRAMCAL.u16AFRADResource, IOAPI_enGPSE, ADCAPI_en32Samples, &SENSORS_vADCCallBack, ADCAPI_enTrigger2, pu32Arg);
+		boOK = SETUP_boSetupADSE(USERCAL_stRAMCAL.u16AFRADResource, IOAPI_enGPSE, ADCAPI_en1Sample, &SENSORS_vADCCallBack, ADCAPI_enTrigger2, pu32Arg);
 
 		if (TRUE == boOK)
 		{
@@ -269,7 +269,7 @@ void SENSORS_vStart(puint32 const pu32Arg)
 	if (EH_IO_Invalid != USERCAL_stRAMCAL.u16PPSMADResource)
 	{
 		/* Request and initialise the PPSM ADC input channel */
-		boOK = SETUP_boSetupADSE(USERCAL_stRAMCAL.u16PPSMADResource, IOAPI_enGPSE, ADCAPI_en32Samples, &SENSORS_vADCCallBack, ADCAPI_enTrigger2, pu32Arg);
+		boOK = SETUP_boSetupADSE(USERCAL_stRAMCAL.u16PPSMADResource, IOAPI_enGPSE, ADCAPI_en1Sample, &SENSORS_vADCCallBack, ADCAPI_enTrigger2, pu32Arg);
 
 		if (TRUE == boOK)
 		{
@@ -280,7 +280,7 @@ void SENSORS_vStart(puint32 const pu32Arg)
 	if (EH_IO_Invalid != USERCAL_stRAMCAL.u16PPSSADResource)
 	{
 		/* Request and initialise the PPSS ADC input channel */
-		boOK = SETUP_boSetupADSE(USERCAL_stRAMCAL.u16PPSSADResource, IOAPI_enGPSE, ADCAPI_en32Samples, &SENSORS_vADCCallBack, ADCAPI_enTrigger2, pu32Arg);
+		boOK = SETUP_boSetupADSE(USERCAL_stRAMCAL.u16PPSSADResource, IOAPI_enGPSE, ADCAPI_en1Sample, &SENSORS_vADCCallBack, ADCAPI_enTrigger2, pu32Arg);
 
 		if (TRUE == boOK)
 		{
@@ -291,7 +291,7 @@ void SENSORS_vStart(puint32 const pu32Arg)
 	if (EH_IO_Invalid != USERCAL_stRAMCAL.au16AuxInputResource[0])
 	{
 		/* Request and initialise the PPSS ADC input channel */
-		boOK = SETUP_boSetupADSE(USERCAL_stRAMCAL.au16AuxInputResource[0], IOAPI_enGPSE, ADCAPI_en32Samples, &SENSORS_vADCCallBack, ADCAPI_enTrigger2, pu32Arg);
+		boOK = SETUP_boSetupADSE(USERCAL_stRAMCAL.au16AuxInputResource[0], IOAPI_enGPSE, ADCAPI_en1Sample, &SENSORS_vADCCallBack, ADCAPI_enTrigger2, pu32Arg);
 
 		if (TRUE == boOK)
 		{
@@ -302,7 +302,7 @@ void SENSORS_vStart(puint32 const pu32Arg)
 	if (EH_IO_Invalid != USERCAL_stRAMCAL.au16AuxInputResource[1])
 	{
 		/* Request and initialise the PPSS ADC input channel */
-		boOK = SETUP_boSetupADSE(USERCAL_stRAMCAL.au16AuxInputResource[1], IOAPI_enGPSE, ADCAPI_en32Samples, &SENSORS_vADCCallBack, ADCAPI_enTrigger2, pu32Arg);
+		boOK = SETUP_boSetupADSE(USERCAL_stRAMCAL.au16AuxInputResource[1], IOAPI_enGPSE, ADCAPI_en1Sample, &SENSORS_vADCCallBack, ADCAPI_enTrigger2, pu32Arg);
 
 		if (TRUE == boOK)
 		{
@@ -313,7 +313,7 @@ void SENSORS_vStart(puint32 const pu32Arg)
 	if (EH_IO_Invalid != USERCAL_stRAMCAL.au16AuxInputResource[2])
 	{
 		/* Request and initialise the PPSS ADC input channel */
-		boOK = SETUP_boSetupADSE(USERCAL_stRAMCAL.au16AuxInputResource[2], IOAPI_enGPSE, ADCAPI_en32Samples, &SENSORS_vADCCallBack, ADCAPI_enTrigger2, pu32Arg);
+		boOK = SETUP_boSetupADSE(USERCAL_stRAMCAL.au16AuxInputResource[2], IOAPI_enGPSE, ADCAPI_en1Sample, &SENSORS_vADCCallBack, ADCAPI_enTrigger2, pu32Arg);
 
 		if (TRUE == boOK)
 		{
@@ -324,7 +324,7 @@ void SENSORS_vStart(puint32 const pu32Arg)
 	if (EH_IO_Invalid != USERCAL_stRAMCAL.au16AuxInputResource[3])
 	{
 		/* Request and initialise the PPSS ADC input channel */
-		boOK = SETUP_boSetupADSE(USERCAL_stRAMCAL.au16AuxInputResource[3], IOAPI_enGPSE, ADCAPI_en32Samples, &SENSORS_vADCCallBack, ADCAPI_enTrigger2, pu32Arg);
+		boOK = SETUP_boSetupADSE(USERCAL_stRAMCAL.au16AuxInputResource[3], IOAPI_enGPSE, ADCAPI_en4Samples, &SENSORS_vADCCallBack, ADCAPI_enTrigger2, pu32Arg);
 
 		if (TRUE == boOK)
 		{
@@ -951,8 +951,11 @@ static void SENSORS_vCEMCallBack(IOAPI_tenEHIOResource enEHIOResource, TEPMAPI_t
 		case CRANK_nInput:
 		{
 		    CAM_vEngineSpeedCB(tEventTime);
-
 			break;	
+		}
+		case CAM_nInput:
+		{
+
 		}
 #ifdef BUILD_BSP_AFM_FREQ
 		case AFM_FREQ_nInput:

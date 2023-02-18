@@ -34,6 +34,7 @@ bool ADC_boCyclicQueuePending;
 ADC_tstADCResult ADC_astResult[ADCHA_enQueueCount][ADC_nConversionsMax];
 MSG_tstMBX* ADC_apstMBX[ADCHA_enQueueCount][ADC_nConversionsMax];
 sint32 ADC_i32CyclicQueueIDX;
+bool ADC_aboTriggerPending[ADCHA_enQueueCount];
 
 /* Array to determine which queue triggered the last module conversion. Allows
    same AD channel to appear in different queues! */
@@ -64,6 +65,8 @@ void ADC_vStart(uint32* const pu32Stat)
 			/* NULL the mailbox pointer array */
 			ADC_apstMBX[u32QueueIDX][u32QueueElementIDX] = NULL;
 		}
+
+		ADC_aboTriggerPending[u32QueueIDX] = false;
 	}
 	
 	for (u32QueueIDX = 0; u32QueueIDX < 0xff; u32QueueIDX++)
@@ -270,6 +273,7 @@ void ADC_vInterruptHandler(IOAPI_tenEHIOResource enEHIOResource, void* pvData)
 		}
 	}
 
+	/* This will start any pending queues */
 	ADC_vRunConversionQueues();
 	
 	/* TODO suppress warning */
@@ -290,6 +294,13 @@ bool ADC_vTriggerQueue(ADCAPI_tenTrigger enTrigger)
 			ADC_astConversionQueue[enQueue].u32Head = 0;
 			ADC_vRunConversionQueues();
 			boResult = TRUE;
+		}
+		else
+		{
+			static uint32 count = 0;
+			count++;
+
+			ADC_aboTriggerPending[enTrigger - ADCAPI_enTrigger1 + 1] = true;
 		}
 	}
 	
@@ -376,6 +387,13 @@ static void ADC_vRunConversionQueues(void)
 			case ADCHA_enQueueTriggered3:
 			case ADCHA_enQueueTriggered4:
 			{
+				if ((TRUE == ADC_aboTriggerPending[enQueue]) && (FALSE == boModuleBusy[enADCModule]))
+				{
+					/*  OK let's run this queue */
+					ADC_astConversionQueue[enQueue].u32Head = 0;
+					ADC_aboTriggerPending[enQueue] = FALSE;
+				}
+
                 if (false == CQUEUE_xIsEmpty((CQUEUE_tstQueue*)&ADC_astConversionQueue + enQueue))
 				{
 					u32QueueIDX = ADC_astConversionQueue[enQueue].u32Head;

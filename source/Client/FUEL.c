@@ -86,7 +86,7 @@ void FUEL_vStart(puint32 const pu32Arg)
 	{
 		enEHIOResource = USERCAL_stRAMCAL.u16FRSADResource;
 		enEHIOType = IOAPI_enGPSE;
-		stADCCB.enSamplesAv = ADCAPI_en32Samples;
+		stADCCB.enSamplesAv = ADCAPI_en4Samples;
 		stADCCB.pfResultCB = &FUEL_vADCCallBack;
 		stADCCB.enTrigger = ADCAPI_enTrigger4;
 
@@ -468,7 +468,7 @@ void FUEL_vStart(puint32 const pu32Arg)
 	}
 #endif //BUILD_SPARKDOG_MKS20
 
-	USER_vSVC(SYSAPI_enConfigureFuelPWMExport, (void*)&FUEL_tTimeHold[0], NULL, NULL);
+	USER_vSVC(SYSAPI_enConfigureFuelPWMExport, (void*)&FUEL_tTimeHoldExport, NULL, NULL);
 					
 	/* Request and initialise required Kernel managed spread for AfmTF */
 	FUEL_tSpreadAfmTFIDX = SETUP_tSetupSpread((void*)&FUEL_nXAFMAxisRef, (void*)&USERCAL_stRAMCAL.aUserCURVEAfmTFSpread, TYPE_enUInt32, 17, SPREADAPI_enSpread4ms, NULL);
@@ -1255,7 +1255,9 @@ static void FUEL_vCyclicCalculate(void)
 			FUEL_tStartHoldFraction[2] = 2000;
 			FUEL_tStartHoldFraction[3] = 2000;
 		}
-	}		
+	}
+
+	FUEL_tTimeHoldExport = FUEL_tTimeHold[0] / 8 + 100;
 }
 
 

@@ -960,7 +960,16 @@ void TEPM_vStartEventProgramKernelQueues(bool boAsyncRequest, uint32 u32Sequence
 #ifdef BUILD_SPARKDOG_MKS20
 	if (0x80 > u32SequenceIDX)
 	{
-		TEPMHA_vCapComAction(TEPMAPI_enImmediatePulse, TEPM_FUEL_PWM_EXPORT_MODULE, TEPM_FUEL_PWM_EXPORT_CHANNEL, 0, (*TEPM_pu32FuelPWMExport) / 4);
+		if (0 == u32SequenceIDX)
+		{
+			IO_vAssertDIOResource(EH_IO_GPSE9, IOAPI_enHigh);
+		}
+		else if ((TEPM_MAJOR_SYNC_POINT_COUNT / 2) == u32SequenceIDX)
+		{
+			IO_vAssertDIOResource(EH_IO_GPSE9, IOAPI_enLow);
+		}
+
+		TEPMHA_vCapComAction(TEPMAPI_enImmediatePulse, TEPM_FUEL_PWM_EXPORT_MODULE, TEPM_FUEL_PWM_EXPORT_CHANNEL, 0, *TEPM_pu32FuelPWMExport);
 	}
 #endif //BUILD_SPARKDOG_MKS20
 }
