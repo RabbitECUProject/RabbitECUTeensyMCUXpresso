@@ -55,6 +55,7 @@ TEPM_tstTEPMResult TEPM_astEventResult[TEPMHA_nEventChannels];
 MSG_tstMBX* TEPM_apstMBX[TEPMHA_nEventChannels];
 bool TEPM_aboTEPMChannelModeInput[TEPMHA_nEventChannels];
 bool TEPM_aboTEPMChannelModeOutput[TEPMHA_nEventChannels];
+bool TEPM_aboTEPMChannelModeDisconnect[TEPMHA_nEventChannels];
 bool TEPM_aboTEPMChannelModeToothScheduled[TEPMHA_nEventChannels];
 bool TEPM_aboTEPMChannelModeRecursive[TEPMHA_nEventChannels];
 bool TEPM_au32TEPMChannelRecursionCount[TEPMHA_nEventChannels];
@@ -243,6 +244,7 @@ uint32 TEPM_u32InitTEPMChannel(IOAPI_tenEHIOResource enEHIOResource, TEPMAPI_tst
 	    TEPM_aboTEPMChannelModeInput[u32TableIDX] = FALSE;
 	    TEPM_aboTEPMChannelModePWM[u32TableIDX] = boPWMMode;
 	    TEPM_aboTEPMChannelModeRecursive[u32TableIDX] = FALSE;
+	    TEPM_aboTEPMChannelModeDisconnect[u32TableIDX] = pstTEPMChannelCB->boDisconnect;
     }
 
 	if (0x10000000 <= pstTEPMChannelCB->u32Sequence)
@@ -1426,7 +1428,7 @@ static void TEPM_vRunEventProgramKernelQueue(void* pvModule, uint32 u32ChannelID
 							u32EventTime = *pstTimedEvent->ptAccumulate - pstTimedEvent->tAccumulate;
 							memcpy(&stTempKernelEvent, pstTimedEvent, sizeof(stTempKernelEvent));
 							pstTimedEvent = &stTempKernelEvent;
-							pstTimedEvent->enAction = TEPMAPI_enSetLow;
+							pstTimedEvent->enAction = TEPMAPI_enToggle;
 							TEPM_astProgramKernelQueue[u32TableIDX].u32Head = TEPM_astProgramKernelQueue[u32TableIDX].u32Tail - 1;
 						}
 						else
@@ -1560,7 +1562,7 @@ static void TEPM_vRunEventProgramKernelQueue(void* pvModule, uint32 u32ChannelID
 		}
 
 		/* The queue is empty so go ahead and disable interrupts and connection */
-		TEPMHA_vDisconnectEnable(pvModule, u32ChannelIDX);
+		TEPMHA_vDisconnectEnable(pvModule, u32ChannelIDX, TRUE, TEPM_aboTEPMChannelModeDisconnect[u32TableIDX]);
 	}
 }
 

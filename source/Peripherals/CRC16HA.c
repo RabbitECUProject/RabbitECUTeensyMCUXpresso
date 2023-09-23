@@ -31,7 +31,7 @@ static puint16 CRC16HA_pu16CalcTableCRC(uint16, puint8, uint16);
 
 void CRC16HA_vStart(uint32* const u32Stat)
 {
-#if defined(BUILD_MK60) || defined(BUILD_MK64)
+#if defined(BUILD_MK60) || defined(BUILD_MK64) || defined(BUILD_MKS20)
 	SIM_vSetReg32(SIM_SCGC6, SIM_SCGC6_CRC_MASK);
 #endif
 }

@@ -90,6 +90,7 @@ static void DLLBYTEQUEUE_vDequeueBytes(CBYTEQUEUE_tstQueue*, puint8, puint32);
 static puint8 DLL_pu8GetTXClientBuffer(IOAPI_tenEHIOResource, puint32 pu32TXBufferCap);	
 static void DLL_vReleaseTXClientBuffer(puint8);
 uint32 DLL_au32CANData[8];
+uint32 DLL_au32LastRXTime[DLL_nVirtualChannelCount];
 
 DLL_tstRXDLLData* DLL_pstGetRXBuffer(IOAPI_tenEHIOResource enEHIOResource)
 {
@@ -292,6 +293,7 @@ void DLL_vFrameRXCB(IOAPI_tenEHIOResource enEHIOResource, puint8 pu8RXData)
 									0 : DLL_stRXDLLData[DLLVirtualChannelIDX].u8DataCount;
 							}
 
+							DLL_au32LastRXTime[DLLVirtualChannelIDX] = OS_u32TickCounter;
 							break;
 						}
 
@@ -455,31 +457,34 @@ void DLL_vRun(uint32* const u32Stat)
 	{
 		if (0 < DLLBYTEQUEUE_u32GetQueuedCount(&DLL_astTXDLLByteQueue[DLLVirtualChannelIDX]))
 		{
-			enEHIOResource = DLL_tGetEHIOResource(DLLVirtualChannelIDX);
-					
-			if (DLL_astPortConfigCB[DLLVirtualChannelIDX].enVIOResource == enEHIOResource)
+			if (5 < (OS_u32TickCounter - DLL_au32LastRXTime[DLLVirtualChannelIDX]))
 			{
-				u32TXBytesMaxDequeued = DLL_rau16TXFrameMaxBytes[DLLVirtualChannelIDX];
-				
-				/* Get a TX buffer */		
-				pu8TXData = DLL_pu8GetTXClientBuffer(enEHIOResource, &u32TXBufferCap);
-				
-				if (NULL != pu8TXData)
-				{				
-					/* Uh oh really need to check if channel is available here first */
-					DLLBYTEQUEUE_vDequeueBytes(&DLL_astTXDLLByteQueue[DLLVirtualChannelIDX], 
-						pu8TXData, &u32TXBytesMaxDequeued);
+				enEHIOResource = DLL_tGetEHIOResource(DLLVirtualChannelIDX);
+
+				if (DLL_astPortConfigCB[DLLVirtualChannelIDX].enVIOResource == enEHIOResource)
+				{
+					u32TXBytesMaxDequeued = DLL_rau16TXFrameMaxBytes[DLLVirtualChannelIDX];
 					
-					boReleaseImmediate = DLL_boSendFrame(enEHIOResource, pu8TXData, u32TXBytesMaxDequeued);	
+					/* Get a TX buffer */
+					pu8TXData = DLL_pu8GetTXClientBuffer(enEHIOResource, &u32TXBufferCap);
 					
-					if (true == boReleaseImmediate)
-					/* Some TX channel such as ENET rebuffer so release is OK, others
-					   such as UART transit more bytes by CB, so no immediate release */
-					{						
-						DLL_vReleaseTXClientBuffer(pu8TXData);
+					if (NULL != pu8TXData)
+					{
+						/* Uh oh really need to check if channel is available here first */
+						DLLBYTEQUEUE_vDequeueBytes(&DLL_astTXDLLByteQueue[DLLVirtualChannelIDX],
+							pu8TXData, &u32TXBytesMaxDequeued);
+
+						boReleaseImmediate = DLL_boSendFrame(enEHIOResource, pu8TXData, u32TXBytesMaxDequeued);
+
+						if (true == boReleaseImmediate)
+						/* Some TX channel such as ENET rebuffer so release is OK, others
+						   such as UART transit more bytes by CB, so no immediate release */
+						{
+							DLL_vReleaseTXClientBuffer(pu8TXData);
+						}
 					}
 				}
-			}			
+			}
 		}
 	}
 }

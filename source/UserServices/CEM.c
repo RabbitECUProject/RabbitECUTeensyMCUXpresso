@@ -758,7 +758,8 @@ void CEM_vPrimaryEventCB(IOAPI_tenEHIOResource enEHIOResource, TEPMAPI_ttEventTi
 		        /* Sync over 720 degrees */
 		        if (CEM_enTypeWVEA888 == CEM_enTriggerType)
 		        {
-		        	boTemp = CEM_boVVTIsHigh[0];
+		        	//boTemp = CEM_boVVTIsHigh[0];
+		        	boTemp = CEM_boGetVVT1CamSyncState();
 
 					if (FALSE == boTemp)
 					{
@@ -837,6 +838,8 @@ void CEM_vPrimaryEventCB(IOAPI_tenEHIOResource enEHIOResource, TEPMAPI_ttEventTi
 		        	}
 		        	else
 		        	{
+		        		CEM_boVVTIsHigh[0] = CEM_boGetVVT1CamSyncState();
+
 						if ((CEM_u32GlobalCycleFraction & 0xffff) == CEM_au16SyncPoints[1])
 						{
 							if (55 > (CEM_u32VVTLowToothCount[0] + CEM_u32VVTHighToothCount[0]))
@@ -1090,7 +1093,8 @@ static bool CEM_boGetVVT1CamSyncState(void)
 
 	enTriState = IO_enGetDIOResourceState(CEM_VVT1_RESOURCE);
 
-	return (IOAPI_enHigh == enTriState);
+	// return inverse
+	return (IOAPI_enLow == enTriState);
 }
 
 
@@ -1169,8 +1173,8 @@ static TEPMAPI_ttEventTime CEM_tCalculateGlobalTime(TEPMAPI_ttEventTime tEventTi
 	{
 		if (TRUE == TPS_boThrottleClosed)
 		{
-			u32Temp = USERCAL_stRAMCAL.u16ESTFilterClosed * CEM_u32GlobalCycleTime;
-			u32Temp += ((0x100 - USERCAL_stRAMCAL.u16ESTFilterClosed) * tGlobalTimeNew);
+			u32Temp = USERCAL_stRAMCAL.u16ESTFilterClosed * tGlobalTimeNew;
+			u32Temp += ((0x100 - USERCAL_stRAMCAL.u16ESTFilterClosed) * CEM_u32GlobalCycleTime);
 			u32Temp /= 0x100;
 		}
 		else
@@ -1205,8 +1209,6 @@ static void CEM_vSequenceReset(IOAPI_tenEHIOResource enEHIOResource, TEPMAPI_ttE
 	CEM_tSyncTimeLast = tEventTime;
 
 	u32SequenceIDX++;	
-	u32Temp = CEM_u32GlobalCycleTime / (4 * CEM_u8PhaseRepeats);
-	u32Temp = 0x10000 > u32Temp ? u32Temp : 0xffff;
 
 	if (1 == CEM_u8PhaseRepeats)
 	{
@@ -1284,13 +1286,12 @@ static void CEM_vSequenceReset(IOAPI_tenEHIOResource enEHIOResource, TEPMAPI_ttE
 			}
 
 
-#ifdef BUILD_SPARKDOG_PF
+#if defined(BUILD_SPARKDOG_PF) || defined(BUILD_SPARKDOG_MKS20)
 			/* grab the primary linked resource for the phase tell-tale to slave uP */
 			enLinkedResource = TEPM_enGetPrimaryLinkedResource();
 
 			/* set the phase tell-tale */
 			enTriState = true == boLatePhase ? IOAPI_enHigh : IOAPI_enLow;
-
 
 			IO_vAssertDIOResource(enLinkedResource, enTriState);
 #endif
@@ -1303,8 +1304,13 @@ static void CEM_vSequenceReset(IOAPI_tenEHIOResource enEHIOResource, TEPMAPI_ttE
 		TEPM_vStartEventProgramKernelQueues(FALSE, u32SequenceIDX);	
 	}
 
-	if ((0 == (0xfffc & CEM_u32GlobalCycleFraction)) || (0x8000 == (0xfffc & CEM_u32GlobalCycleFraction)))
+	u32Temp = 0x3ffc & CEM_u32GlobalCycleFraction;
+
+	if (0 == u32Temp)
 	{
+		u32Temp = CEM_u32GlobalCycleTime / (8 * CEM_u8PhaseRepeats);
+		u32Temp = 0x10000 > u32Temp ? u32Temp : 0xffff;
+
 		TEPM_vInitiateUserCallBack(enEHIOResource, (uint16)u32Temp);
 	}
 }

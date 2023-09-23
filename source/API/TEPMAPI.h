@@ -118,6 +118,7 @@ typedef struct
 	bool boAsyncRequestEnable;
 	uint32 u32Sequence;
 	bool boRecursive;
+	bool boDisconnect;
 	IOAPI_tenEHIOResource enLinkedResource;
 } TEPMAPI_tstTEPMChannelCB;
 

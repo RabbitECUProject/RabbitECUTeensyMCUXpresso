@@ -22,7 +22,7 @@
 #include "USER.h"
 
 /* GLOBAL MACRO DEFINITIONS ***************************************************/
-#define CAM_xTicksToRPM(x)      ((60u * SENSORS_nFastFTMFreq) / (4 * x))
+#define CAM_xTicksToRPM(x)      ((60u * SENSORS_nFastFTMFreq) / (8 * x))
 #define CAM_nPeriodMs           (10u)
 #define CAM_nPeriodRPMTimeout   (300u)
 #define CAM_nRPMTransitionCount (10)

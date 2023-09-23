@@ -197,7 +197,7 @@ uint32 CANHA_u32InitBus(IOAPI_tenEHIOResource enEHIOResource, IOAPI_tstPortConfi
 			pstCAN -> MCR &= ~CAN_MCR_HALT_MASK;
 			while((pstCAN -> MCR) & CAN_MCR_FRZACK_MASK);			
 			
-			IRQ_vEnableIRQ(nCANIRQ, IRQ_enPRIO_15, CAN_vInterrupt, NULL);
+			IRQ_vEnableIRQ(nCANIRQ, IRQ_enPRIO_12, CAN_vInterrupt, NULL);
 			pstCAN -> IMASK1 = 0x00000FFF;
 			
 			u32MuxSel = 2;
@@ -357,7 +357,7 @@ void CANHA_vInitTransfer(IOAPI_tstTransferCB* pstTransferCB)
 	PROTAPI_tstCANMsg* pstCANMsg;
 
 	
-#if defined(BUILD_MK60) || defined(BUILD_MK64)
+#if defined(BUILD_MK60) || defined(BUILD_MK64) || defined(BUILD_MKS20)
 	CANHA_tstCANMB* pstCANMB;
 
 	uint32 u32MBXIDX;
@@ -492,7 +492,7 @@ bool CANHA_boReadMB(tstCANModule* pstCAN, CANHA_tstCANMB* pstCANMB)
 	}
 #endif //BUILD_SAM3X8E
 
-#ifdef BUILD_MK64
+#if defined(BUILD_MK64) || defined(BUILD_MKS20)
 	u32MBXMask = 1;
 
 	for (u8MBXIDX = 0; u8MBXIDX < CAN_nCANRXMailboxCount; u8MBXIDX++)

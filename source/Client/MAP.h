@@ -26,6 +26,8 @@
 #define MAP_nAirDensMgpL					(1190u)
 #define MAP_nRunFreq                        (200)	
 #define MAP_nADCRawInitVal                  (2500)
+#define MAP_nHighLoadThresLow               (75000)
+#define MAP_nHighLoadThresHigh              (85000)
 
 #ifdef EXTERN
 	#undef EXTERN
@@ -39,13 +41,12 @@
 
 /* GLOBAL VARIABLE DECLARATIONS ***********************************************/
 EXTERN uint32 MAP_u32ADCRaw;
-//ASAM mode=readvalue name="MAP Sensor ADC" type=uint32 offset=0 min=0 max=4095 m=1 b=0 units="dl" format=5.3 help="MAP Sensor ADC Counts"
-EXTERN uint32 MAP_u32ADCFiltered;
 EXTERN GPM6_ttVolts MAP_tSensorVolts;/*CR1_88*/
 //ASAM mode=readvalue name="MAP Sensor Voltage" type=uint32 offset=0 min=0 max=5 m=0.001 b=0 units="V" format=5.3 help="MAP Sensor Voltage"
 EXTERN GPM6_ttPa MAP_tBoostTarget;
 //ASAM mode=readvalue name="Boost Target" type=uint32 offset=0 min=0 max=500 m=0.001 b=0 units="kPa" format=5.3 help="Boost Target"
 EXTERN GPM6_ttPa MAP_tKiloPaRaw;
+EXTERN volatile GPM6_ttPa MAP_atKiloCycle[5];
 EXTERN volatile GPM6_ttPa MAP_tKiloPaFiltered;
 //ASAM mode=readvalue name="MAP kPa" type=uint32 offset=0 min=0 max=500 m=0.001 b=0 units="kPa" format=5.3 help="Manifold Pressure"
 EXTERN volatile sint32 MAP_tKiloPaTargetError;
@@ -53,11 +54,13 @@ EXTERN GPM6_ttUg MAP_tManChargeMassUg;
 EXTERN sint32 MAP_s32ManDeltaChargeMassPerSUg;
 EXTERN uint16 MAP_u16VE;
 EXTERN bool MAP_boHighVacuum;
+EXTERN bool MAP_boHighLoad;
 EXTERN bool MAP_boBoostETCCutEnable;
 EXTERN uint16 MAP_u16PressureValveFeedForward;
 EXTERN uint16 MAP_u16PressureValveDuty;
 EXTERN uint8 MAP_u8PressureThrottleTrim;
 EXTERN uint32 MAP_u32PseudoMAP;
+
 
 #define MAP_BOOST_POS_DELTA_PER_MS 50
 		
@@ -66,5 +69,6 @@ void MAP_vStart(uint32 * const pu32Arg);
 void MAP_vRun(uint32* const pu32Arg);
 void MAP_vTerminate(uint32* const pu32Arg);
 void MAP_vCallBack(puint32 const pu32Arg);
+void MAP_vCycleCalculateMAP(void);
 
 #endif // MAP_H

@@ -155,6 +155,7 @@ void LSUH_vStart(uint32 * const pu32Arg)
 	}
 #endif //LSUH_TEPM
 	
+#if 0
 	/* Request and initialise AD converter resources */
 	for (u32ADConfigIDX = 0; u32ADConfigIDX < LSUH_nADConfigCount; u32ADConfigIDX++)
 	{
@@ -179,6 +180,7 @@ void LSUH_vStart(uint32 * const pu32Arg)
 			break;
 		}
 	}
+#endif
 	
 	/* Initialise HMEN enable control lines */
 	if (SYSAPI_enOK == pstSVCDataStruct->enSVCResult)	

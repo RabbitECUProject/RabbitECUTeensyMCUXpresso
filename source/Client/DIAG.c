@@ -21,6 +21,7 @@
 
 #include "diag.h"
 #include "PERUART.h"
+#include "gendata.h"
 
 /* LOCAL VARIABLE DEFINITIONS (STATIC) ****************************************/
 const USERDIAG_tstIdentifierIB USERDIAG_rastIdentifierIB[] = USER_DIAG_nCIDInfo;
@@ -35,7 +36,7 @@ uint16 USERDIAG_rau16Mode1DataOffsets[MODE1_PIDS_COUNT] = USERDIAG_nMode1PIDOffs
 const uint8 USERDIAG_rau8Codes648[] = USERDIAG_nCodes648;
 const uint8 USERDIAG_rau8Codes1152[] = USERDIAG_nCodes1152;
 
-CQUEUE_tstQueue* DIAG_pstUARTQueue;
+CQUEUE_tstQueue* volatile DIAG_pstUARTQueue;
 uint8* DIAG_pu8UARTBuffer;
 
 /* LOCAL FUNCTION PROTOTYPES (STATIC) *****************************************/
@@ -302,12 +303,17 @@ void USERDIAG_vRun(puint32 const pu32Arg)
 	static uint8 u8Counter10;
 	static uint8 u8Counter20;
 	static uint8 u8Counter1000;
-	static uint8 u8UARTSeq;
 	uint32 u32Temp;
 	uint16 u16Temp;
 	uint8 u8Temp;
-	static uint8 u8UARTChecksum;
-	static uint8 au8UARTInBuffer[4];
+	static uint8 u8UARTTXChecksum;
+	static uint8 au8UARTInBuffer[8];
+	static uint8 u8UARTInBufferIDX = 0;
+	bool boRXUart;
+
+#if defined(DEBUG_DIAG)
+	static uint32 debugRXCounts = 0;
+#endif //DEBUG_DIAG
 
 	USERDIAG_u32GlobalTimeTick++;
 
@@ -563,21 +569,25 @@ void USERDIAG_vRun(puint32 const pu32Arg)
 
 
 	/* UART data */
-	else if (19 == (USERDIAG_u32GlobalTimeTick % 64))
+	if (1 == (USERDIAG_u32GlobalTimeTick % 16))
 	{
-		u8Temp = 0x3f & USERCAL_stRAMCAL.u8DBSlaveConfig;
-		UARTHA_vSendChar(EH_VIO_UART1, u8Temp + u8UARTSeq);
-		u8UARTChecksum += (u8Temp + u8UARTSeq);
-		u8UARTSeq -= 0x40;
+		UARTHA_vSendChar(EH_VIO_UART1, 0xaa);
+		u8UARTTXChecksum = 0xaa;
 	}
-	else if (27 == (USERDIAG_u32GlobalTimeTick % 64))
+	else if (2 == (USERDIAG_u32GlobalTimeTick % 16))
 	{
-		u8Temp = 0x3f & TORQUE_u16ETCScaleRamped;
-		UARTHA_vSendChar(EH_VIO_UART1, u8Temp + u8UARTSeq);
-		u8UARTChecksum += (u8Temp + u8UARTSeq);
-		u8UARTSeq -= 0x40;
+		u8Temp =  0x7f & USERCAL_stRAMCAL.u8DBSlaveConfig;
+		u8Temp |= 0x40;
+		UARTHA_vSendChar(EH_VIO_UART1, u8Temp);
+		u8UARTTXChecksum += u8Temp;
 	}
-	else if (35 == (USERDIAG_u32GlobalTimeTick % 64))
+	else if (3 == (USERDIAG_u32GlobalTimeTick % 16))
+	{
+		u8Temp = 0x7f & (uint8)TORQUE_u16ETCScaleRamped;
+		UARTHA_vSendChar(EH_VIO_UART1, u8Temp);
+		u8UARTTXChecksum += u8Temp;
+	}
+	else if (4 == (USERDIAG_u32GlobalTimeTick % 16))
 	{
 		switch (USERCAL_stRAMCAL.u16DiagType)
 		{
@@ -628,37 +638,131 @@ void USERDIAG_vRun(puint32 const pu32Arg)
 			}
 		}
 
-		UARTHA_vSendChar(EH_VIO_UART1, u8Temp + u8UARTSeq);
-		u8UARTChecksum += (u8Temp + u8UARTSeq);
-		u8UARTSeq -= 0x40;
+		DIAG_u16ISCCmd = u8Temp;
+		u8Temp |= 0x40;
+		UARTHA_vSendChar(EH_VIO_UART1, 0x7f & u8Temp);
+		u8UARTTXChecksum += (0x7f & u8Temp);
 	}
-	else if (43 == (USERDIAG_u32GlobalTimeTick % 64))
+	else if (5 == (USERDIAG_u32GlobalTimeTick % 16))
 	{
-		UARTHA_vSendChar(EH_VIO_UART1, u8UARTSeq + (0x3f & u8UARTChecksum));
-		u8UARTChecksum = 0;
-		u8UARTSeq = 0xc0;
+		u8Temp = 0x7f & (uint8)GENDATA_u16PWMOutput[0];
+		UARTHA_vSendChar(EH_VIO_UART1, u8Temp);
+		u8UARTTXChecksum += u8Temp;
 	}
-
-
+	else if (6 == (USERDIAG_u32GlobalTimeTick % 16))
+	{
+		u8Temp = 0x7f &  (uint8)GENDATA_u16PWMOutput[1];
+		UARTHA_vSendChar(EH_VIO_UART1, u8Temp);
+		u8UARTTXChecksum += u8Temp;
+	}
+	else if (7 == (USERDIAG_u32GlobalTimeTick % 16))
+	{
+		u8Temp = 0x7f & (uint8)GENDATA_u16PWMOutput[2];
+		UARTHA_vSendChar(EH_VIO_UART1, u8Temp);
+		u8UARTTXChecksum += u8Temp;
+	}
+	else if (8 == (USERDIAG_u32GlobalTimeTick % 16))
+	{
+		u8Temp = 0x7f & (uint8)GENDATA_u16PWMOutput[3];
+		UARTHA_vSendChar(EH_VIO_UART1, u8Temp);
+		u8UARTTXChecksum += u8Temp;
+	}
+	else if (9 == (USERDIAG_u32GlobalTimeTick % 16))
+	{
+		u8Temp = 0x7f & (uint8)GENDATA_u16PWMOutput[4];
+		UARTHA_vSendChar(EH_VIO_UART1, u8Temp);
+		u8UARTTXChecksum += u8Temp;
+	}
+	else if (10 == (USERDIAG_u32GlobalTimeTick % 16))
+	{
+		u8Temp = 0x7f & (uint8)GENDATA_u16PWMOutput[5];
+		UARTHA_vSendChar(EH_VIO_UART1, u8Temp);
+		u8UARTTXChecksum += u8Temp;
+	}
+	else if (11 == (USERDIAG_u32GlobalTimeTick % 16))
+	{
+		u8Temp = 0x7f & (uint8)GENDATA_u16PWMOutput[6];
+		UARTHA_vSendChar(EH_VIO_UART1, u8Temp);
+		u8UARTTXChecksum += u8Temp;
+	}
+	else if (12 == (USERDIAG_u32GlobalTimeTick % 16))
+	{
+		u8Temp = 0x7f & (uint8)GENDATA_u16PWMOutput[7];
+		UARTHA_vSendChar(EH_VIO_UART1, u8Temp);
+		u8UARTTXChecksum += u8Temp;
+	}
+	else if (13 == (USERDIAG_u32GlobalTimeTick % 16))
+	{
+		u8Temp = 0;
+		UARTHA_vSendChar(EH_VIO_UART1, u8Temp);
+		u8UARTTXChecksum += u8Temp;
+	}
+	else if (14 == (USERDIAG_u32GlobalTimeTick % 16))
+	{
+		UARTHA_vSendChar(EH_VIO_UART1, 0x7f & u8UARTTXChecksum);
+	}
 
 
 	if (FALSE == CQUEUE_xIsEmpty(DIAG_pstUARTQueue))
 	{
-		uint8 u8Temp = DIAG_pu8UARTBuffer[DIAG_pstUARTQueue->u32Tail];
-		CQUEUE_xRemoveItem(DIAG_pstUARTQueue);
+		boRXUart = FALSE;
 
-		au8UARTInBuffer[3 - (u8Temp >> 6)] = u8Temp;
-
-		if (0xc0 == (u8Temp & 0xc0))
+		while (FALSE == boRXUart)
 		{
-			u8Temp = au8UARTInBuffer[1];
-			u8Temp += au8UARTInBuffer[2];
-			u8Temp += au8UARTInBuffer[3];
+			CPU_xEnterCritical();
+			u8Temp = DIAG_pu8UARTBuffer[DIAG_pstUARTQueue->u32Head];
+			CQUEUE_xRemoveItemUnsafe(DIAG_pstUARTQueue);
+			CPU_xExitCritical();
 
-			if (au8UARTInBuffer[1] == (u8Temp &  0x3f))
+			if (0 != (u8Temp & 0x80))
 			{
+				u8UARTInBufferIDX = 0;
+				au8UARTInBuffer[1] = 0xff;
+				au8UARTInBuffer[2] = 0xff;
+				au8UARTInBuffer[3] = 0xff;
+				au8UARTInBuffer[4] = 0xff;
+				au8UARTInBuffer[5] = 0xff;
+				au8UARTInBuffer[6] = 0xff;
+				au8UARTInBuffer[7] = 0xff;
+			}
 
+			au8UARTInBuffer[u8UARTInBufferIDX % 8] = u8Temp;
+			boRXUart = CQUEUE_xIsEmpty(DIAG_pstUARTQueue);
+			u8UARTInBufferIDX++;
+		}
 
+		if (4 <= u8UARTInBufferIDX)
+		{
+			if ((0x7f & (au8UARTInBuffer[0] + au8UARTInBuffer[1] + au8UARTInBuffer[2])) == au8UARTInBuffer[3])
+			{
+				switch (au8UARTInBuffer[0] & 0xf0)
+				{
+					case 0x80:
+					{
+						SENSORS_au16ADCImport[0] = ((au8UARTInBuffer[0] & 0x0f) + ((uint16)au8UARTInBuffer[1] << 4)) << 1;
+
+						if (SENSORS_au16ADCImport[0] < 200)
+						{
+							SENSORS_aboADCNew[0] = FALSE;
+						}
+						else
+						{
+							SENSORS_aboADCNew[0] = TRUE;
+						}
+
+						break;
+					}
+					default:
+					{
+						break;
+					}
+				}
+			}
+			else
+			{
+#if defined(DEBUG_DIAG)
+				debugRXCounts++;
+#endif //DEBUG_DIAG
 			}
 		}
 	}

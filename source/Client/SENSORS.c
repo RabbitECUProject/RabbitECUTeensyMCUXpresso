@@ -43,6 +43,7 @@ static void SENSORS_vCEMCallBack(IOAPI_tenEHIOResource enEHIOResource, TEPMAPI_t
 static void SENSORS_vGetCANSensorData(void);
 static void SENSORS_vADCCallBack(IOAPI_tenEHIOResource enEHIOResource, uint32 u32ADCResult);
 static void SENSORS_vAddConfiguredAD(SENSORS_tenADConfig enADConfig);
+static void SENSORS_vCalculateTPSSafeMax(uint32 u32Temp);
 
 /* GLOBAL FUNCTION DEFINITIONS ************************************************/
 void SENSORS_vStart(puint32 const pu32Arg)
@@ -86,15 +87,15 @@ void SENSORS_vStart(puint32 const pu32Arg)
 		USER_vSVC(SYSAPI_enInitialiseIOResource, (void*)&enEHIOResource,
 		(void*)&enEHIOType,	(void*)&stTEPMResourceCB);
 	}	
-		
+
 	/* Request and initialise CRANK_nInput */
 	enEHIOResource = CRANK_nInput;
-	enEHIOType = IOAPI_enCaptureCompare;	
-	USER_vSVC(SYSAPI_enRequestIOResource, (void*)&enEHIOResource,	(void*)NULL, (void*)NULL);	
-	
+	enEHIOType = IOAPI_enCaptureCompare;
+	USER_vSVC(SYSAPI_enRequestIOResource, (void*)&enEHIOResource,	(void*)NULL, (void*)NULL);
+
 	/* Initialise the TEPM channel CRANK_nInput */
-	if (SYSAPI_enOK == pstSVCDataStruct->enSVCResult)	
-	{	
+	if (SYSAPI_enOK == pstSVCDataStruct->enSVCResult)
+	{
 		if (0 == USERCAL_stRAMCAL.u8UserPrimaryEdgeSetup)
 		{
 			stTEPMChannelCB.enAction = TEPMAPI_enCapFalling;
@@ -111,66 +112,34 @@ void SENSORS_vStart(puint32 const pu32Arg)
 		stTEPMChannelCB.boInterruptEnable = TRUE;
 		stTEPMChannelCB.enLinkedResource = VR_nPhaseTelltalePin;
 		stTEPMChannelCB.boRecursive = TRUE;
-	
+
 		USER_vSVC(SYSAPI_enInitialiseIOResource, (void*)&enEHIOResource,
 			(void*)&enEHIOType,	(void*)&stTEPMChannelCB);
-	}	
+	}
 
 	stTimedEvent.enMethod = TEPMAPI_enLinkPrimaryProgram;
 	stTimedEvent.pfEventCB = &SENSORS_vCEMCallBack;
-	
-	USER_vSVC(SYSAPI_enConfigureUserTEPMInput, (void*)&enEHIOResource, 
-		(void*)&stTimedEvent, (void*)NULL);	
-
-
-#if defined(BUILD_BSP_AFM_FREQ) || defined(BUILD_BSP_SINGLE_CAM_INPUT)
-	/* Request and initialise AFM_FREQ_nInput */
-
-#if defined(BUILD_BSP_AFM_FREQ)
-	enEHIOResource = AFM_FREQ_nInput;
-#endif
-
-#if defined(BUILD_BSP_SINGLE_CAM_INPUT)
-	enEHIOResource = CAM_nInput;
-#endif
-
-	enEHIOType = IOAPI_enCaptureCompare;
-	USER_vSVC(SYSAPI_enRequestIOResource, (void*)&enEHIOResource,	(void*)NULL, (void*)NULL);
-	
-	/* Initialise the TEPM channel AFM_FREQ_nInput (PF-DI) or CAM_nInput (TEENSY_ADAPT)*/
-	if (SYSAPI_enOK == pstSVCDataStruct->enSVCResult)
-	{
-		if (0 == USERCAL_stRAMCAL.u8UserSecondaryEdgeSetup)
-		{
-			stTEPMChannelCB.enAction = TEPMAPI_enCapFalling;
-		}
-		else if (1 == USERCAL_stRAMCAL.u8UserSecondaryEdgeSetup)
-		{
-			stTEPMChannelCB.enAction = TEPMAPI_enCapRising;
-		}
-		else
-		{
-			stTEPMChannelCB.enAction = TEPMAPI_enCapAny;
-		}
-
-		stTEPMChannelCB.boInterruptEnable = TRUE;
-		stTEPMChannelCB.boRecursive = FALSE;
-		
-		USER_vSVC(SYSAPI_enInitialiseIOResource, (void*)&enEHIOResource,
-		(void*)&enEHIOType,	(void*)&stTEPMChannelCB);
-	}
-
-#if defined(BUILD_SPARKDOG_TEENSY_ADAPT) || defined(BUILD_SPARKDOG_MKS20)
-	stTimedEvent.enMethod = TEPMAPI_enLinkVVT1Input;
-#else
-	stTimedEvent.enMethod = TEPMAPI_enLinkFreqInput;
-#endif
-
-	stTimedEvent.pfEventCB = &SENSORS_vCEMCallBack;
 
 	USER_vSVC(SYSAPI_enConfigureUserTEPMInput, (void*)&enEHIOResource,
-	(void*)&stTimedEvent, (void*)NULL);
-#endif //BUILD_BSP_AFM_FREQ
+		(void*)&stTimedEvent, (void*)NULL);
+
+		
+	/* Request and initialise missing tooth pseudo output */
+	enEHIOResource = CRANK_nMissingToothOutput;
+	enEHIOType = IOAPI_enCaptureCompare;	
+	USER_vSVC(SYSAPI_enRequestIOResource, (void*)&enEHIOResource, (void*)NULL, (void*)NULL);
+	
+	if (SYSAPI_enOK == pstSVCDataStruct->enSVCResult)
+	{
+		stTEPMChannelCB.enAction = TEPMAPI_enNoAction;
+		stTEPMChannelCB.boInterruptEnable = TRUE;
+		stTEPMChannelCB.u32Sequence = 0xffff;
+	
+		USER_vSVC(SYSAPI_enInitialiseIOResource, (void*)&enEHIOResource,
+			(void*)&enEHIOType,	(void*)&stTEPMChannelCB);
+	}
+
+
 
 	/* Enable the Hall-Effect sensor type */
 	enEHIOResource = VRA_nPullupEnablePin;
@@ -465,71 +434,21 @@ void SENSORS_vRun(puint32 const pu32Arg)
 
 		SENSORS_u32PPSMVolts = SENSORS_au16ADSensorValueFiltered[u32AUXIDX];
 
-		u32Temp = CONV_tADCToVolts(USERCAL_stRAMCAL.u16PPSMADResource, SENSORS_au16ADSensorValue[u32AUXIDX]);
-
-		if (u32Temp < SENSORS_u32PPSMVoltsRamp)
-		{
-			if ((SENSORS_u32PPSMVoltsRamp - u32Temp) > PPSM_RAMP_MAX_NEG)
-			{
-				if (SENSORS_u32PPSMVoltsRamp > PPSM_RAMP_MAX_NEG)
-				{
-					SENSORS_u32PPSMVoltsRamp -= PPSM_RAMP_MAX_NEG;
-				}
-			}
-			else
-			{
-				SENSORS_u32PPSMVoltsRamp = u32Temp;
-			}
-		}
-		else
-		{
-			if ((u32Temp - SENSORS_u32PPSMVoltsRamp) > PPSM_RAMP_MAX_POS)
-			{
-				SENSORS_u32PPSMVoltsRamp += PPSM_RAMP_MAX_POS;
-			}
-			else
-			{
-				SENSORS_u32PPSMVoltsRamp = u32Temp;
-			}
-		}
-
-
-		/* Calculate the current spread for pedal transfer */
-		USER_vSVC(SYSAPI_enCalculateSpread, (void*)&SENSORS_tSpreadPedalTransferIDX,
-				NULL, NULL);
-
-		/* Lookup the current spread for pedal transfer */
-		USER_vSVC(SYSAPI_enCalculateTable, (void*)&SENSORS_tTablePedalTransferIDX,
-			NULL, NULL);
-
-		if (3000 > SENSORS_u32PPSMVoltsRamp)
-		{
-			if ((0 != TORQUE_u16GearShiftCount) && (TRUE == TORQUE_boDownShift))
-			{
-				SENSORS_u16TPSSafeMaxModified = SENSORS_u16TPSSafeMax + FME_nBLIP_THROTTLE_DELTA_MAX;
-			}
-			else if (0x1234 != USERCAL_stRAMCAL.u16ETCOverrideKeys)
-			{
-				/* No higher than pedal authority */
-				SENSORS_u16TPSSafeMaxModified = (SENSORS_u32PPSMVoltsRamp + 150) > (uint32)SENSORS_u16TPSSafeMax ?
-					SENSORS_u16TPSSafeMax : (uint16)(SENSORS_u32PPSMVoltsRamp + 150);
-			}
-			else
-			{
-				/* Else in short overrides by diag */
-				SENSORS_u16TPSSafeMaxModified = SENSORS_u16TPSSafeMax + FME_nOVERRIDE_DELTA_MAX;
-			}
-		}
-		else
-		{
-			SENSORS_u16TPSSafeMaxModified = (5 * SENSORS_u32PPSMVoltsRamp) / 4;
-		}
+#ifndef BUILD_USE_PPSS_AS_PPSM
+		SENSORS_vCalculateTPSSafeMax(SENSORS_u32PPSMVolts);
+#endif //BUILD_USE_PPSS_AS_PPSM
 	}
 
 	if (SENSORS_enADPPSS == u32AUXIDX)
 	{
 		SENSORS_au16ADSensorValueFiltered[u32AUXIDX] =
 			CONV_tADCToVolts(USERCAL_stRAMCAL.u16PPSSADResource, SENSORS_au16ADSensorFiltered[u32AUXIDX]);
+
+		SENSORS_u32PPSSVolts = SENSORS_au16ADSensorValueFiltered[u32AUXIDX];
+
+#ifdef BUILD_USE_PPSS_AS_PPSM
+		SENSORS_vCalculateTPSSafeMax(SENSORS_u32PPSSVolts * 2);
+#endif //BUILD_USE_PPSS_AS_PPSM
 	}
 
 	if ((SENSORS_enAUX1 <= u32AUXIDX) && (SENSORS_enAUX4 <= u32AUXIDX))
@@ -545,12 +464,27 @@ void SENSORS_vRun(puint32 const pu32Arg)
 	{
 		FME_enUpdateDiagState(FME_enPPSPair, SENSORS_au16ADSensorFiltered[SENSORS_enADPPSM],
 				SENSORS_au16ADSensorFiltered[SENSORS_enADPPSS]);
+	}
+
+	if (EH_IO_Invalid != USERCAL_stRAMCAL.u16PPSMADResource)
+
+	{
 		FME_enUpdateDiagState(FME_enPPSMSingle, SENSORS_au16ADSensorFiltered[SENSORS_enADPPSM], 0);
+	}
+
+	if (EH_IO_Invalid != USERCAL_stRAMCAL.u16PPSSADResource)
+	{
 		FME_enUpdateDiagState(FME_enPPSSSingle, SENSORS_au16ADSensorFiltered[SENSORS_enADPPSS], 0);
 	}
 
-	/* FME calls */
 	if ((EH_IO_Invalid != USERCAL_stRAMCAL.u16PPSMADResource) &&
+		(EH_IO_Invalid != USERCAL_stRAMCAL.u16TPSADResource))
+	{
+		FME_enUpdateDiagState(FME_enPedalTransfer, SENSORS_u16TPSSafeMaxModified,
+				TPS_tSensorVolts);
+	}
+
+	if ((EH_IO_Invalid != USERCAL_stRAMCAL.u16PPSSADResource) &&
 		(EH_IO_Invalid != USERCAL_stRAMCAL.u16TPSADResource))
 	{
 		FME_enUpdateDiagState(FME_enPedalTransfer, SENSORS_u16TPSSafeMaxModified,
@@ -777,7 +711,8 @@ static void SENSORS_vGetCANSensorData()
 			DIAG_u16PowerModeActiveCount = 0 < DIAG_u16PowerModeActiveCount ?
 					DIAG_u16PowerModeActiveCount - 1 : DIAG_u16PowerModeActiveCount;
 
-			DIAG_u8PowerModeActive = 0 < DIAG_u16PowerModeActiveCount;
+			//DIAG_u8PowerModeActive = 0 < DIAG_u16PowerModeActiveCount;
+			DIAG_u8PowerModeActive = TRUE;
 		}
 
 		if (USERCAL_stRAMCAL.u16ETCOverrideKeys != 0xffff)
@@ -1010,6 +945,67 @@ void SENSORS_vCycleUpdate(void)
 	memcpy(SENSORS_au32HertzSamplesSafe, SENSORS_au32HertzSamples, sizeof(SENSORS_au32HertzSamples));
 	USER_xExitCritical();
 	SENSORS_boHertzCalcPending = TRUE;
+}
+
+void SENSORS_vCalculateTPSSafeMax(uint32 u32Temp)
+{
+	if (u32Temp < SENSORS_u32PPSMVoltsRamp)
+	{
+		if ((SENSORS_u32PPSMVoltsRamp - u32Temp) > PPSM_RAMP_MAX_NEG)
+		{
+			if (SENSORS_u32PPSMVoltsRamp > PPSM_RAMP_MAX_NEG)
+			{
+				SENSORS_u32PPSMVoltsRamp -= PPSM_RAMP_MAX_NEG;
+			}
+		}
+		else
+		{
+			SENSORS_u32PPSMVoltsRamp = u32Temp;
+		}
+	}
+	else
+	{
+		if ((u32Temp - SENSORS_u32PPSMVoltsRamp) > PPSM_RAMP_MAX_POS)
+		{
+			SENSORS_u32PPSMVoltsRamp += PPSM_RAMP_MAX_POS;
+		}
+		else
+		{
+			SENSORS_u32PPSMVoltsRamp = u32Temp;
+		}
+	}
+
+
+	/* Calculate the current spread for pedal transfer */
+	USER_vSVC(SYSAPI_enCalculateSpread, (void*)&SENSORS_tSpreadPedalTransferIDX,
+			NULL, NULL);
+
+	/* Lookup the current spread for pedal transfer */
+	USER_vSVC(SYSAPI_enCalculateTable, (void*)&SENSORS_tTablePedalTransferIDX,
+		NULL, NULL);
+
+	if (3000 > SENSORS_u32PPSMVoltsRamp)
+	{
+		if ((0 != TORQUE_u16GearShiftCount) && (TRUE == TORQUE_boDownShift))
+		{
+			SENSORS_u16TPSSafeMaxModified = SENSORS_u16TPSSafeMax + FME_nBLIP_THROTTLE_DELTA_MAX;
+		}
+		else if (0x1234 != USERCAL_stRAMCAL.u16ETCOverrideKeys)
+		{
+			/* No higher than pedal authority */
+			SENSORS_u16TPSSafeMaxModified = (SENSORS_u32PPSMVoltsRamp + 150) > (uint32)SENSORS_u16TPSSafeMax ?
+				SENSORS_u16TPSSafeMax : (uint16)(SENSORS_u32PPSMVoltsRamp + 150);
+		}
+		else
+		{
+			/* Else in short overrides by diag */
+			SENSORS_u16TPSSafeMaxModified = SENSORS_u16TPSSafeMax + FME_nOVERRIDE_DELTA_MAX;
+		}
+	}
+	else
+	{
+		SENSORS_u16TPSSafeMaxModified = (5 * SENSORS_u32PPSMVoltsRamp) / 4;
+	}
 }
 
 

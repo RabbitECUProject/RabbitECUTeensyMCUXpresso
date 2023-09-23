@@ -48,7 +48,6 @@ TABLEAPI_ttTableIDX FUEL_tTableFuelCutsIDX;
 MAPSAPI_ttMapIDX FUEL_tMapTAFRIDX;
 MAPSAPI_ttMapIDX FUEL_tMapTFuelPressureIDX;
 uint16 FUEL_u16InjResponse;
-uint16 FUEL_u16TFuelPressure;
 uint16 FUEL_u16CrankingAirflow;
 uint32 FUEL_u32SensorStateBank2;
 bool FUEL_boCalculatePending;
@@ -82,7 +81,7 @@ void FUEL_vStart(puint32 const pu32Arg)
 	FUEL_boNewSample = false;
 	FUEL_u32FuelChannelsMask = 0;
 
-	if (EH_IO_Invalid != USERCAL_stRAMCAL.u16FRSADResource)
+	if (IO_Total_Discrete_Count > USERCAL_stRAMCAL.u16FRSADResource)
 	{
 		enEHIOResource = USERCAL_stRAMCAL.u16FRSADResource;
 		enEHIOType = IOAPI_enGPSE;
@@ -126,11 +125,11 @@ void FUEL_vStart(puint32 const pu32Arg)
 
 	/* Initialise the GDI fuel pump control parameters */
 	FUEL_tStartFPSolenoidDelay = 100;
-	FUEL_tStartFPSolenoidPeak = 15000;
+	FUEL_tStartFPSolenoidPeak = 65000;
 	FUEL_tStartFPSolenoidDutyHigh = 180;//160;
 	FUEL_tStartFPSolenoidDutyLow = 100;//140;
 	FUEL_tFPAccumulate = 9000;
-	FUEL_u16TFuelPressure = 12000;
+	FUEL_tKiloPaTarget = 12000;
 		
 	/* Set injection time to Xms */
 	FUEL_tTimeHoldUs[0] = 1000;
@@ -177,6 +176,7 @@ void FUEL_vStart(puint32 const pu32Arg)
 			stTEPMChannelCB.boInterruptEnable = TRUE;
 			stTEPMChannelCB.boAsyncRequestEnable = FALSE;
 			stTEPMChannelCB.u32Sequence = 0xffff;
+			stTEPMChannelCB.boDisconnect = FALSE;
 
 			USER_vSVC(SYSAPI_enInitialiseIOResource, (void*)&enEHIOResource,
 				(void*)&enEHIOType,	(void*)&stTEPMChannelCB);
@@ -184,6 +184,7 @@ void FUEL_vStart(puint32 const pu32Arg)
 	}
 #endif //FUEL_MISSING_TOOTH_OUTPUT
 
+#ifndef DEBUG_TMR
 	/* Request and initialise Fuel Injector group A */
 	if ((0xffff > USERCAL_stRAMCAL.au32InjectionSequence[0]) && (EH_IO_Invalid > USERCAL_stRAMCAL.aFuelIOResource[0]))
 	{
@@ -198,26 +199,27 @@ void FUEL_vStart(puint32 const pu32Arg)
 			stTEPMChannelCB.boInterruptEnable = TRUE;	
 			stTEPMChannelCB.boAsyncRequestEnable = TRUE;
 			stTEPMChannelCB.u32Sequence = USERCAL_stRAMCAL.au32InjectionSequence[0];
+			stTEPMChannelCB.boDisconnect = FALSE;
 	
 			USER_vSVC(SYSAPI_enInitialiseIOResource, (void*)&enEHIOResource,
 				(void*)&enEHIOType,	(void*)&stTEPMChannelCB);
 		}			
 		
 		/* Switch injector on at a fraction of global time */
-#ifndef BUILD_GDI_SIG_INVERT
-		FUEL_astTimedHoldKernelEvents[0].enAction = TEPMAPI_enSetHigh;
+#ifdef BUILD_GDI_SIG_INVERT
+		FUEL_astTimedHoldKernelEvents[0].enAction = TEPMAPI_enToggle;
 #else
-		FUEL_astTimedHoldKernelEvents[0].enAction = TEPMAPI_enSetLow;
+		FUEL_astTimedHoldKernelEvents[0].enAction = TEPMAPI_enSetHigh;
 #endif
 		FUEL_astTimedHoldKernelEvents[0].enMethod = TEPMAPI_enGlobalLinkedFraction;
 		FUEL_astTimedHoldKernelEvents[0].ptEventTime = &FUEL_tStartHoldFraction[0];
 		FUEL_astTimedHoldKernelEvents[0].enEHIOBitMirrorResource = EH_IO_Invalid;
 	
 		/* Switch injector off at timer ms */
-#ifndef BUILD_GDI_SIG_INVERT
-		FUEL_astTimedHoldKernelEvents[1].enAction = TEPMAPI_enSetLow;
-#else
+#ifdef BUILD_GDI_SIG_INVERT
 		FUEL_astTimedHoldKernelEvents[1].enAction = TEPMAPI_enSetHigh;
+#else
+		FUEL_astTimedHoldKernelEvents[1].enAction = TEPMAPI_enToggle;
 #endif
 		FUEL_astTimedHoldKernelEvents[1].enMethod = TEPMAPI_enHardLinkedTimeStep;
 		FUEL_astTimedHoldKernelEvents[1].ptEventTime = &FUEL_tTimeHold[0];	
@@ -248,27 +250,28 @@ void FUEL_vStart(puint32 const pu32Arg)
 			stTEPMChannelCB.enAction = TEPMAPI_enSetLow;
 			stTEPMChannelCB.boInterruptEnable = TRUE;
 			stTEPMChannelCB.boAsyncRequestEnable = TRUE;	
-			stTEPMChannelCB.u32Sequence = USERCAL_stRAMCAL.au32InjectionSequence[1];		
+			stTEPMChannelCB.u32Sequence = USERCAL_stRAMCAL.au32InjectionSequence[1];
+			stTEPMChannelCB.boDisconnect = FALSE;
 	
 			USER_vSVC(SYSAPI_enInitialiseIOResource, (void*)&enEHIOResource,
 				(void*)&enEHIOType,	(void*)&stTEPMChannelCB);
 		}	
 	
 		/* Switch injector on at a fraction of global time */
-#ifndef BUILD_GDI_SIG_INVERT
-		FUEL_astTimedHoldKernelEvents[0].enAction = TEPMAPI_enSetHigh;
+#ifdef BUILD_GDI_SIG_INVERT
+		FUEL_astTimedHoldKernelEvents[0].enAction = TEPMAPI_enToggle;
 #else
-		FUEL_astTimedHoldKernelEvents[0].enAction = TEPMAPI_enSetLow;
+		FUEL_astTimedHoldKernelEvents[0].enAction = TEPMAPI_enSetHigh;
 #endif
 		FUEL_astTimedHoldKernelEvents[0].enMethod = TEPMAPI_enGlobalLinkedFraction;
 		FUEL_astTimedHoldKernelEvents[0].ptEventTime = &FUEL_tStartHoldFraction[1];
 		FUEL_astTimedHoldKernelEvents[0].enEHIOBitMirrorResource = EH_IO_Invalid;
 	
 		/* Switch injector off at timer ms */
-#ifndef BUILD_GDI_SIG_INVERT
-		FUEL_astTimedHoldKernelEvents[1].enAction = TEPMAPI_enSetLow;
-#else
+#ifdef BUILD_GDI_SIG_INVERT
 		FUEL_astTimedHoldKernelEvents[1].enAction = TEPMAPI_enSetHigh;
+#else
+		FUEL_astTimedHoldKernelEvents[1].enAction = TEPMAPI_enToggle;
 #endif
 		FUEL_astTimedHoldKernelEvents[1].enMethod = TEPMAPI_enHardLinkedTimeStep;
 		FUEL_astTimedHoldKernelEvents[1].ptEventTime = &FUEL_tTimeHold[1];
@@ -285,6 +288,7 @@ void FUEL_vStart(puint32 const pu32Arg)
 					(1 << (USERCAL_stRAMCAL.aFuelIOResource[1] - EH_IO_TMR1));
 		}
 	}
+#endif //DEBUG_TMR
 		
 	/* Request and initialise Fuel Injector group C */
 	if ((0xffff > USERCAL_stRAMCAL.au32InjectionSequence[2]) && (EH_IO_Invalid > USERCAL_stRAMCAL.aFuelIOResource[2]))
@@ -300,26 +304,27 @@ void FUEL_vStart(puint32 const pu32Arg)
 			stTEPMChannelCB.boInterruptEnable = TRUE;	
 			stTEPMChannelCB.boAsyncRequestEnable = TRUE;
 			stTEPMChannelCB.u32Sequence = USERCAL_stRAMCAL.au32InjectionSequence[2];
+			stTEPMChannelCB.boDisconnect = FALSE;
 	
 			USER_vSVC(SYSAPI_enInitialiseIOResource, (void*)&enEHIOResource,
 				(void*)&enEHIOType,	(void*)&stTEPMChannelCB);
 		}		
 	
 		/* Switch injector on at a fraction of global time */
-#ifndef BUILD_GDI_SIG_INVERT
-		FUEL_astTimedHoldKernelEvents[0].enAction = TEPMAPI_enSetHigh;
+#ifdef BUILD_GDI_SIG_INVERT
+		FUEL_astTimedHoldKernelEvents[0].enAction = TEPMAPI_enToggle;
 #else
-		FUEL_astTimedHoldKernelEvents[0].enAction = TEPMAPI_enSetLow;
+		FUEL_astTimedHoldKernelEvents[0].enAction = TEPMAPI_enSetHigh;
 #endif
 		FUEL_astTimedHoldKernelEvents[0].enMethod = TEPMAPI_enGlobalLinkedFraction;
 		FUEL_astTimedHoldKernelEvents[0].ptEventTime = &FUEL_tStartHoldFraction[2];
 		FUEL_astTimedHoldKernelEvents[0].enEHIOBitMirrorResource = EH_IO_Invalid;
 	
 		/* Switch injector off at timer ms */
-#ifndef BUILD_GDI_SIG_INVERT
-		FUEL_astTimedHoldKernelEvents[1].enAction = TEPMAPI_enSetLow;
-#else
+#ifdef BUILD_GDI_SIG_INVERT
 		FUEL_astTimedHoldKernelEvents[1].enAction = TEPMAPI_enSetHigh;
+#else
+		FUEL_astTimedHoldKernelEvents[1].enAction = TEPMAPI_enToggle;
 #endif
 		FUEL_astTimedHoldKernelEvents[1].enMethod = TEPMAPI_enHardLinkedTimeStep;
 		FUEL_astTimedHoldKernelEvents[1].ptEventTime = &FUEL_tTimeHold[2];
@@ -351,26 +356,27 @@ void FUEL_vStart(puint32 const pu32Arg)
 			stTEPMChannelCB.boInterruptEnable = TRUE;	
 			stTEPMChannelCB.boAsyncRequestEnable = TRUE;
 			stTEPMChannelCB.u32Sequence = USERCAL_stRAMCAL.au32InjectionSequence[3];
+			stTEPMChannelCB.boDisconnect = FALSE;
 	
 			USER_vSVC(SYSAPI_enInitialiseIOResource, (void*)&enEHIOResource,
 				(void*)&enEHIOType,	(void*)&stTEPMChannelCB);
 		}					
 	
 		/* Switch injector on at a fraction of global time */
-#ifndef BUILD_GDI_SIG_INVERT
-		FUEL_astTimedHoldKernelEvents[0].enAction = TEPMAPI_enSetHigh;
+#ifdef BUILD_GDI_SIG_INVERT
+		FUEL_astTimedHoldKernelEvents[0].enAction = TEPMAPI_enToggle;
 #else
-		FUEL_astTimedHoldKernelEvents[0].enAction = TEPMAPI_enSetLow;
+		FUEL_astTimedHoldKernelEvents[0].enAction = TEPMAPI_enSetHigh;
 #endif
 		FUEL_astTimedHoldKernelEvents[0].enMethod = TEPMAPI_enGlobalLinkedFraction;
 		FUEL_astTimedHoldKernelEvents[0].ptEventTime = &FUEL_tStartHoldFraction[3];
 		FUEL_astTimedHoldKernelEvents[0].enEHIOBitMirrorResource = EH_IO_Invalid;
 	
 		/* Switch injector off at timer ms */
-#ifndef BUILD_GDI_SIG_INVERT
-		FUEL_astTimedHoldKernelEvents[1].enAction = TEPMAPI_enSetLow;
-#else
+#ifdef BUILD_GDI_SIG_INVERT
 		FUEL_astTimedHoldKernelEvents[1].enAction = TEPMAPI_enSetHigh;
+#else
+		FUEL_astTimedHoldKernelEvents[1].enAction = TEPMAPI_enToggle;
 #endif
 		FUEL_astTimedHoldKernelEvents[1].enMethod = TEPMAPI_enHardLinkedTimeStep;
 		FUEL_astTimedHoldKernelEvents[1].ptEventTime = &FUEL_tTimeHold[3];
@@ -389,7 +395,7 @@ void FUEL_vStart(puint32 const pu32Arg)
 	}
 
 	/* Initialise the Fuel Pressure Solenoid free-wheel enable*/
-	enEHIOResource = EH_IO_GP5;
+	enEHIOResource = EH_IO_Invalid;
 	enEHIOType = IOAPI_enDIOOutput;
 	enDriveStrength = IOAPI_enStrong;
 	SETUP_vSetupDigitalIO(enEHIOResource, enEHIOType, enDriveStrength, pu32Arg);
@@ -408,6 +414,7 @@ void FUEL_vStart(puint32 const pu32Arg)
 			stTEPMChannelCB.boInterruptEnable = TRUE;
 			stTEPMChannelCB.boAsyncRequestEnable = TRUE;
 			stTEPMChannelCB.u32Sequence = 0x0000080;
+			stTEPMChannelCB.boDisconnect = TRUE;
 
 			USER_vSVC(SYSAPI_enInitialiseIOResource, (void*)&enEHIOResource,
 				(void*)&enEHIOType,	(void*)&stTEPMChannelCB);
@@ -417,29 +424,29 @@ void FUEL_vStart(puint32 const pu32Arg)
 		FUEL_astTimedFuelPumpEvents[0].enAction = TEPMAPI_enSetHigh;
 		FUEL_astTimedFuelPumpEvents[0].enMethod = TEPMAPI_enGlobalLinkedTimeStep;//TEPMAPI_enGlobalLinkedFraction;
 		FUEL_astTimedFuelPumpEvents[0].ptEventTime = &FUEL_tStartFPSolenoidDelay;
-		FUEL_astTimedFuelPumpEvents[0].enEHIOBitMirrorResource = EH_IO_GP5;
+		FUEL_astTimedFuelPumpEvents[0].enEHIOBitMirrorResource = EH_IO_Invalid;
 
-		FUEL_astTimedFuelPumpEvents[1].enAction = TEPMAPI_enSetLow;
+		FUEL_astTimedFuelPumpEvents[1].enAction = TEPMAPI_enToggle;
 		FUEL_astTimedFuelPumpEvents[1].enMethod = TEPMAPI_enHardLinkedTimeStep;
 		FUEL_astTimedFuelPumpEvents[1].ptEventTime = &FUEL_tStartFPSolenoidPeak;
 		FUEL_astTimedFuelPumpEvents[1].pfEventCB = FUEL_vTEPMCallBack;
-		FUEL_astTimedFuelPumpEvents[1].enEHIOBitMirrorResource = EH_IO_GP5;
+		FUEL_astTimedFuelPumpEvents[1].enEHIOBitMirrorResource = EH_IO_Invalid;
 		FUEL_astTimedFuelPumpEvents[1].ptAccumulate = &FUEL_tFPAccumulate;
 
 		for (u32EventCount = 1; u32EventCount <= 48; u32EventCount++)
 		{
-			FUEL_astTimedFuelPumpEvents[2 * u32EventCount].enAction = TEPMAPI_enSetHigh;
+			FUEL_astTimedFuelPumpEvents[2 * u32EventCount].enAction = TEPMAPI_enToggle;
 			FUEL_astTimedFuelPumpEvents[2 * u32EventCount].enMethod = TEPMAPI_enHardLinkedTimeStep;
 			FUEL_astTimedFuelPumpEvents[2 * u32EventCount].ptEventTime = &FUEL_tStartFPSolenoidDutyLow;
 			FUEL_astTimedFuelPumpEvents[2 * u32EventCount].pfEventCB = FUEL_vTEPMCallBack;
-			FUEL_astTimedFuelPumpEvents[2 * u32EventCount].enEHIOBitMirrorResource = EH_IO_GP5;
+			FUEL_astTimedFuelPumpEvents[2 * u32EventCount].enEHIOBitMirrorResource = EH_IO_Invalid;
 			FUEL_astTimedFuelPumpEvents[2 * u32EventCount].ptAccumulate = &FUEL_tFPAccumulate;
 
-			FUEL_astTimedFuelPumpEvents[2 * u32EventCount + 1].enAction = TEPMAPI_enSetLow;
+			FUEL_astTimedFuelPumpEvents[2 * u32EventCount + 1].enAction = TEPMAPI_enToggle;
 			FUEL_astTimedFuelPumpEvents[2 * u32EventCount + 1].enMethod = TEPMAPI_enHardLinkedTimeStep;
 			FUEL_astTimedFuelPumpEvents[2 * u32EventCount + 1].ptEventTime = &FUEL_tStartFPSolenoidDutyHigh;
 			FUEL_astTimedFuelPumpEvents[2 * u32EventCount + 1].pfEventCB = FUEL_vTEPMCallBack;
-			FUEL_astTimedFuelPumpEvents[2 * u32EventCount + 1].enEHIOBitMirrorResource = EH_IO_GP5;
+			FUEL_astTimedFuelPumpEvents[2 * u32EventCount + 1].enEHIOBitMirrorResource = EH_IO_Invalid;
 			FUEL_astTimedFuelPumpEvents[2 * u32EventCount + 1].ptAccumulate = &FUEL_tFPAccumulate;
 		}
 
@@ -520,8 +527,8 @@ void FUEL_vStart(puint32 const pu32Arg)
 
 	for (u32SequenceIDX = 0; u32SequenceIDX < FUEL_nFuelSequenceCount; u32SequenceIDX++)
 	{
-		if (((USERCAL_stRAMCAL.au32InjectionSequence[u32SequenceIDX] & 0xff) == 0xff) ||
-				((USERCAL_stRAMCAL.au32InjectionSequence[u32SequenceIDX] & 0xff00) == 0xff00))
+		if (((USERCAL_stRAMCAL.au32InjectionSequence[u32SequenceIDX] & 0xf0ff) == 0x00ff) ||
+				((USERCAL_stRAMCAL.au32InjectionSequence[u32SequenceIDX] & 0xfff0) == 0xff00))
 		{
 		    FUEL_bo720Injection = TRUE;
 		}
@@ -579,44 +586,57 @@ void FUEL_vRun(puint32 const pu32Arg)
 		|| (FALSE == FUEL_boFuelPrimed))
 
 	{
+		MAP_vCycleCalculateMAP();
 		FUEL_vCyclicCalculate();
 
 		if (EH_IO_Invalid > USERCAL_stRAMCAL.u16FuelPressureSolenoidResource)
 		{
-			if (USERCAL_stRAMCAL.u32GDIMAPMin >  MAP_tKiloPaFiltered)
+			if (USERCAL_stRAMCAL.u32GDIMAPMin > MAP_tKiloPaFiltered)
 			{
-				FUEL_u16TFuelPressure = USERCAL_stRAMCAL.u16GDIPressureMin;
+				u32Temp = USERCAL_stRAMCAL.u16GDIPressureMin;
 			}
 			else if (USERCAL_stRAMCAL.u32GDIMAPMax <  MAP_tKiloPaFiltered)
 			{
-				FUEL_u16TFuelPressure = USERCAL_stRAMCAL.u16GDIPressureMax;
+				u32Temp = USERCAL_stRAMCAL.u16GDIPressureMax;
 			}
 			else
 			{
-				FUEL_u16TFuelPressure = USERCAL_stRAMCAL.u16GDIPressureMin +
+				u32Temp = USERCAL_stRAMCAL.u16GDIPressureMin +
 					(((MAP_tKiloPaFiltered - USERCAL_stRAMCAL.u32GDIMAPMin) * (USERCAL_stRAMCAL.u16GDIPressureMax - USERCAL_stRAMCAL.u16GDIPressureMin)) /
 					(USERCAL_stRAMCAL.u32GDIMAPMax - USERCAL_stRAMCAL.u32GDIMAPMin));
 			}
 
+			if (u32Temp < (FUEL_tKiloPaTarget - FUEL_nFuelPressureStep))
+			{
+				FUEL_tKiloPaTarget -= FUEL_nFuelPressureStep;
+			}
+			else if (u32Temp > (FUEL_tKiloPaTarget + FUEL_nFuelPressureStep))
+			{
+				FUEL_tKiloPaTarget += FUEL_nFuelPressureStep;
+			}
+			else
+			{
+				FUEL_tKiloPaTarget = u32Temp;
+			}
 
-			s32Temp = FUEL_tKiloPaFiltered - FUEL_u16TFuelPressure;
+			s32Temp = FUEL_tKiloPaFiltered - FUEL_tKiloPaTarget;
 
 			if (0 > s32Temp)
 			{
 				/* accumulate the feedback error */
 				s32FuelPressureErrorSum += ((s32Temp * 500) / (sint32)CAM_u32RPMRaw);
-				s32FuelPressureErrorSum = 20000 < s32FuelPressureErrorSum ? 20000 : s32FuelPressureErrorSum;
-				s32FuelPressureErrorSum = -20000 > s32FuelPressureErrorSum ? -20000 : s32FuelPressureErrorSum;
+				s32FuelPressureErrorSum = 15000 < s32FuelPressureErrorSum ? 15000 : s32FuelPressureErrorSum;
+				s32FuelPressureErrorSum = -15000 > s32FuelPressureErrorSum ? -15000 : s32FuelPressureErrorSum;
 
 				/* pressure too low */
 				s32Temp *= USERCAL_stRAMCAL.u16FuelPressurePGain;
 				s32Temp += (s32FuelPressureErrorSum * USERCAL_stRAMCAL.u16FuelPressureIGain / 4);
 				s32Temp += 10000000;
 			}
-			else if (2000 < s32Temp)
+			else if (1000 < s32Temp)
 			{
-				/* pressure more than 2000 kPa too high */
-				s32Temp -= 2000;
+				/* pressure more than 1000 kPa too high */
+				s32Temp -= 1000;
 
 				/* accumulate the feedback error */
 				s32FuelPressureErrorSum += ((s32Temp * 500) / (sint32)CAM_u32RPMRaw);
@@ -634,16 +654,23 @@ void FUEL_vRun(puint32 const pu32Arg)
 				s32Temp += (s32FuelPressureErrorSum * USERCAL_stRAMCAL.u16FuelPressureIGain / 4);
 			}
 
-			/* add feedforward guesstimate */
+			/* add feed-forward estimate */
 			s32Temp -= (USERCAL_stRAMCAL.u16GDIValveFF * ((CAM_u32RPMRaw * MAP_tKiloPaFiltered) / 1000000));
 			s32Temp += 10000 * USERCAL_stRAMCAL.u16FuelPressureControlOffset;
 
 			s32Temp = (1000 * (sint32)USERCAL_stRAMCAL.u16GDIValveMin) < s32Temp ? s32Temp : (1000 * (sint32)USERCAL_stRAMCAL.u16GDIValveMin);
 			s32Temp = (1000 * (sint32)USERCAL_stRAMCAL.u16GDIValveMax) > s32Temp ? s32Temp : (1000 * (sint32)USERCAL_stRAMCAL.u16GDIValveMax);
 
-			FUEL_tFPAccumulate = s32Temp / CAM_u32RPMRaw;
-			FUEL_tFPAccumulate -= (CAM_u32RPMRaw / 16);
-			FUEL_tStartFPSolenoidDelay = (7000000 - 500 * CAM_u32RPMRaw) / CAM_u32RPMRaw;
+#ifdef BUILD_MKS20
+			s32Temp *= 22;
+			s32Temp /= 10;
+#endif //BUILD_MKS20
+
+			u32Temp = s32Temp / CAM_u32RPMRaw;
+			u32Temp -= (CAM_u32RPMRaw / 16);
+
+			FUEL_tFPAccumulate = MIN(65000, u32Temp);
+			FUEL_tStartFPSolenoidDelay = (15600000 - 1033 * CAM_u32RPMRaw) / CAM_u32RPMRaw;
 		}
 	}
 
@@ -706,10 +733,21 @@ void FUEL_vRun(puint32 const pu32Arg)
 		}
 	}
 
-	if (FUEL_boNewSample == TRUE)
+	if ((FUEL_boNewSample == TRUE) ||
+		((EH_VIO_IMPADC0 <= USERCAL_stRAMCAL.u16FRSADResource) &&
+		(EH_VIO_IMPADC15 >= USERCAL_stRAMCAL.u16FRSADResource) &&
+		(TRUE == SENSORS_aboADCNew[USERCAL_stRAMCAL.u16FRSADResource - EH_VIO_IMPADC0])))
 	{
-		FUEL_u32ADSamples[u32SampleCount] = FUEL_u32ADCRaw;
-		u32SampleCount = u32SampleCount % FUEL_nSampleCount;
+		if (FUEL_boNewSample == TRUE)
+		{
+			FUEL_u32ADSamples[u32SampleCount] = FUEL_u32ADCRaw;
+			FUEL_boNewSample = FALSE;
+		}
+		else
+		{
+			FUEL_u32ADSamples[u32SampleCount] = SENSORS_au16ADCImport[USERCAL_stRAMCAL.u16FRSADResource - EH_VIO_IMPADC0];
+			SENSORS_aboADCNew[USERCAL_stRAMCAL.u16FRSADResource - EH_VIO_IMPADC0] = false;
+		}
 
 		if (0 == u32SampleCount)
 		{
@@ -735,8 +773,7 @@ void FUEL_vRun(puint32 const pu32Arg)
 			}
 		}
 
-		FUEL_boNewSample = FALSE;
-		u32SampleCount++;
+		u32SampleCount = (u32SampleCount + 1) % FUEL_nSampleCount;
 	}
 
 	boFuelCutsActive = SENSORS_boGetAuxActive(SENSORS_enAUX_LAUNCH_LOW);
@@ -1250,10 +1287,10 @@ static void FUEL_vCyclicCalculate(void)
 		}
 		else
 		{
-			FUEL_tStartHoldFraction[0] = 2000;
-			FUEL_tStartHoldFraction[1] = 2000;
-			FUEL_tStartHoldFraction[2] = 2000;
-			FUEL_tStartHoldFraction[3] = 2000;
+			FUEL_tStartHoldFraction[0] = 5000;
+			FUEL_tStartHoldFraction[1] = 5000;
+			FUEL_tStartHoldFraction[2] = 5000;
+			FUEL_tStartHoldFraction[3] = 5000;
 		}
 	}
 

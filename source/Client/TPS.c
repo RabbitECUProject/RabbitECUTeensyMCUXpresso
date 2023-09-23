@@ -346,7 +346,8 @@ void TPS_vRun(puint32 const pu32Arg)
 	}
 	else
 	{
-		if (EH_IO_Invalid != USERCAL_stRAMCAL.u16PPSMADResource)
+		if ((EH_IO_Invalid != USERCAL_stRAMCAL.u16PPSMADResource) ||
+				(EH_IO_Invalid != USERCAL_stRAMCAL.u16PPSSADResource))
 		{
 			if ((TPS_u32PPSLearnedMin / 100) < SENSORS_u32PPSMVoltsRamp)
 			{
@@ -376,7 +377,7 @@ void TPS_vRun(puint32 const pu32Arg)
 			{
 				boTemp = TRUE;
 			}
-			else if ((USERCAL_stRAMCAL.userCalPPSCalMin + 220) < u32Temp)
+			else if ((USERCAL_stRAMCAL.userCalPPSCalMin + 160) < u32Temp)
 			{
 				boTemp = FALSE;
 			}

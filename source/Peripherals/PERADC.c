@@ -206,6 +206,7 @@ void ADC_vInterruptHandler(IOAPI_tenEHIOResource enEHIOResource, void* pvData)
 {
 	uint32 enADCModule;
 	uint32 u32ADCChannel;
+	uint32 u32ADCChannelAB;
 	MSG_tstMBX* pstMBX;
 	uint32 u32QueueIDX;
 	ADCHA_tenQueue enQueue;
@@ -231,7 +232,9 @@ void ADC_vInterruptHandler(IOAPI_tenEHIOResource enEHIOResource, void* pvData)
 	{
 		enQueue = ADC_astADCActiveQueue[enADCModule];
 	    u32ADCChannel = ADC_astADCConversions[enQueue][u32DequeueIDX].stADCChannel.u32ADChannel;
-		enEHIOResource = ADCHA_enGetResourceAndResult(enADCModule, pstADC, u32ADCChannel, &u32ADCResult);
+	    u32ADCChannelAB = ADC_astADCConversions[enQueue][u32DequeueIDX].stADCChannel.enChannelAB;
+
+		enEHIOResource = ADCHA_enGetResourceAndResult(enADCModule, pstADC, u32ADCChannel, u32ADCChannelAB, &u32ADCResult);
 	
 		/* Populate the result array - the reference of the element will
 		   be posted to the client MBX* queue for callback to user */

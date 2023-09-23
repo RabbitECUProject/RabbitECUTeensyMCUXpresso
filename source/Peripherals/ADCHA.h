@@ -761,7 +761,7 @@ bool ADCHA_boBackupCalibrations(void);
 void ADCHA_vInitADCResourcePGA(ADCHA_tstADCConversion*);
 void ADCHA_vTerminate(uint32* const);
 bool ADCHA_boInitiateConversion(ADCHA_tstADCConversion*, ADCHA_tenQueue, uint32, bool);
-IOAPI_tenEHIOResource ADCHA_enGetResourceAndResult(ADCHA_tenADCModule, tstADCModule*, uint32, puint32);
+IOAPI_tenEHIOResource ADCHA_enGetResourceAndResult(ADCHA_tenADCModule, tstADCModule*, uint32, uint32, puint32);
 void ADCHA_vCalibrate(tstADCModule*, uint32, uint32);
 void ADCHA_vInitConversion(IOAPI_tenEHIOResource, ADCHA_tstADCConversion*, ADCAPI_tstADCCB*, uint32);
 bool ADCHA_boGetModuleBusy(ADCHA_tenADCModule);

@@ -98,6 +98,44 @@ GPM6_ttVolts CONV_tADCToVolts(IOAPI_tenEHIOResource enEHIOResource, uint32 u32AD
 	}
 #endif //BUILD_SPARKDOG_TEENSY_ADAPT
 	
+#if defined(BUILD_SPARKDOG_MKS20)
+	switch (enEHIOResource)
+	{
+		case EH_IO_GPSE1:
+		case EH_IO_GPSE2:
+		case EH_IO_GPSE3:
+		case EH_IO_GPSE4:
+		case EH_IO_GPSE5:
+		case EH_IO_GPSE6:
+		case EH_IO_GPSE7:
+
+		case EH_IO_GPSE9:
+		case EH_IO_GPSE10:
+		case EH_IO_GPSE11:
+		case EH_I_ADD1:
+		case EH_I_ADD2:
+		case EH_I_ADD3:
+		case EH_I_ADD4:
+		case EH_I_ADD5:
+		{
+		    tVolts = USERCAL_stRAMCAL.userCalADRefH * u32ADCResult;
+		    tVolts = (101 * tVolts) / (4095 * 50);
+			break;
+		}
+		case EH_IO_GPSE8:
+		{
+		    tVolts = USERCAL_stRAMCAL.userCalADRefH * u32ADCResult;
+		    tVolts = (144 * tVolts) / (4095 * 22);
+		    break;
+		}
+		default:
+		{
+			tVolts = 0;
+			break;
+		}
+	}
+#endif //BUILD_SPARKDOG_MKS20
+
 	return tVolts;	
 }
 

@@ -454,12 +454,13 @@ bool FEEHA_boNVMWorkingCopy(bool boNVMToWorking, bool boCheckCRC16MakeCRC16)
 
 					if (FTFx_OK == u32RetCode)
 					{
-						u32RetCode = FlashProgramPhrase(&FEE_stFlashSSDConfig,
+						u32RetCode = FlashProgramLongword(&FEE_stFlashSSDConfig,
 													u32DestinationWord,	FEEHA_PFLASH_SCTR_BYTES, u32SourceWord, &FlashCommandSequence);
 					}
 					else
 					{
 						boCopyOK = false;
+						break;
 					}
 
 				}
@@ -725,7 +726,7 @@ bool FEEHA_boEraseForDownload(puint8 pu8TargetAddress, uint32 u32EraseCount)
 		if (((uint32)pu32TargetAddress >= FEE_PFLASH_START) &&
 				(((uint32)pu32TargetAddress + u32EraseCount <= FEE_PFLASH_END)))
 #else
-		if ((uint32)pu32TargetAddress + u32EraseCount <= FEEHA_PFLASH_END)
+		if ((uint32)pu32TargetAddress + u32EraseCount <= (FEEHA_PFLASH_END + 1))
 #endif		
 		{
 			u16WordCount = u32EraseCount / FEEHA_PFLASH_BYTES_WORD;
@@ -759,7 +760,7 @@ bool FEEHA_boEraseForDownload(puint8 pu8TargetAddress, uint32 u32EraseCount)
 				while(u16SectorEraseCount-- > 0)
 				/* erase any target sectors that are not erased */
 				{
-					u32ReturnCode = FlashVerifySection(&FEE_stFlashSSDConfig, (uint32)pu32SectorWord, u16WordCount, enMarginNormal, pFlashCommandSequence);
+					u32ReturnCode = FlashVerifySection(&FEE_stFlashSSDConfig, (uint32)pu32SectorWord, FEEHA_PFLASH_SCTR_WORDS, enMarginNormal, pFlashCommandSequence);
 					
 					if (((pstFTFE -> FSTAT) & FTFPREFIX(_FSTAT_MGSTAT0_MASK)) == FTFPREFIX(_FSTAT_MGSTAT0_MASK))
 					/* erase sector not blank */
@@ -1227,7 +1228,7 @@ static uint8* FEEHA_pu8GetFreePartitionAddress(void)
 
     if (((uint8*)~0) == pu8RetVal)
     {
-    	boEraseErr = FEEHA_boEraseForDownload((uint8*)FEEHA_FLASH_NVM_RECS, FEEHA_PFLASH_END);
+    	boEraseErr = FEEHA_boEraseForDownload((uint8*)FEEHA_FLASH_NVM_RECS, FEEHA_PFLASH_END - FEEHA_FLASH_NVM_RECS);
 
     	if (FALSE == boEraseErr)
     	{

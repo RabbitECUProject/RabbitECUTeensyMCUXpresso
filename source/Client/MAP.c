@@ -36,6 +36,7 @@ TABLEAPI_ttTableIDX MAP_tMapPseudoMAPIDX;
 
 SPREADAPI_ttSpreadIDX MAP_tSpreadPressureValveFeedForwardIDX;
 TABLEAPI_ttTableIDX MAP_tTablePressureValveFeedForwardIDX;
+uint32 MAP_u32MapCycleCount;
 
 EXTERN GPM6_ttUg MAP_tManChargeMassOldUg;
 
@@ -135,32 +136,15 @@ void MAP_vRun(puint32 const pu32Arg)
 	SPREADAPI_tstSpreadResult* pstSpreadResultVEy;
 	uint32 u32TableIDXx = ~0;
 	uint32 u32TableIDXy = ~0;
-	uint8 u8MapFilter = 0x40;
 	uint32 u32Temp;
 	uint8 u8Temp;
 	uint32 u32TPSWeightLimit;
 
 
-	/* Reduce filtering on RPM transitions */
-	if (0 != CAM_u32RPMTransitionCounter)
-	{
-		u8MapFilter *= 2;
-	}
-
-	/* Reduce filtering on TPS transitions */
-	if ((0 != TPS_u32TransitionCounter) || (0 != TPS_u32ThrottleMovingCounter))
-	{
-		u8MapFilter *= 2;
-	}
-
 	if (EH_IO_Invalid != USERCAL_stRAMCAL.u16MAPADResource)
 	{
-		/* MAP sensor is configured go ahead and filter */
-		USERMATH_u16SinglePoleLowPassFilter16(MAP_u32ADCRaw, u8MapFilter, &MAP_u32ADCFiltered);
-
-		s32Temp = MAP_u32ADCFiltered * SENSORS_nADRefVolts;
+		s32Temp = 2 * MAP_u32ADCRaw * SENSORS_nADRefVolts;
 		s32Temp /= SENSORS_nADScaleMax;
-		s32Temp /= SENSORS_nVDivRatio;
 
 		MAP_tSensorVolts = s32Temp;
 
@@ -170,7 +154,14 @@ void MAP_vRun(puint32 const pu32Arg)
 
 		if (FALSE == USERCAL_stRAMCAL.u8BoostChargeMAPEnable)
 		{
-			MAP_tKiloPaFiltered = u32Temp;
+			MAP_atKiloCycle[MAP_u32MapCycleCount] = u32Temp;
+
+			if (0 == CAM_u32RPMFiltered)
+			{
+				MAP_tKiloPaFiltered = u32Temp;
+			}
+
+			MAP_u32MapCycleCount = (MAP_u32MapCycleCount + 1) % (sizeof(MAP_atKiloCycle) / sizeof(uint32));
 		}
 		else
 		{
@@ -299,6 +290,9 @@ void MAP_vRun(puint32 const pu32Arg)
 	MAP_boHighVacuum = USERCAL_stRAMCAL.u16HighVacuumEnableKpa > MAP_tKiloPaFiltered ? TRUE : MAP_boHighVacuum;
 	MAP_boHighVacuum = USERCAL_stRAMCAL.u16HighVacuumDisableKpa < MAP_tKiloPaFiltered ? FALSE : MAP_boHighVacuum;
 
+	MAP_boHighLoad = MAP_nHighLoadThresLow > MAP_tKiloPaFiltered ? FALSE : MAP_boHighLoad;
+	MAP_boHighLoad = MAP_nHighLoadThresHigh < MAP_tKiloPaFiltered ? TRUE : MAP_boHighLoad;
+
 	MAP_boBoostETCCutEnable = 140000 < MAP_tKiloPaFiltered ? TRUE : MAP_boBoostETCCutEnable;
 	MAP_boBoostETCCutEnable = 101300 > MAP_tKiloPaFiltered ? FALSE : MAP_boBoostETCCutEnable;
 
@@ -401,7 +395,12 @@ void MAP_vRun(puint32 const pu32Arg)
 
 		CPU_vEnterCritical();
 
-		if (0 < TORQUE_u16GearShiftPressureControlCount)
+
+		if (FALSE == MAP_boHighLoad)
+		{
+			MAP_u16PressureValveDuty = 0;
+		}
+		else if (0 < TORQUE_u16GearShiftPressureControlCount)
 		{
 			MAP_u16PressureValveDuty = USERCAL_stRAMCAL.u16ShiftPressureControl * 650;
 		}
@@ -474,6 +473,11 @@ static void MAP_vADCCallBack(IOAPI_tenEHIOResource enEHIOResource, uint32 u32ADC
 {
 	MAP_u32ADCRaw = u32ADCResult;
 	MAP_boNewSample = TRUE;
+}
+
+void MAP_vCycleCalculateMAP(void)
+{
+	MAP_tKiloPaFiltered = USERMATH_u32DiscardAndAverage32(MAP_atKiloCycle, sizeof(MAP_atKiloCycle) / sizeof(uint32), 2);
 }
 
 #endif //BUILD_USER

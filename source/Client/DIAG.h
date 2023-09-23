@@ -13,6 +13,8 @@
 #ifndef USERDIAG_H
 #define USERDIAG_H
 
+#define DEBUG_DIAG
+
 #include <DECLARATIONS.h>
 #include <string.h>
 #include "ADCAPI.h"
@@ -150,7 +152,7 @@ typedef enum
 
 
 /* GLOBAL MACRO DEFINITIONS ***************************************************/
-#define USERDIAG_nUARTFrequency 9600u
+#define USERDIAG_nUARTFrequency 38400u
 #define USERDIAG_nCAN2Frequency 500000u
 #define USERDIAG_nRPCUDSREQSourcePort			0xc398
 #define USERDIAG_nRPCUDSREQDestPort				0x9c14
@@ -288,7 +290,6 @@ typedef enum
 	200,\
 	201}
 
-#define USERDIAG_nUARTFrequency 9600u
 #define USERDIAG_nCAN1Frequency 500000u
 #define USERDIAG_nMode1BufferSize 256
 
@@ -336,7 +337,8 @@ EXTERN uint8* DIAG_apu8SpreadTableAddresses[DIAG_nSPREADSMAX];
 //ASAM mode=writevalue name="_DIAG Spread Address Table 3" type=uint32 offset=12 min=0 max=1 m=1 b=0 units="dl" format=6.0 help="Internal Spread Address Table"  
 EXTERN USERDIAG_tstSpreadIDXAddressPair DIAG_astIDXAddressPairs[DIAG_nSPREADSRECORDSMAX];
  
-
+EXTERN uint16 DIAG_u16ISCCmd;
+//ASAM mode=readvalue name="Diag ISC Command" type=uint16 offset=0 min=0 max=255 m=1 b=0 units="dl" format=1.0 help="Diag ISC Command"
 
 /* GLOBAL FUNCTION DECLARATIONS ***********************************************/
 void USERDIAG_vStart(uint32* const pu32Arg);

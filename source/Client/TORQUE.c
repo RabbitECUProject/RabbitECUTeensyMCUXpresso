@@ -59,6 +59,7 @@ void TORQUE_vStart(puint32 const pu32Arg)
 void TORQUE_vRun(puint32 const pu32Arg)
 {
 	uint32 u32Temp;
+	uint32 s32Temp;
 	uint16 u16Temp;
 	uint16 u16AutoRevMatch;
 	uint16 u16PostBlipDuration;
@@ -113,14 +114,16 @@ void TORQUE_vRun(puint32 const pu32Arg)
 	TORQUE_u32TorqueEstimateScale += (u16Temp & 0xff);
 
 	/* New torque estimate */
-	if (30000 < MAP_tKiloPaFiltered)
+	if ((37000 - 2 * CAM_u32RPMFiltered) < MAP_tKiloPaFiltered)
 	{
-		u32Temp = 8 + (MAP_tKiloPaFiltered - 30000) / 660;
+		s32Temp = (MAP_tKiloPaFiltered - (37000 - 2 * CAM_u32RPMFiltered)) / 660;
+		u32Temp = s32Temp > 0 ? (uint32)s32Temp : 0;
+		u32Temp += 5;
 		u32Temp = 0xff > u32Temp ? u32Temp : 0xff;
 	}
 	else
 	{
-		u32Temp = 8;
+		u32Temp = 5;
 	}
 
 	/* Ramp torque estimate */
@@ -139,7 +142,11 @@ void TORQUE_vRun(puint32 const pu32Arg)
 	TORQUE_u32OutputTorqueEstimate &= 0xff;
 
 	/* Calculate pedal percentage scaled */
+#ifdef BUILD_USE_PPSS_AS_PPSM
+	u32Temp = MAX(USERCAL_stRAMCAL.userCalPPSCalMin, SENSORS_u32PPSSVolts * 2);
+#else
 	u32Temp = MAX(USERCAL_stRAMCAL.userCalPPSCalMin, SENSORS_u32PPSMVolts);
+#endif
 	u32Temp = MIN(USERCAL_stRAMCAL.userCalPPSCalMax, u32Temp);
 	u32Temp -= USERCAL_stRAMCAL.userCalPPSCalMin;
 

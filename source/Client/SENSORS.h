@@ -58,9 +58,9 @@ typedef enum
 #define SENSORS_nADRefVolts                 (3300u)
 #define SENSORS_nVDivRatio					(128u)		/* 1/2 voltage divider for 3.3V ECUHost */
 #define SENSORS_nFastFTMDivisor             TEPMAPI_enDiv128
-#define SENSORS_nFastFTMFreq                (SYS_FREQ_BUS / (1 << SENSORS_nFastFTMDivisor))
+#define SENSORS_nFastFTMFreq                (SYS_FREQ_PLL / (1 << SENSORS_nFastFTMDivisor))
 #define SENSORS_nSlowFTMDivisor             TEPMAPI_enDiv128
-#define SENSORS_nSlowFTMFreq                (SYS_FREQ_BUS / (1 << SENSORS_nSlowFTMDivisor))
+#define SENSORS_nSlowFTMFreq                (SYS_FREQ_PLL / (1 << SENSORS_nSlowFTMDivisor))
 #define SENSORS_nSENSORADMAX                (2850)
 #define SENSORS_nHertzSamplesMax            8
 
@@ -101,7 +101,7 @@ typedef enum
 #define VRB_nVREnablePin                    EH_VIO_EXPBIT2
 #define VR_nHystHighPin                     EH_IO_GP9
 #define VR_nHystLowPin                      EH_IO_GP8
-#define VR_nPhaseTelltalePin                EH_IO_Invalid
+#define VR_nPhaseTelltalePin                EH_IO_GPSE9
 #define VVTAB_nPullupEnablePin              EH_VIO_EXPBIT30
 #define VVTCD_nPullupEnablePin              EH_VIO_EXPBIT31
 #endif //BUILD_SPARKDOG_TEENSY_ADAPT
@@ -119,6 +119,7 @@ typedef enum
 #ifdef BUILD_SPARKDOG_MKS20
 #define CRANK_nInput                        EH_IO_TMR10
 #define CAM_nInput                          EH_IO_TMR9
+#define CRANK_nMissingToothOutput           EH_IO_TMR9
 #define AFM_FREQ_nInput                     EH_IO_TMR8
 #endif //BUILD_SPARKDOG_MKS20
 
@@ -196,9 +197,13 @@ EXTERN bool SENSORS_boOBDAdvNewSample;
 EXTERN bool SENSORS_boCANNewBrakePressedSample;
 EXTERN bool SENSORS_boCANNewGearPositionSample;
 EXTERN bool SENSORS_boCANNewTorqueRequestSample;
+EXTERN uint16 SENSORS_au16ADCImport[16];
+EXTERN bool SENSORS_aboADCNew[16];
 
 EXTERN uint32 SENSORS_u32PPSMVolts;
 //ASAM mode=readvalue name="PPSM Voltage" type=uint16 offset=0 min=0 max=5 m=0.001 b=0 units="V" format=3.2 help="PPSM Voltage"
+EXTERN uint32 SENSORS_u32PPSSVolts;
+//ASAM mode=readvalue name="PPSS Voltage" type=uint16 offset=0 min=0 max=5 m=0.001 b=0 units="V" format=3.2 help="PPSS Voltage"
 EXTERN uint16 SENSORS_u16TPSSafeMax;
 EXTERN uint16 SENSORS_u16TPSSafeMaxModified;
 EXTERN uint16 SENSORS_u16CANVSS;

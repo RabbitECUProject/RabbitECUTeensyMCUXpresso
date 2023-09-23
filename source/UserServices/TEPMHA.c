@@ -95,6 +95,8 @@ void TEPMHA_vInitTEPMChannel(IOAPI_tenEHIOResource enEHIOResource, TEPMAPI_tstTE
 		(TIMERPREFIX(_CnSC_ELSB_MASK)); break;
 		case TEPMAPI_enCapAny:	u32ControlWord |=
 		(TIMERPREFIX(_CnSC_ELSB_MASK) | TIMERPREFIX(_CnSC_ELSA_MASK)); break;
+		case TEPMAPI_enNoAction: u32ControlWord |=
+		(TIMERPREFIX(_CnSC_MSA_MASK)); break;
 		default: break;
 	}
 		
@@ -357,22 +359,23 @@ void TEPMHA_vForceQueueTerminate(void* pvModule, uint32 u32ChannelIDX, uint32 u3
 	
 	if ((0 < tEventTimeRemains) && (0x8000 > tEventTimeRemains))
 	{	
-		tEventTimeScheduled = pstTimerModule->CNT + 2;
+		tEventTimeScheduled = pstTimerModule->CNT + 4;
 		tEventTimeScheduled &= TEPMHA_nCounterMask;
 		pstTimerModule->CONTROLS[u32ChannelIDX].CnSC = u32Temp;			
 		
 		/* Force it now! */
-		while (pstTimerModule->CONTROLS[u32ChannelIDX].CnV != tEventTimeScheduled)
-		{
+		//while (pstTimerModule->CONTROLS[u32ChannelIDX].CnV != tEventTimeScheduled)
+		//{
 			pstTimerModule->CONTROLS[u32ChannelIDX].CnV = tEventTimeScheduled;					
-		}	
+		//}
 
 		/* Wait for it! Dangerous!!!*/
 		//while (pstTimerModule->CONTROLS[u32ChannelIDX].CnV != pstTimerModule->CNT){}
 	}
 	else
 	{
-		pstTimerModule->CONTROLS[u32ChannelIDX].CnSC = u32Temp;					
+		pstTimerModule->CONTROLS[u32ChannelIDX].CnSC = u32Temp;
+		//pstTimerModule->STATUS = 1 << u32ChannelIDX;
 	}
 #endif //BUILD_MK6X
 
@@ -557,49 +560,21 @@ void TEPMHA_vCapComAction(TEPMAPI_tenAction enAction, void* pvModule, uint32 u32
 
 			/* Disable to change edge mode */
 		    pstTimerModule->CONTROLS[u32ChannelIDX].CnSC = 0;
-			//pstTimerModule->CONTROLS[u32ChannelIDX].CnSC &=
-			//		~(TIMERPREFIX(_CnSC_MSA_MASK) | TIMERPREFIX(_CnSC_ELSB_MASK) | TIMERPREFIX(_CnSC_ELSA_MASK) | TIMERPREFIX(_CnSC_CHIE_MASK));
+			pstTimerModule->STATUS = 1 << u32ChannelIDX;
 
-			/* Wait for bits to clear */
-			while (0 != (pstTimerModule->CONTROLS[u32ChannelIDX].CnSC &
-					(TIMERPREFIX(_CnSC_MSA_MASK) | TIMERPREFIX(_CnSC_ELSB_MASK) | TIMERPREFIX(_CnSC_ELSA_MASK) | TIMERPREFIX(_CnSC_CHIE_MASK)))){}
-
-			/* Set to clear */
-			//pstTimerModule->CONTROLS[u32ChannelIDX].CnSC =
-			//		TIMERPREFIX(_CnSC_MSA_MASK) | TIMERPREFIX(_CnSC_ELSB_MASK);
 			u32Temp = pstTimerModule->CNT;
 			u32Temp += 2;
 			u32Temp &= TEPMHA_nCounterMask;
 			pstTimerModule->CONTROLS[u32ChannelIDX].CnV = u32Temp;
 
-			/* Wait for flag clear */
-			while (0 != (pstTimerModule->CONTROLS[u32ChannelIDX].CnSC & TIMERPREFIX(_CnSC_CHF_MASK)))
-			{
-				/* Clear the flag */
-				pstTimerModule->STATUS = 1 << u32ChannelIDX;
-			}
-
 			/* Wait for the action */
 			while (u32Temp != pstTimerModule->CNT){}
 
-			while (pstTimerModule->CONTROLS[u32ChannelIDX].CnV != tEventTimeScheduled)
-			{
-				pstTimerModule->CONTROLS[u32ChannelIDX].CnV = tEventTimeScheduled;
-			}
-
-			/* Disable to change edge mode */
-			pstTimerModule->CONTROLS[u32ChannelIDX].CnSC &=
-					~(TIMERPREFIX(_CnSC_MSA_MASK) | TIMERPREFIX(_CnSC_ELSB_MASK) | TIMERPREFIX(_CnSC_ELSA_MASK));
-
-			/* Wait for bits to clear */
-			while (0 != (pstTimerModule->CONTROLS[u32ChannelIDX].CnSC &
-					(TIMERPREFIX(_CnSC_MSA_MASK) | TIMERPREFIX(_CnSC_ELSB_MASK) | TIMERPREFIX(_CnSC_ELSA_MASK)))){}
+			pstTimerModule->CONTROLS[u32ChannelIDX].CnV = tEventTimeScheduled;
 
 			/* Set to toggle with interrupts */
 			pstTimerModule->CONTROLS[u32ChannelIDX].CnSC =
 					TIMERPREFIX(_CnSC_MSA_MASK) | TIMERPREFIX(_CnSC_ELSA_MASK) | TIMERPREFIX(_CnSC_CHIE_MASK);
-
-			//pstTimerModule->STATUS = 1 << u32ChannelIDX;
 #endif //BUILD_MK6X
 
 #ifdef BUILD_SAM3X8E
@@ -677,27 +652,14 @@ void TEPMHA_vCapComAction(TEPMAPI_tenAction enAction, void* pvModule, uint32 u32
 		}
 		case TEPMAPI_enSetLow:
 		{	
-#if defined(BUILD_MK60) || defined(BUILD_MK64) || defined(BUILD_MK10) || defined(BUILD_MKS20)
-		    pstTimerModule = (tstTimerModule*)pvModule;
+#if defined(BUILD_MK60) || defined(BUILD_MK64) || defined(BUILD_MK10)
 
-			while (pstTimerModule->CONTROLS[u32ChannelIDX].CnV != tEventTimeScheduled)
-			{
-				pstTimerModule->CONTROLS[u32ChannelIDX].CnV = tEventTimeScheduled;
-			}
-
-			/* Disable to change edge mode */
-			//pstTimerModule->CONTROLS[u32ChannelIDX].CnSC &=
-			//		~(TIMERPREFIX(_CnSC_MSA_MASK) | TIMERPREFIX(_CnSC_ELSB_MASK) | TIMERPREFIX(_CnSC_ELSA_MASK));
-
-			/* wait for bits to clear */
-			//while (0 != (pstTimerModule->CONTROLS[u32ChannelIDX].CnSC &
-			//		(TIMERPREFIX(_CnSC_MSA_MASK) | TIMERPREFIX(_CnSC_ELSB_MASK) | TIMERPREFIX(_CnSC_ELSA_MASK)))){}
-
-			//pstTimerModule->CONTROLS[u32ChannelIDX].CnSC =
-			//		TIMERPREFIX(_CnSC_MSA_MASK) | TIMERPREFIX(_CnSC_ELSB_MASK) | TIMERPREFIX(_CnSC_CHIE_MASK);
-
-			pstTimerModule->STATUS = 1 << u32ChannelIDX;
 #endif //BUILD_MK6X
+
+#if defined(BUILD_MKS20)
+
+#endif //BUILD_MKS20
+
 
 #ifdef BUILD_SAM3X8E
             if (TRUE == TEPMHA_boModuleIsTimer(pvModule))
@@ -732,13 +694,20 @@ void TEPMHA_vCapComAction(TEPMAPI_tenAction enAction, void* pvModule, uint32 u32
 		}			
 		case TEPMAPI_enToggle:	
 		{		
-#if defined(BUILD_MK60) || defined(BUILD_MK64) || defined(BUILD_MK10)
+#if defined(BUILD_MK60) || defined(BUILD_MK64) || defined(BUILD_MK10) || defined(BUILD_MKS20)
 		    pstTimerModule = (tstTimerModule*)pvModule;
-			pstTimerModule->CONTROLS[u32ChannelIDX].CnSC |= (TIMERPREFIX(_CnSC_ELSA_MASK) | TIMERPREFIX(_CnSC_CHIE_MASK));
-			pstTimerModule->CONTROLS[u32ChannelIDX].CnSC &= ~TIMERPREFIX(_CnSC_ELSB_MASK);
+		    u32Temp = pstTimerModule->CONTROLS[u32ChannelIDX].CnSC & ~TIMERPREFIX(_CnSC_ELSB_MASK);
+		    u32Temp |= (TIMERPREFIX(_CnSC_ELSA_MASK) | TIMERPREFIX(_CnSC_CHIE_MASK));
+			pstTimerModule->CONTROLS[u32ChannelIDX].CnSC = u32Temp;
 			pstTimerModule->CONTROLS[u32ChannelIDX].CnV = tEventTimeScheduled;
 #endif //BUILD_MK6X
-            break;			
+
+#if 0
+		    pstTimerModule = (tstTimerModule*)pvModule;
+			pstTimerModule->STATUS = 1 << u32ChannelIDX;
+			pstTimerModule->CONTROLS[u32ChannelIDX].CnV = tEventTimeScheduled;
+#endif //BUILD_MKS20
+            break;
 		}
 		case TEPMAPI_enEndProgram:			
 		{		
@@ -754,53 +723,36 @@ void TEPMHA_vCapComAction(TEPMAPI_tenAction enAction, void* pvModule, uint32 u32
 #if defined(BUILD_MKS20)
 		    pstTimerModule = (tstTimerModule*)pvModule;
 
-			/* Check if not set to toggle */
-			if (pstTimerModule->CONTROLS[u32ChannelIDX].CnSC !=
-					(TIMERPREFIX(_CnSC_MSA_MASK) | TIMERPREFIX(_CnSC_ELSA_MASK)))
-			{
-				/* Disable to change edge mode */
-				pstTimerModule->CONTROLS[u32ChannelIDX].CnSC = 0;
-
-				/* Wait for bits to clear */
-				while (0 != (pstTimerModule->CONTROLS[u32ChannelIDX].CnSC &
-						(TIMERPREFIX(_CnSC_MSA_MASK) | TIMERPREFIX(_CnSC_ELSB_MASK) | TIMERPREFIX(_CnSC_ELSA_MASK) | TIMERPREFIX(_CnSC_CHIE_MASK)))){}
-
-				/* Set to toggle */
-				pstTimerModule->CONTROLS[u32ChannelIDX].CnSC =
-						TIMERPREFIX(_CnSC_MSA_MASK) | TIMERPREFIX(_CnSC_ELSA_MASK);
-			}
+			/* Disable to change edge mode */
+		    pstTimerModule->CONTROLS[u32ChannelIDX].CnSC = 0;
+			pstTimerModule->STATUS = 1 << u32ChannelIDX;
 
 			u32Temp = pstTimerModule->CNT;
-			u32Temp += 4;
+			u32Temp += 2;
 			u32Temp &= TEPMHA_nCounterMask;
 			pstTimerModule->CONTROLS[u32ChannelIDX].CnV = u32Temp;
-
-			/* Wait for flag clear */
-			while (0 != (pstTimerModule->CONTROLS[u32ChannelIDX].CnSC & TIMERPREFIX(_CnSC_CHF_MASK)))
-			{
-				/* Clear the flag */
-				pstTimerModule->STATUS = 1 << u32ChannelIDX;
-			}
 
 			/* Wait for the action */
 			while (u32Temp != pstTimerModule->CNT){}
 
-			tEventTimeScheduled += pstTimerModule->CONTROLS[u32ChannelIDX].CnV;
+			/* Set to toggle with interrupts */
+			pstTimerModule->CONTROLS[u32ChannelIDX].CnSC =
+					TIMERPREFIX(_CnSC_MSA_MASK) | TIMERPREFIX(_CnSC_ELSA_MASK) | TIMERPREFIX(_CnSC_CHIE_MASK);
+
+			u32Temp = pstTimerModule->CNT;
+			u32Temp += 2;
+			u32Temp &= TEPMHA_nCounterMask;
+			pstTimerModule->CONTROLS[u32ChannelIDX].CnV = u32Temp;
+
+			/* Wait for the action */
+			while (u32Temp != pstTimerModule->CNT){}
+
+			pstTimerModule->STATUS = 1 << u32ChannelIDX;
+
+			tEventTimeScheduled += CEM_tSyncTimeLast;
 			tEventTimeScheduled &= TEPMHA_nCounterMask;
 
-			/* Wait for flag clear */
-			while (0 != (pstTimerModule->CONTROLS[u32ChannelIDX].CnSC & TIMERPREFIX(_CnSC_CHF_MASK)))
-			{
-				/* Clear the flag */
-				pstTimerModule->STATUS = 1 << u32ChannelIDX;
-			}
-
-			while (pstTimerModule->CONTROLS[u32ChannelIDX].CnV != tEventTimeScheduled)
-			{
-				pstTimerModule->CONTROLS[u32ChannelIDX].CnV = tEventTimeScheduled;
-			}
-
-
+			pstTimerModule->CONTROLS[u32ChannelIDX].CnV = tEventTimeScheduled;
 #endif //defined(BUILD_MKS20)
 			break;
 		}
@@ -1178,13 +1130,31 @@ uint32 TEPMHA_u32GetFreeVal(void* pvModule, uint32 u32ChannelIDX)
 	return u32FreeVal;
 }
 
-void TEPMHA_vDisconnectEnable(void* pvModule, uint32 u32ChannelIDX)
+void TEPMHA_vDisconnectEnable(void* pvModule, uint32 u32ChannelIDX, bool interrupt, bool HW)
 {
 	uint32 u32Temp;
 
-#if defined(BUILD_MK60) || defined(BUILD_MK64) || defined(BUILD_MK10) || defined(BUILD_MKS20)
+#if defined(BUILD_MK60) || defined(BUILD_MK64) || defined(BUILD_MK10)
 	u32Temp = ((tstTimerModule*)pvModule)->CONTROLS[u32ChannelIDX].CnSC;
 	u32Temp &= ~TIMERPREFIX(_CnSC_CHIE_MASK);
+	((tstTimerModule*)pvModule)->CONTROLS[u32ChannelIDX].CnSC = u32Temp;
+#endif //BUILD_MK6X
+
+#if defined(BUILD_MKS20)
+	u32Temp = ((tstTimerModule*)pvModule)->CONTROLS[u32ChannelIDX].CnSC;
+
+	if (interrupt)
+	{
+		u32Temp &= ~TIMERPREFIX(_CnSC_CHIE_MASK);
+	}
+
+	if (HW)
+	{
+		u32Temp = 0;
+		//u32Temp &= ~TIMERPREFIX(_CnSC_ELSA_MASK);
+		//u32Temp &= ~TIMERPREFIX(_CnSC_ELSB_MASK);
+	}
+
 	((tstTimerModule*)pvModule)->CONTROLS[u32ChannelIDX].CnSC = u32Temp;
 #endif //BUILD_MK6X
 }
@@ -1585,7 +1555,7 @@ void TEPMHA_vConfigureMissingToothInterrupt(void)
 	tstTimerModule* pstTimerModule = TPM0;
 	vpuFTMReg = (vpuint32)((uint32)pstTimerModule + (uint32)offsetof(tstTimerModule, CONTROLS[TEPMHA_nMissingToothChannel]));
 
-	u32ControlWord = (TIMERPREFIX(_CnSC_MSA_MASK) | TIMERPREFIX(_CnSC_ELSB_MASK) | TIMERPREFIX(_CnSC_ELSA_MASK));
+	u32ControlWord = (TIMERPREFIX(_CnSC_MSA_MASK));
 	u32ControlWord |= TIMERPREFIX(_CnSC_CHIE_MASK);
 	*vpuFTMReg = u32ControlWord;
 #endif //BUILD_MK6X
@@ -1614,12 +1584,19 @@ uint32 TEPMHA_u32SetNextMissingToothInterrupt(TEPMAPI_ttEventTime tReference, TE
 		u32TimerVal += u32Gap;
 		u32TimerVal &= TEPMHA_nCounterMask;
 
-		u32Temp = TPM0->CONTROLS[TEPMHA_nMissingToothChannel].CnSC | (TIMERPREFIX(_CnSC_CHIE_MASK) | TIMERPREFIX(_CnSC_MSA_MASK) | TIMERPREFIX(_CnSC_ELSB_MASK) | TIMERPREFIX(_CnSC_ELSA_MASK));
+		/* Wait for flag clear */
+		while (0 != (TPM0->CONTROLS[TEPMHA_nMissingToothChannel].CnSC & TIMERPREFIX(_CnSC_CHF_MASK)))
+		{
+			/* Clear the flag */
+			TPM0->STATUS = 1 << TEPMHA_nMissingToothChannel;
+		}
+
+		u32Temp = TPM0->CONTROLS[TEPMHA_nMissingToothChannel].CnSC | (TIMERPREFIX(_CnSC_CHIE_MASK) | TIMERPREFIX(_CnSC_MSA_MASK));
 		u32Temp |= TIMERPREFIX(_CnSC_CHF_MASK);
 
         if (!u32Repeats)
         {
-    		u32Temp |= TIMERPREFIX(_CnSC_ELSA_MASK);
+    		//u32Temp |= TIMERPREFIX(_CnSC_ELSA_MASK);
         }
 
 		TPM0->CONTROLS[TEPMHA_nMissingToothChannel].CnSC = u32Temp;

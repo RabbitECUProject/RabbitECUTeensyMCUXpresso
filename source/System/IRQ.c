@@ -612,7 +612,7 @@ void I2C1_IRQHandler(void)
 #endif	
 }
 	
-#ifdef BUILD_MK64
+#if defined(BUILD_MK64) || defined(BUILD_MKS20)
 void CAN0_ORed_Message_buffer_IRQHandler(void)
 {
 	tstCANModule* pstCAN = CAN0;
@@ -666,7 +666,7 @@ void IRQ_vCommonUART(UART_Type* pstUART, IOAPI_tenEHIOResource enEHIOResource, I
 {
 	DLL_tstRXDLLData stRXDLLData;
 
-#if defined(BUILD_MK60) || defined(BUILD_MK64)
+#if defined(BUILD_MK60) || defined(BUILD_MK64) || defined(BUILD_MKS20)
 	if(((pstUART -> S1) & UART_S1_TDRE_MASK) == UART_S1_TDRE_MASK)
 	{
 		if(((pstUART -> C2) & UART_C2_TIE_MASK) == UART_C2_TIE_MASK)

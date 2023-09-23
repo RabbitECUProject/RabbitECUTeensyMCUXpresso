@@ -139,6 +139,7 @@ void EST_vStart(puint32 const pu32Arg)
 			stTEPMChannelCB.boInterruptEnable = TRUE;	
 			stTEPMChannelCB.enPreScalar =  0;
 			stTEPMChannelCB.u32Sequence = USERCAL_stRAMCAL.au32IgnitionSequence[0];
+			stTEPMChannelCB.boDisconnect = TRUE;
 	
 			USER_vSVC(SYSAPI_enInitialiseIOResource, (void*)&enEHIOResource,
 				(void*)&enEHIOType,	(void*)&stTEPMChannelCB);
@@ -154,7 +155,7 @@ void EST_vStart(puint32 const pu32Arg)
 		if (0 != USERCAL_stRAMCAL.u8ScheduleToothIgnition)
 		{
 			/* Switch igniter off at timer ms */
-			EST_astTimedKernelEvents[1].enAction = TEPMAPI_enSetLow;
+			EST_astTimedKernelEvents[1].enAction = TEPMAPI_enToggle;
 			EST_astTimedKernelEvents[1].enMethod = TEPMAPI_enGlobalLinkedFraction;
 			EST_astTimedKernelEvents[1].ptEventTime = &EST_tEndFractionA;
 			EST_astTimedKernelEvents[1].enEHIOBitMirrorResource = USERCAL_stRAMCAL.aESTIOMuxResource[0];
@@ -163,7 +164,7 @@ void EST_vStart(puint32 const pu32Arg)
 		else
 		{
 			/* Switch igniter off at timer ms */
-	        EST_astTimedKernelEvents[1].enAction = TEPMAPI_enSetLow;
+	        EST_astTimedKernelEvents[1].enAction = TEPMAPI_enToggle;
 	        EST_astTimedKernelEvents[1].enMethod = TEPMAPI_enHardLinkedTimeStep;
 	        EST_astTimedKernelEvents[1].ptEventTime = &EST_tDwellUs;
 	        EST_astTimedKernelEvents[1].enEHIOBitMirrorResource = USERCAL_stRAMCAL.aESTIOMuxResource[0];
@@ -188,6 +189,7 @@ void EST_vStart(puint32 const pu32Arg)
 			stTEPMChannelCB.boInterruptEnable = TRUE;	
 			stTEPMChannelCB.enPreScalar = 0;
 			stTEPMChannelCB.u32Sequence = USERCAL_stRAMCAL.au32IgnitionSequence[1];
+			stTEPMChannelCB.boDisconnect = TRUE;
 	
 			USER_vSVC(SYSAPI_enInitialiseIOResource, (void*)&enEHIOResource,
 				(void*)&enEHIOType,	(void*)&stTEPMChannelCB);
@@ -203,7 +205,7 @@ void EST_vStart(puint32 const pu32Arg)
 		if (0 != USERCAL_stRAMCAL.u8ScheduleToothIgnition)
 		{
 			/* Switch igniter off at timer ms */
-			EST_astTimedKernelEvents[1].enAction = TEPMAPI_enSetLow;
+			EST_astTimedKernelEvents[1].enAction = TEPMAPI_enToggle;
 			EST_astTimedKernelEvents[1].enMethod = TEPMAPI_enGlobalLinkedFraction;
 			EST_astTimedKernelEvents[1].ptEventTime = &EST_tEndFractionB;
 			EST_astTimedKernelEvents[1].enEHIOBitMirrorResource = USERCAL_stRAMCAL.aESTIOMuxResource[1];
@@ -212,7 +214,7 @@ void EST_vStart(puint32 const pu32Arg)
 		else
 		{
 			/* Switch igniter off at timer ms */
-	        EST_astTimedKernelEvents[1].enAction = TEPMAPI_enSetLow;
+	        EST_astTimedKernelEvents[1].enAction = TEPMAPI_enToggle;
 	        EST_astTimedKernelEvents[1].enMethod = TEPMAPI_enHardLinkedTimeStep;
 	        EST_astTimedKernelEvents[1].ptEventTime = &EST_tDwellUs;
 	        EST_astTimedKernelEvents[1].enEHIOBitMirrorResource = USERCAL_stRAMCAL.aESTIOMuxResource[1];
@@ -237,6 +239,7 @@ void EST_vStart(puint32 const pu32Arg)
 			stTEPMChannelCB.boInterruptEnable = TRUE;
 			stTEPMChannelCB.enPreScalar = 0;
 			stTEPMChannelCB.u32Sequence = USERCAL_stRAMCAL.au32IgnitionSequence[2];
+			stTEPMChannelCB.boDisconnect = TRUE;
 		
 			USER_vSVC(SYSAPI_enInitialiseIOResource, (void*)&enEHIOResource,
 			(void*)&enEHIOType,	(void*)&stTEPMChannelCB);
@@ -252,7 +255,7 @@ void EST_vStart(puint32 const pu32Arg)
 		if (0 != USERCAL_stRAMCAL.u8ScheduleToothIgnition)
 		{
 			/* Switch igniter off at timer ms */
-			EST_astTimedKernelEvents[1].enAction = TEPMAPI_enSetLow;
+			EST_astTimedKernelEvents[1].enAction = TEPMAPI_enToggle;
 			EST_astTimedKernelEvents[1].enMethod = TEPMAPI_enGlobalLinkedFraction;
 			EST_astTimedKernelEvents[1].ptEventTime = &EST_tEndFractionC;
 			EST_astTimedKernelEvents[1].enEHIOBitMirrorResource = USERCAL_stRAMCAL.aESTIOMuxResource[2];
@@ -261,7 +264,7 @@ void EST_vStart(puint32 const pu32Arg)
 		else
 		{
 			/* Switch igniter off at timer ms */
-	        EST_astTimedKernelEvents[1].enAction = TEPMAPI_enSetLow;
+	        EST_astTimedKernelEvents[1].enAction = TEPMAPI_enToggle;
 	        EST_astTimedKernelEvents[1].enMethod = TEPMAPI_enHardLinkedTimeStep;
 	        EST_astTimedKernelEvents[1].ptEventTime = &EST_tDwellUs;
 	        EST_astTimedKernelEvents[1].enEHIOBitMirrorResource = USERCAL_stRAMCAL.aESTIOMuxResource[2];
@@ -287,6 +290,7 @@ void EST_vStart(puint32 const pu32Arg)
 			stTEPMChannelCB.boInterruptEnable = TRUE;
 			stTEPMChannelCB.enPreScalar = 0;
 			stTEPMChannelCB.u32Sequence = USERCAL_stRAMCAL.au32IgnitionSequence[3];
+			stTEPMChannelCB.boDisconnect = TRUE;
 		
 			USER_vSVC(SYSAPI_enInitialiseIOResource, (void*)&enEHIOResource,
 			(void*)&enEHIOType,	(void*)&stTEPMChannelCB);
@@ -302,7 +306,7 @@ void EST_vStart(puint32 const pu32Arg)
 		if (0 != USERCAL_stRAMCAL.u8ScheduleToothIgnition)
 		{
 			/* Switch igniter off at timer ms */
-			EST_astTimedKernelEvents[1].enAction = TEPMAPI_enSetLow;
+			EST_astTimedKernelEvents[1].enAction = TEPMAPI_enToggle;
 			EST_astTimedKernelEvents[1].enMethod = TEPMAPI_enGlobalLinkedFraction;
 			EST_astTimedKernelEvents[1].ptEventTime = &EST_tEndFractionD;
 			EST_astTimedKernelEvents[1].enEHIOBitMirrorResource = USERCAL_stRAMCAL.aESTIOMuxResource[3];
@@ -311,7 +315,7 @@ void EST_vStart(puint32 const pu32Arg)
 		else
 		{
 			/* Switch igniter off at timer ms */
-	        EST_astTimedKernelEvents[1].enAction = TEPMAPI_enSetLow;
+	        EST_astTimedKernelEvents[1].enAction = TEPMAPI_enToggle;
 	        EST_astTimedKernelEvents[1].enMethod = TEPMAPI_enHardLinkedTimeStep;
 	        EST_astTimedKernelEvents[1].ptEventTime = &EST_tDwellUs;
 	        EST_astTimedKernelEvents[1].enEHIOBitMirrorResource = USERCAL_stRAMCAL.aESTIOMuxResource[3];

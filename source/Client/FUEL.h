@@ -40,6 +40,7 @@
 #define FUEL_nSeqModeCountLimit			10
 #define FUEL_nSampleCount               5
 #define FUEL_nFuelPWMExportResource     EH_IO_TMR3
+#define FUEL_nFuelPressureStep          250
 
 #ifdef EXTERN
 	#undef EXTERN
@@ -80,6 +81,8 @@ EXTERN uint32 FUEL_u32FuelConsumed;
 EXTERN uint32 FUEL_u32ADSamples[FUEL_nSampleCount];
 EXTERN GPM6_ttPa FUEL_tKiloPaFiltered;
 //ASAM mode=readvalue name="Fuel Rail kPa" type=uint32 offset=0 min=0 max=35000 m=1 b=0 units="kPa" format=5.3 help="Fuel Rail Pressure"
+EXTERN GPM6_ttPa FUEL_tKiloPaTarget;
+//ASAM mode=readvalue name="Fuel Rail Target kPa" type=uint32 offset=0 min=0 max=35000 m=1 b=0 units="kPa" format=5.3 help="Fuel Rail Target Pressure"
 EXTERN bool FUEL_boFuelPumpOn;
 //ASAM mode=readvalue name="Fuel Pump On" type=uint8 offset=0 min=0 max=1 m=1 b=0 units="bool" format=5.3 help="Fuel Pump On"
 EXTERN uint16 FUEL_u16FuelCutsPercent;

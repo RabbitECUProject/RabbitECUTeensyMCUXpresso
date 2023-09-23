@@ -53,7 +53,7 @@ typedef TPM_Type tstTimerModule;
 #define TEPMHA_nCounterMask 0xffff
 #define TEPMHA_nLongestDelay 0xfe00
 #define TEPMHA_nCounterGlobalDiv 4
-#define TEPMHA_nMissingToothChannel 2
+#define TEPMHA_nMissingToothChannel 3
 
 #ifdef BUILD_SPARKDOG_PF
 #define TEPMHA_nPRIOCHANNEL 5
@@ -269,8 +269,8 @@ typedef enum
 	{TPM_enTPM1, 5u, EH_IO_Invalid},\
 	{TPM_enTPM1, 6u, EH_IO_Invalid},\
 	{TPM_enTPM1, 7u, EH_IO_Invalid},\
-	{TPM_enTPM2, 0u, EH_IO_TMR7},\
-	{TPM_enTPM2, 1u, EH_IO_TMR8},\
+	{TPM_enTPM2, 0u, EH_IO_TMR8},\
+	{TPM_enTPM2, 1u, EH_IO_TMR7},\
 	{TPM_enTPM2, 2u, EH_IO_Invalid},\
 	{TPM_enTPM2, 3u, EH_IO_Invalid},\
 	{TPM_enTPM2, 4u, EH_IO_Invalid},\
@@ -671,7 +671,7 @@ TEPMAPI_ttEventTime TEPMHA_tGetScheduledVal(void*, uint32, bool, uint32);
 void TEMPHA_vResetTimerFlag(void*, uint32);
 void TEPMHA_vGetFreeVal(void*, puint32);
 uint32 TEPMHA_u32GetFreeVal(void*, uint32);
-void TEPMHA_vDisconnectEnable(void*, uint32);
+void TEPMHA_vDisconnectEnable(void*, uint32, bool, bool);
 void* TEPMHA_pvGetModuleFromEnum(TEPMHA_tenTimerModule);
 void TEPMHA_vCapComAction(TEPMAPI_tenAction, void*, uint32, uint32, TEPMAPI_ttEventTime);
 IOAPI_tenTriState TEPMHA_enGetTimerDigitalState(IOAPI_tenEHIOResource);

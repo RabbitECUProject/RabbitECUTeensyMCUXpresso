@@ -384,14 +384,13 @@ static void ADCHA_vBackupCalibration(tstADCModule* pstADC, ADCHA_tstADCCalStruct
 }
 #endif //ADC_CALIBRATE
 
-IOAPI_tenEHIOResource ADCHA_enGetResourceAndResult(ADCHA_tenADCModule enADCModule, tstADCModule* pstADC, uint32 u32ADCChannel, puint32 pu32ADCResult)
+IOAPI_tenEHIOResource ADCHA_enGetResourceAndResult(ADCHA_tenADCModule enADCModule, tstADCModule* pstADC, uint32 u32ADCChannel, uint32 u32ChannelAB, puint32 pu32ADCResult)
 {
     IOAPI_tenEHIOResource enEHIOResource;
 
 #if defined(BUILD_MK60) || defined(BUILD_MK64) || defined(BUILD_MKS20)
 	/* Get the queue, channel and resource */
-	//u32ADCChannel = ADC_SC1_ADCH_MASK & pstADC->SC1[0];//matthew check here against channel
-	enEHIOResource = ADCHA_raenIOResource[32 * enADCModule + u32ADCChannel];
+	enEHIOResource = ADCHA_raenIOResource[32 * enADCModule + 2 * u32ADCChannel + u32ChannelAB];
 	
 	/* Deactivate the AD module */
 	pstADC->SC1[0] |= ADC_SC1_ADCH_MASK;
