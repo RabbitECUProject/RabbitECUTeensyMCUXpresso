@@ -48,7 +48,7 @@
 #define DEFLASH_BLOCK_BASE      0x10000000      /* There is not DFlash */
 #define EERAM_BLOCK_BASE        0x14000000
 
-#define PBLOCK_SIZE             0x00080000      /* 512 KB size */
+#define PBLOCK_SIZE             0x00040000      /* 256 KB size */
 #define EERAM_BLOCK_SIZE        0x00004000      /* 16 KB size */
 
 #define pFlashInit                      (FlashInit)

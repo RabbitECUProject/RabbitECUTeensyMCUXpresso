@@ -78,9 +78,9 @@ void USERCAL_vStart(puint32 const pu32Arg)
 		/* Only when KERNEL_APP testing */
 		if (TRUE == USERCAL_boPartitionOK)
 		{
-			boNVMToWorking = FALSE;
-				USER_vSVC(SYSAPI_enNVMWorkingCopy, (void*)&boNVMToWorking,
-			(void*)&boCheckCRC16, (void*)NULL);
+			//boNVMToWorking = FALSE;
+			//	USER_vSVC(SYSAPI_enNVMWorkingCopy, (void*)&boNVMToWorking,
+			//(void*)&boCheckCRC16, (void*)NULL);
 		}
 #endif
 	}	

@@ -52,7 +52,7 @@ bool FEE_boSetWorkingData(puint8 pu8WorkingAddress, uint16 u16WorkingDataCount)
 	// todo is this necessary?
 	if (((puint8)FEEHA_WORK_DATA_START <= pu8WorkingAddress) &&
 			((puint8)FEEHA_WORK_DATA_END >= pu8WorkingAddress) &&
-			((uint16)FEEHA_WORK_DATA_MAX > u16WorkingDataCount) &&
+			((uint16)FEEHA_WORK_DATA_MAX >= u16WorkingDataCount) &&
 			(2 <= u16WorkingDataCount))
 	{
 		FEE_stWorkingPage.pu8WorkingData = pu8WorkingAddress;
@@ -63,11 +63,11 @@ bool FEE_boSetWorkingData(puint8 pu8WorkingAddress, uint16 u16WorkingDataCount)
 	return boWorkingDataOK;
 }
 
-bool FEE_boNVMWorkingCopy(bool boNVMToWorking, bool boCheckCRC16MakeCRC16)
+bool FEE_boNVMWorkingCopy(bool boNVMToWorking, bool boCheckCRC16MakeCRC16, uint32 u32AddressOverride)
 {
 	bool boCopyOK;
 
-	boCopyOK = FEEHA_boNVMWorkingCopy(boNVMToWorking, boCheckCRC16MakeCRC16);
+	boCopyOK = FEEHA_boNVMWorkingCopy(boNVMToWorking, boCheckCRC16MakeCRC16, u32AddressOverride);
 
 	return boCopyOK;
 }
@@ -98,6 +98,11 @@ bool FEE_boEraseForDownload(puint8 pu8TargetAddress, uint32 u32EraseCount)
 	boEraseErr = FEEHA_boEraseForDownload(pu8TargetAddress, u32EraseCount);
 	
 	return boEraseErr;
+}
+
+bool FEE_boCheckUpdaterCRC16(void)
+{
+	return FEEHA_boCheckUpdaterCRC16();
 }
 
 

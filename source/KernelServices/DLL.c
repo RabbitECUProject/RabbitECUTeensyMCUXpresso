@@ -33,17 +33,18 @@ const uint32 ETH_ru32DestinationIPAddress = ETH_nDestinationIPAddress;
 #endif //BUILD_ENET
 const uint16 DLL_rau16TXFrameMaxBytes[] = DLL_nMaxTXFrameBytes;		
 
-IOAPI_tstPortConfigCB DLL_astPortConfigCB[DLL_nVirtualChannelCount]; 
-static DLL_tstRXDLLData DLL_stRXDLLData[DLL_nVirtualChannelCount] __attribute__((section(".bss.$RAM2")));;
-uint16 DLL_au16PacketSeq[DLL_nVirtualChannelCount];
+IOAPI_tstPortConfigCB DLL_astPortConfigCB[DLL_nVirtualChannelCount] __attribute__((section(".bss.$RAM2")));
+static DLL_tstRXDLLData DLL_stRXDLLData[DLL_nVirtualChannelCount] __attribute__((section(".bss.$RAM2")));
+uint16 DLL_au16PacketSeq[DLL_nVirtualChannelCount] __attribute__((section(".bss.$RAM2")));
 
 /* Circular TX queues */
-uint8	DLL_au8ByteIICByteQueue[DLL_nIICVirtualChannelCount][DLL_nIICTXQueueByteCount];
-uint8	DLL_au8ByteSPIByteQueue[DLL_nSPIVirtualChannelCount][DLL_nSPITXQueueByteCount];
-uint8	DLL_au8ByteUARTByteQueue[DLL_nUARTVirtualChannelCount][DLL_nUARTTXQueueByteCount];
-uint8	DLL_au8ByteCANByteQueue[DLL_nCANVirtualChannelCount][DLL_nCANTXQueueByteCount];
-uint8	DLL_au8ByteUSBByteQueue[DLL_nUSBVirtualChannelCount][DLL_nUSBTXQueueByteCount];
-uint8	DLL_au8ByteENETByteQueue[DLL_nENETVirtualChannelCount][DLL_nENETTXQueueByteCount];
+uint8	DLL_au8ByteIICByteQueue[DLL_nIICVirtualChannelCount][DLL_nIICTXQueueByteCount] __attribute__((section(".bss.$RAM2")));
+uint8	DLL_au8ByteSPIByteQueue[DLL_nSPIVirtualChannelCount][DLL_nSPITXQueueByteCount] __attribute__((section(".bss.$RAM2")));
+uint8	DLL_au8ByteUARTByteQueue[DLL_nUARTVirtualChannelCount][DLL_nUARTTXQueueByteCount] __attribute__((section(".bss.$RAM2")));
+uint8	DLL_au8ByteCANByteQueue[DLL_nCANVirtualChannelCount][DLL_nCANTXQueueByteCount] __attribute__((section(".bss.$RAM2")));
+uint8	DLL_au8ByteUSBByteQueue[DLL_nUSBVirtualChannelCount][DLL_nUSBTXQueueByteCount] __attribute__((section(".bss.$RAM2")));
+uint8	DLL_au8ByteENETByteQueue[DLL_nENETVirtualChannelCount][DLL_nENETTXQueueByteCount] __attribute__((section(".bss.$RAM2")));
+
 
 /* Temp TX buff to build response and to dequeue byte-queue to for TX */
 uint8 DLL_au8TXIICBuffBuild[DLL_nIICTXWorkBuffCount][DLL_nIICTXWorkBuffMaxBytes];

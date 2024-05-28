@@ -20,6 +20,7 @@
 
 #include "CLO2.h"
 #include "FUEL.h"
+#include "DIAG.h"
 
 /* LOCAL MACRO DEFINITIONS ****************************************************/
 
@@ -98,6 +99,8 @@ void CLO2_vRun(void)
 	bool boFuelCutActive = FALSE;
 	uint32 u32CLStep = TRUE ==  TPS_boThrottleClosed ? USERCAL_stRAMCAL.u32CLStepClosed : USERCAL_stRAMCAL.u32CLStepOpen;
 	uint32 u32CLInc = TRUE == TPS_boThrottleClosed ? USERCAL_stRAMCAL.u32CLIncClosed : USERCAL_stRAMCAL.u32CLIncOpen;
+
+	CODE_UPDATE_EXIT();
 
 	/* Buffer the auto-tune diag variable */
 	CLO2_u32AutoTuneVE = CLO2_au16AFRMeasured[0] + (FUEL_u16TAFR << 16);

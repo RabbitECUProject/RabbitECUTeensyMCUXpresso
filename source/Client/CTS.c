@@ -22,6 +22,7 @@
 
 #include "CTS.h"
 #include "RELAYS.h"
+#include "DIAG.h"
 
 
 /* LOCAL VARIABLE DEFINITIONS (STATIC) ****************************************/
@@ -135,6 +136,7 @@ void CTS_vRun(puint32 const pu32Arg)
 	static uint32 u32CANCTSMsgCount = 0;
 	static uint8 u8CANCTSOld = 0;
 
+	CODE_UPDATE_EXIT();
 	
 	if ((TRUE == CTS_boNewSample) || (TRUE == SENSORS_boCANCTSNewSample))
 	{

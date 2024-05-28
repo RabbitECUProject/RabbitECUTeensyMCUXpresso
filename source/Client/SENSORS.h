@@ -101,7 +101,7 @@ typedef enum
 #define VRB_nVREnablePin                    EH_VIO_EXPBIT2
 #define VR_nHystHighPin                     EH_IO_GP9
 #define VR_nHystLowPin                      EH_IO_GP8
-#define VR_nPhaseTelltalePin                EH_IO_GPSE9
+#define VR_nPhaseTelltalePin                EH_IO_Invalid
 #define VVTAB_nPullupEnablePin              EH_VIO_EXPBIT30
 #define VVTCD_nPullupEnablePin              EH_VIO_EXPBIT31
 #endif //BUILD_SPARKDOG_TEENSY_ADAPT

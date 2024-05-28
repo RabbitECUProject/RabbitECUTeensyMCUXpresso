@@ -23,6 +23,7 @@
 #include "IAC.h"
 
 #include "usercal.h"
+#include "DIAG.h"
 
 
 /* LOCAL VARIABLE DEFINITIONS (STATIC) ****************************************/
@@ -128,6 +129,8 @@ void IAC_vRun(puint32 const pu32Arg)
 	static uint32 u32StepsLearnedCount;
 #endif
 
+	CODE_UPDATE_EXIT();
+
 	uint32 u32Temp;
 	sint32 s32Temp;
 	static sint32 s32RPMErrOld;
@@ -199,11 +202,11 @@ void IAC_vRun(puint32 const pu32Arg)
 		if (0 == USERCAL_stRAMCAL.u16DiagType)
 		{
 			/* Only VW CAN type */
-			if (20 > SENSORS_u16CANVSS)
+			if (90 > SENSORS_u16CANVSS)
 			{
 				boCANVSSMoving = FALSE;
 			}
-			else if (70 < SENSORS_u16CANVSS)
+			else if (160 < SENSORS_u16CANVSS)
 			{
 				boCANVSSMoving = TRUE;
 			}

@@ -39,6 +39,8 @@ typedef struct
 	DIAGAPI_tenDiagSecurityLevel enSecLevel;
 } USERDIAG_tstIdentifierIB;
 
+typedef void (*tpfUpdate)(void);
+
 typedef struct 
 {
 	SPREADAPI_ttSpreadIDX tSpreadIDX;
@@ -162,6 +164,9 @@ typedef enum
 #define USERDIAG_nEnableCAN
 #define USERDIAG_nEnableUSB
 #define USERDIAG_nEnableENEToff
+
+#define USERDIAG_nCODE_MIN_ADDR 0x30000
+#define USERDIAG_nCODE_MAX_ADDR 0x3FFFF
 
 #ifdef BUILD_MK60
 #define DIAG_nRESCAN EH_VIO_CAN2
@@ -305,6 +310,13 @@ typedef enum
 	#define EXTERN extern
 #endif
 
+#define CODE_UPDATE_EXIT()                                           \
+if ((true == DIAG_boCodeUpdateRequest) && (0 == CAM_u32RPMFiltered)) \
+{                                                                    \
+	return;                                                          \
+}
+
+
 EXTERN uint8 DIAG_u8EngagedGearReport;
 //ASAM mode=readvalue name="Engaged Gear Report" type=uint8 offset=0 min=0 max=10 m=1 b=0 units="dl" format=1.0 help="Engaged Gear Report"
 
@@ -339,6 +351,14 @@ EXTERN USERDIAG_tstSpreadIDXAddressPair DIAG_astIDXAddressPairs[DIAG_nSPREADSREC
  
 EXTERN uint16 DIAG_u16ISCCmd;
 //ASAM mode=readvalue name="Diag ISC Command" type=uint16 offset=0 min=0 max=255 m=1 b=0 units="dl" format=1.0 help="Diag ISC Command"
+
+EXTERN bool DIAG_boCodeUpdateRequest;
+
+EXTERN uint8 DIAG_vVersionMajor;
+//ASAM mode=readvalue name="Version Major" type=uint8 offset=0 min=0 max=255 m=1 b=0 units="dl" format=3.0 help="Version Major"
+
+EXTERN uint8 DIAG_vVersionMinor;
+//ASAM mode=readvalue name="Version Minor" type=uint8 offset=0 min=0 max=255 m=1 b=0 units="dl" format=3.0 help="Version Minor"
 
 /* GLOBAL FUNCTION DECLARATIONS ***********************************************/
 void USERDIAG_vStart(uint32* const pu32Arg);

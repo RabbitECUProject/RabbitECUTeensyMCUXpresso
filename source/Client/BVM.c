@@ -24,6 +24,7 @@
 #ifdef BUILD_USER
 
 #include "BVM.h"
+#include "DIAG.h"
 
 /* LOCAL VARIABLE DEFINITIONS (STATIC) ****************************************/
 uint32 BVM_u32ADCRaw;
@@ -88,6 +89,8 @@ void BVM_vRun(uint32* const pu32Arg)
 	static uint32 u32SecondDerivativeLimitNeg = 0;
 	static uint32 u32SecondDerivativeLimitPos = 0;
 	
+	CODE_UPDATE_EXIT();
+
 	if (TRUE == BVM_boNewSample)
 	{	
 		/* User can add filtering */

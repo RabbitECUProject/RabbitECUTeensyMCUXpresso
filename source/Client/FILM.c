@@ -21,6 +21,7 @@
 #ifdef BUILD_USER
 
 #include "MAP.h"
+#include "DIAG.h"
 
 
 /* LOCAL VARIABLE DEFINITIONS (STATIC) ****************************************/
@@ -45,6 +46,8 @@ void FILM_vRun(puint32 const pu32Arg)
 	sint32 s32Temp;	
 	uint32 u32Temp;
 	
+	CODE_UPDATE_EXIT();
+
 	FILM_u32FilmCallCount++;
 	
 	if (0 < CAM_u32RPMRaw)

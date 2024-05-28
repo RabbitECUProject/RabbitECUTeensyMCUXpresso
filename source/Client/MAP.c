@@ -21,7 +21,7 @@
 #ifdef BUILD_USER
 
 #include "MAP.h"
-
+#include "DIAG.h"
 
 /* LOCAL VARIABLE DEFINITIONS (STATIC) ****************************************/
 bool MAP_boNewSample;
@@ -140,6 +140,7 @@ void MAP_vRun(puint32 const pu32Arg)
 	uint8 u8Temp;
 	uint32 u32TPSWeightLimit;
 
+	CODE_UPDATE_EXIT();
 
 	if (EH_IO_Invalid != USERCAL_stRAMCAL.u16MAPADResource)
 	{

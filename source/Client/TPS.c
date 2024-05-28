@@ -27,6 +27,7 @@
 #include "TPS.h"
 #include "SENSORS.h"
 #include "usercal.h"
+#include "DIAG.h"
 
 
 /* LOCAL VARIABLE DEFINITIONS (STATIC) ****************************************/
@@ -125,6 +126,8 @@ void TPS_vRun(puint32 const pu32Arg)
 	static sint32 s32SecondDerivativeLimitNeg = 0;
 	static sint32 s32SecondDerivativeLimitPos = 0;
 	static uint16 s16OldCANTPS;
+
+	CODE_UPDATE_EXIT();
 
 	if (TRUE == USERCAL_stRAMCAL.boTPSCANPrimary)
 	{
@@ -373,13 +376,17 @@ void TPS_vRun(puint32 const pu32Arg)
 			s32Temp = USERCAL_stRAMCAL.userCalPPSCalMin - (TPS_u32PPSLearnedMin / 100);
 			u32Temp = SENSORS_u32PPSMVoltsRamp + s32Temp;
 
-			if ((USERCAL_stRAMCAL.userCalPPSCalMin + 80) > u32Temp)
+			if ((USERCAL_stRAMCAL.userCalPPSCalMin + 60) > u32Temp)
 			{
 				boTemp = TRUE;
 			}
 			else if ((USERCAL_stRAMCAL.userCalPPSCalMin + 160) < u32Temp)
 			{
 				boTemp = FALSE;
+			}
+			else
+			{
+				boTemp = TPS_boThrottleClosed;
 			}
 		}
 		else
@@ -391,6 +398,10 @@ void TPS_vRun(puint32 const pu32Arg)
 			else if (USERCAL_stRAMCAL.u32TPSClosedUpper < TPS_tThetaFiltered)
 			{
 				boTemp = FALSE;
+			}
+			else
+			{
+				boTemp = TPS_boThrottleClosed;
 			}
 		}
 

@@ -22,7 +22,7 @@
 #include "GENDATA.h"
 #include "AFM.h"
 #include "MAP.h"
-
+#include "DIAG.h"
 
 /* LOCAL VARIABLE DEFINITIONS (STATIC) ****************************************/
 
@@ -244,6 +244,8 @@ void GENDATA_vRun(puint32 const pu32Arg)
 	uint32 u32Temp;
 	IOAPI_tenTriState enTriState;
 	IOAPI_tenEHIOResource enEHIOResource;
+
+	CODE_UPDATE_EXIT();
 
 	/* Buffer GENDATA_enBoostValve */
 	GENDATA_s32VARS[GENDATA_enBoostValve] = MAP_u16PressureValveDuty;

@@ -38,6 +38,8 @@ const uint8 USERDIAG_rau8Codes1152[] = USERDIAG_nCodes1152;
 
 CQUEUE_tstQueue* volatile DIAG_pstUARTQueue;
 uint8* DIAG_pu8UARTBuffer;
+extern bool UDSAL_boCodePrepReq; // OK this is naughty - TBC
+extern bool UDSAL_boCodeRunReq; // OK this is also naughty
 
 /* LOCAL FUNCTION PROTOTYPES (STATIC) *****************************************/
 /*******************************************************************************
@@ -62,7 +64,7 @@ static void USERDIAG_vSnapShot(uint16);
 /*******************************************************************************
 * Interface        : USERDIAG_i16GetCIDParamAddress
 *
-* Implementation   : Serach for the index of a CID within a CID info table
+* Implementation   : Search for the index of a CID within a CID info table
 *
 * Parameter
 *    Par1          : The CID being searched for
@@ -83,8 +85,12 @@ void USERDIAG_vStart(puint32 const pu32Arg)
 	
 	USERDIAG_u32GlobalTimeTick = 0;
 	DIAG_u8EngagedGearReport = 255;
+	DIAG_boCodeUpdateRequest = false;
 	
 	BOOSTED_vResetSVCResult();
+
+	DIAG_vVersionMajor = BUILD_VER_MAJOR;
+	DIAG_vVersionMinor = BUILD_VER_MINOR;
 
 	for (u32DiagSpreadsIDX = 0; u32DiagSpreadsIDX < DIAG_nSPREADSRECORDSMAX; u32DiagSpreadsIDX++)
 	{
@@ -97,7 +103,6 @@ void USERDIAG_vStart(puint32 const pu32Arg)
 		DIAG_apu8SpreadTableAddresses[DIAG_nSPREADSMAX] = NULL;
 	}
 	
-		
 #ifdef USERDIAG_nEnableUART
 	if (SYSAPI_enOK == pstSVCDataStruct->enSVCResult)
 	{		
@@ -310,12 +315,47 @@ void USERDIAG_vRun(puint32 const pu32Arg)
 	static uint8 au8UARTInBuffer[8];
 	static uint8 u8UARTInBufferIDX = 0;
 	bool boRXUart;
+	uint32 u32FastRPM;
+	puint8 pu8RAMData = (puint8)&USERCAL_stRAMCAL;
+	uint16 u16UserCalDataCount = sizeof(USERCAL_stRAMCAL);
+	uint32 u32StackInitVal;
+	uint32* pu32Image;
+	SCB_Type* pstSCB;
+	tpfUpdate pfUpdate;
 
 #if defined(DEBUG_DIAG)
 	static uint32 debugRXCounts = 0;
 #endif //DEBUG_DIAG
 
 	USERDIAG_u32GlobalTimeTick++;
+
+	if ((TRUE == UDSAL_boCodePrepReq) && (0 == CAM_u32RPMFiltered))
+	{
+		DIAG_boCodeUpdateRequest = true;
+		USER_vSVC(SYSAPI_enSetupWorkingPage, (void*)&pu8RAMData,
+					(void*)&u16UserCalDataCount,	(void*)NULL);
+	}
+
+	if ((TRUE == UDSAL_boCodeRunReq) && (0 == CAM_u32RPMFiltered))
+	{
+		if (1111 == USERCAL_stRAMCAL.u16ETCOverrideKeys)
+		{
+			pu32Image = (uint32*)USERDIAG_nCODE_MIN_ADDR;
+			pstSCB = SCB;
+			u32StackInitVal = *pu32Image++;
+			pfUpdate = (tpfUpdate)(*pu32Image);
+
+			if (((tpfUpdate*)USERDIAG_nCODE_MIN_ADDR < pfUpdate) &&
+				((tpfUpdate*)USERDIAG_nCODE_MAX_ADDR > pfUpdate))
+			{
+				CPU_vEnterCritical();
+				__set_MSP(u32StackInitVal);
+				pstSCB->VTOR = (uint32)USERDIAG_nCODE_MIN_ADDR;
+				pfUpdate = (tpfUpdate)(*pu32Image);
+				pfUpdate();
+			}
+		}
+	}
 
 	if (DIAG_nSPREADSMAX > u32SpreadIDX)
 	{
@@ -414,7 +454,8 @@ void USERDIAG_vRun(puint32 const pu32Arg)
 		}
 		else
 		{
-			stCANMsg.u32DWH = 0x01000000 + (((CAM_u32RPMFiltered * 4) % 0x100) << 8) + (CAM_u32RPMFiltered * 4) / 0x100;
+			u32FastRPM = *CAM_pu32FastRPMRaw;
+			stCANMsg.u32DWH = 0x01000000 + (((u32FastRPM) % 0x100) << 8) + (u32FastRPM) / 0x100;
 			stCANMsg.u32DWL = 0;
 			stCANMsg.u32DWH |= ((TORQUE_u32OutputTorqueModified & 0xff) << 16);
 

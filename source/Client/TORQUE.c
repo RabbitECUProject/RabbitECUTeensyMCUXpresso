@@ -25,6 +25,7 @@
 #include "SENSORS.h"
 #include "usercal.h"
 #include "EST.h"
+#include "DIAG.h"
 
 
 /* LOCAL VARIABLE DEFINITIONS (STATIC) ****************************************/
@@ -63,6 +64,8 @@ void TORQUE_vRun(puint32 const pu32Arg)
 	uint16 u16Temp;
 	uint16 u16AutoRevMatch;
 	uint16 u16PostBlipDuration;
+
+	CODE_UPDATE_EXIT();
 
 	if (USERCAL_stRAMCAL.u16ETCOverrideKeys == 0xffff)
 	{

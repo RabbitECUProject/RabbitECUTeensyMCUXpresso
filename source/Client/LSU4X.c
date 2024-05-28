@@ -22,6 +22,7 @@
 #ifdef BUILD_USER
 
 #include "LSU4X.h"
+#include "DIAG.h"
 
 /* LOCAL MACRO DEFINITIONS ****************************************************/
 #define LSU4X_nADConfigCount (sizeof(LSU4X_rastADConfig) / sizeof(LSU4X_tstADConfig))
@@ -260,6 +261,8 @@ void LSU4X_vRun(uint32* const pu32Arg )
 	/* not yet tested */
 	return;
 #endif
+
+	CODE_UPDATE_EXIT();
 
 	ADCAPI_tenTrigger enTrigger = ADCAPI_enTrigger1;	
 		

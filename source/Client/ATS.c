@@ -22,7 +22,7 @@
 
 #include "ATS.h"
 #include "CTS.h"
-
+#include "DIAG.h"
 
 /* LOCAL VARIABLE DEFINITIONS (STATIC) ****************************************/
 bool ATS_boNewSample;
@@ -91,6 +91,8 @@ void ATS_vRun(puint32 const pu32Arg)
 	static uint32 u32CANATSMsgCount = 0;
 	static uint8 u8CANATSOld = 0;
 	static uint32 u32RunCount;
+
+	CODE_UPDATE_EXIT();
 
 	
 	if ((TRUE == ATS_boNewSample) || (TRUE == SENSORS_boCANATSNewSample))

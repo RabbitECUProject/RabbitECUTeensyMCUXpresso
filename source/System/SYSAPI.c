@@ -317,7 +317,7 @@ void SYS_vAPISVC(void)
 
 		case SYSAPI_enNVMWorkingCopy:
 		{
-			boResult = FEE_boNVMWorkingCopy(*(bool*)OS_stSVCDataStruct.pvArg1, *(bool*)OS_stSVCDataStruct.pvArg2);
+			boResult = FEE_boNVMWorkingCopy(*(bool*)OS_stSVCDataStruct.pvArg1, *(bool*)OS_stSVCDataStruct.pvArg2, ~0);
 			OS_stSVCDataStruct.enSVCResult = (TRUE == boResult) ? SYSAPI_enOK : SYSAPI_enBadNVMWorkingCopy;			
 			break;
 		}		

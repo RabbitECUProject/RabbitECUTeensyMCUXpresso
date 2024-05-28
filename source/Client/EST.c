@@ -22,6 +22,7 @@
 
 #include "EST.h"
 #include "CEMAPI.h"
+#include "DIAG.h"
 
 
 /* LOCAL VARIABLE DEFINITIONS (STATIC) ****************************************/
@@ -463,7 +464,7 @@ void EST_vStart(puint32 const pu32Arg)
 	}
 
 	/* Set up the v1.4 board ignition demux registers */
-#ifdef BUILD_RABBIT_1_4
+#ifdef BUILD_RABBIT_1_4_PLUS
 	/*
 	if (1 == USERCAL_stRAMCAL.u8ESTRegMux)
 	{
@@ -493,7 +494,7 @@ void EST_vStart(puint32 const pu32Arg)
 	}
 
 
-#endif //BUILD_RABBIT_1_4
+#endif //BUILD_RABBIT_1_4_PLUS
 }
 
 void EST_vRun(puint32 const pu32Arg)
@@ -514,6 +515,8 @@ void EST_vRun(puint32 const pu32Arg)
 	RELAY_tenBit enBit;
 	sint16 s16ATSCTSTimingTrim;
 	
+	CODE_UPDATE_EXIT();
+
 	boESTAltMapRequestActive = SENSORS_boGetAuxActive(SENSORS_enAUX_LAUNCH_LOW);
 	boESTAltMapRequestActive |= SENSORS_boGetAuxActive(SENSORS_enAUX_LAUNCH_HIGH);
 

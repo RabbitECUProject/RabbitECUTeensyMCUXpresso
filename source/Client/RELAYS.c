@@ -22,7 +22,7 @@
 #ifdef BUILD_USER
 
 #include "RELAYS.h"
-
+#include "DIAG.h"
 
 /* LOCAL VARIABLE DEFINITIONS (STATIC) ****************************************/
 uint8 RELAYS_u8RelayBitState;
@@ -150,6 +150,8 @@ void RELAYS_vRun(uint32* const pu32Arg)
 	IOAPI_tenTriState enTriState;
 	IOAPI_tenEHIOResource enEHIOResource;
 	RELAY_tenBit enBit;
+
+	CODE_UPDATE_EXIT();
 
 	if (false == RELAYS_boInit) return;
 

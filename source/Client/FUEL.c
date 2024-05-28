@@ -21,6 +21,7 @@
 #ifdef BUILD_USER
 
 #include "FUEL.h"
+#include "DIAG.h"
 
 #ifdef BUILD_FME
 #include "FME.h"
@@ -554,6 +555,7 @@ void FUEL_vRun(puint32 const pu32Arg)
 	static bool boAirflowFMEEnable;
 	uint32 u32FuelCutPercent = 40;
 
+	CODE_UPDATE_EXIT();
 	CLO2_vFilterSensors();
 	
 	if (0 == u32FuelRunCount % FUEL_nInjRespCalcRate)
@@ -822,10 +824,12 @@ void FUEL_vRun(puint32 const pu32Arg)
 #ifdef BUILD_FME
 	if (0 != USERCAL_stRAMCAL.u8DBSlaveConfig)
 	{
-		boAirflowFMEEnable = AFM_tAirFlowAFMUg < USERCAL_stRAMCAL.u32AirflowFMELimitLow ?
+		u32Temp = AFM_tAirFlowVEUg > AFM_tAirFlowAFMUg ? AFM_tAirFlowVEUg : AFM_tAirFlowAFMUg;
+
+		boAirflowFMEEnable = u32Temp < USERCAL_stRAMCAL.u32AirflowFMELimitLow ?
 				FALSE : boAirflowFMEEnable;
 
-		boAirflowFMEEnable = AFM_tAirFlowAFMUg > USERCAL_stRAMCAL.u32AirflowFMELimitHigh ?
+		boAirflowFMEEnable = u32Temp > USERCAL_stRAMCAL.u32AirflowFMELimitHigh ?
 				TRUE : boAirflowFMEEnable;
 
 		/* Override safety airflow limit set too high > 15g/s */

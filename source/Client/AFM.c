@@ -22,6 +22,7 @@
 
 #include "AFM.h"
 #include "MAP.h"
+#include "DIAG.h"
 
 
 /* LOCAL VARIABLE DEFINITIONS (STATIC) ****************************************/
@@ -99,6 +100,8 @@ void AFM_vRun(puint32 const pu32Arg)
 	uint32 u32TableIDXx = ~0;
 	uint32 u32TableIDXy = ~0;
 	
+	CODE_UPDATE_EXIT();
+
 	if (TRUE == AFM_boNewSample)
 	{
 		USER_xEnterCritical();/*CR1_16*/

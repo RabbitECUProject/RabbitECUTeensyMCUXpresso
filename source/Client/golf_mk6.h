@@ -1194,11 +1194,11 @@ EH_IO_Invalid,\
 /* boOBDISCADV */\
 0,\
 /* u8TriggerType */\
-2,\
+3,\
 /* u8SyncType */\
 0,\
 /* u8TriggerPullStrength */\
-2,\
+0,\
 /* u8SyncPullStrength */\
 2,\
 /* u16MinLinearFuelPulse */\
@@ -2439,10 +2439,13 @@ EH_IO_GPSE5,\
 	1,\
     /* u8ESTRegMux */\
 	1,\
-    /* u8DummyPadding3 */\
+    /* u8DummyPadding1 */\
 	0,\
+    /* u8DummyFill */\
+	{0},\
+	/* Offsets */\
+    (uint8*)&au32Offsets,\
 	/* u16CRC16 */\
-0x1234,\
-(uint8*)&au32Offsets\
+    0x1234,\
 }
 

@@ -26,6 +26,7 @@
 #include "SSD_Types.h"
 #include "SSD_FTFx.h"
 #include "SSD_FTFx_Internal.h"
+#include "CPUAbstract.h"
 
 /************************************************************************
 *
@@ -47,7 +48,7 @@ UINT32 __attribute__((optimize("O4"))) FlashCommandSequence (PFLASH_SSD_CONFIG P
                                          UINT8* pCommandArray)
 #else
 
-UINT32  FlashCommandSequence (PFLASH_SSD_CONFIG PSSDConfig, \
+__attribute__ ((section(".data.ram"))) UINT32  FlashCommandSequence (PFLASH_SSD_CONFIG PSSDConfig, \
                                UINT8 index, \
                                UINT8* pCommandArray)                                         
 #endif    
@@ -103,6 +104,8 @@ UINT32  FlashCommandSequence (PFLASH_SSD_CONFIG PSSDConfig, \
         }
     }
 
+    CPU_vEnterCritical();
+
     /* clear CCIF bit */
     REG_WRITE(PSSDConfig->ftfxRegBase + FTFx_SSD_FSTAT_OFFSET, FTFx_SSD_FSTAT_CCIF);
 
@@ -120,6 +123,8 @@ UINT32  FlashCommandSequence (PFLASH_SSD_CONFIG PSSDConfig, \
             /* do nothing */
         }
     }
+
+    CPU_vExitCritical();
  
     /* Check error bits */
     /*Get flash status register value */

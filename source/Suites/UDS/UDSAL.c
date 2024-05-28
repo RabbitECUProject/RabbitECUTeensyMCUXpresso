@@ -32,7 +32,9 @@ CQUEUE_tstQueue UDSAL_astDDDICacheQueue[UDSAL_nDDDICacheCount];
 uint16 UDSAL_au16DDDICacheSIDs[UDSAL_nDDDICacheCount];
 uint8 UDSAL_au8DDDICache[UDSAL_nDDDICacheCount][UDSAL_nDDDICacheSize];
 
-bool UDSAL_boRDBICaching;
+bool UDSAL_boRDBICaching = false;
+bool UDSAL_boCodePrepReq = false;
+bool UDSAL_boCodeRunReq = false;
 
 static uint8 UDSAL_u8MODE1(puint8, uint32, puint8, puint32, uint32);
 static uint8 UDSAL_u8MODE2(puint8, uint32, puint8, puint32, uint32);
@@ -772,6 +774,7 @@ static uint8 UDSAL_u8RC(puint8 pu8RXBuffer, uint32 u32RXDataCount, puint8 pu8TXB
 	uint8 u8Response = UDSAL_RSP_OK;
 	uint16 u16RoutineID;
 	bool boRetCode = FALSE;
+	uint32 u32OptionRecord;
 
 	u16RoutineID = 0x100 * *(pu8RXBuffer + 4);
 	u16RoutineID += *(pu8RXBuffer + 5);
@@ -784,37 +787,47 @@ static uint8 UDSAL_u8RC(puint8 pu8RXBuffer, uint32 u32RXDataCount, puint8 pu8TXB
 			{
 				case UDSAL_RCUID_RUN_DL:
 				{
-					
-					
+					break;
 				}
-				break;
 				
 				case UDSAL_RCUID_PARTITION:
 				{
 #ifdef BUILD_SBL
 						FEE_boPartition();
 #endif
+					break;
 				}
-				break;
 				
 				case UDSAL_RCUID_WORK_TO_NVM:
 				{
 #ifdef BUILD_SBL
-					boRetCode = FEE_boNVMWorkingCopy(FALSE, TRUE);
+					boRetCode = FEE_boNVMWorkingCopy(FALSE, TRUE, ~0);
 #endif
 #ifdef BUILD_KERNEL			
-					boRetCode = FEE_boNVMWorkingCopy(FALSE, TRUE);	
+					boRetCode = FEE_boNVMWorkingCopy(FALSE, TRUE, ~0);
 #endif
-#ifdef BUILD_KERNEL_APP				
-					boRetCode = FEE_boNVMWorkingCopy(FALSE, TRUE);	
+#ifdef BUILD_KERNEL_APP
+					if (TRUE == UDSAL_boCodePrepReq)
+					{
+						u32OptionRecord = 0x100 * *(pu8RXBuffer + 6);
+						u32OptionRecord += *(pu8RXBuffer + 7);
+						u32OptionRecord *= 0x100;
+						boRetCode = FEE_boNVMWorkingCopy(FALSE, FALSE, u32OptionRecord);
+					}
+					else
+					{
+						boRetCode = FEE_boNVMWorkingCopy(FALSE, TRUE, ~0);
+					}
+
 #endif		
 					if (FALSE == boRetCode)
 					{
 						u8Response = UDSAL_RSP_CNC;	
 					}
 					*pu32TXByteCount += 8;
+
+					break;
 				}
-				break;		
 
 				case UDSAL_RCUID_CLEAR_NVM:
 				{
@@ -832,9 +845,40 @@ static uint8 UDSAL_u8RC(puint8 pu8RXBuffer, uint32 u32RXDataCount, puint8 pu8TXB
 						u8Response = UDSAL_RSP_CNC;	
 					}
 					*pu32TXByteCount += 8;
+
+					break;
 				}
-				break;	
 				
+				case UDSAL_RCUID_CODE_PREP:
+				{
+#ifdef BUILD_KERNEL_APP
+					UDSAL_boCodePrepReq = TRUE;
+#endif
+					*pu32TXByteCount += 8;
+
+					break;
+				}
+
+				case UDSAL_RCUID_FIRMWARE_UPDATE:
+				{
+#ifdef BUILD_KERNEL_APP
+					UDSAL_boCodePrepReq = FALSE;
+
+					if (TRUE == FEE_boCheckUpdaterCRC16())
+					{
+						UDSAL_boCodeRunReq = TRUE;
+					}
+					else
+					{
+						u8Response = UDSAL_RSP_CNC;
+					}
+
+#endif
+					*pu32TXByteCount += 8;
+
+					break;
+				}
+
 				case UDSAL_RCUID_BCKP_ADCCAL:
 				{
 #if defined(BUILD_SBL)
@@ -853,9 +897,12 @@ static uint8 UDSAL_u8RC(puint8 pu8RXBuffer, uint32 u32RXDataCount, puint8 pu8TXB
 					{
 						u8Response = UDSAL_RSP_CNC;	
 					}
-					*pu32TXByteCount += 8;				
-				}		
-				break;				
+					*pu32TXByteCount += 8;
+
+					break;
+				}
+
+
 				
 				default:
 				{
@@ -866,8 +913,8 @@ static uint8 UDSAL_u8RC(puint8 pu8RXBuffer, uint32 u32RXDataCount, puint8 pu8TXB
 		}
 		default:
 		{
-				u8Response = UDSAL_RSP_SFNS;			
-				break;
+			u8Response = UDSAL_RSP_SFNS;
+			break;
 		}		
 	}
 	

@@ -56,6 +56,9 @@ uint32 CEM_u32VVTLowToothCount[4];
 bool CEM_boVVTIsHigh[4];
 uint32 CEM_u32VVTEventCounts[4];
 uint32 CEM_u32PrimaryEdgeCount = 0;
+uint8 CEM_u8NibbleCounter;
+uint32 CEM_u32FastRPMX4;
+extern uint32* CAM_pu32FastRPMRaw;
 
 static void CEM_vSequenceReset(IOAPI_tenEHIOResource enEHIOResource, TEPMAPI_ttEventTime tEventTime, uint32 u32OriginGlobalCycleFraction, bool boLatePhase);
 static TEPMAPI_ttEventTime CEM_tCalculateGlobalTime(TEPMAPI_ttEventTime tEventTime, uint16 u16LastGapFraction, bool boGlobalTimeEnable);
@@ -79,6 +82,7 @@ void CEM_vStart(uint32* const u32Stat)
 	CTS_boCTSReady = FALSE;
 	CEM_u8SimpleMissingSync = 0;
 	CEM_u32CrankErrorCounts = 0;
+	CAM_pu32FastRPMRaw = &CEM_u32FastRPMX4;
 
 	memset((void*)&CEM_au16RisingCrankEdge, 0, sizeof(CEM_au16RisingCrankEdge)); 
 	memset((void*)&CEM_au16FallingCrankEdge, 0, sizeof(CEM_au16FallingCrankEdge));	
@@ -195,8 +199,8 @@ bool CEM_boPopulateCrankEdgeArrays(puint16 const pu16EdgeFractionArray, const bo
 		}
 	}
 
-	CEM_enTriggerType = (0 != u32TriggerType) ? CEM_enTypeSuzukiM15A + u32TriggerType - 1 : 0;
-		
+	//CEM_enTriggerType = (0 != u32TriggerType) ? CEM_enTypeSuzukiM15A + u32TriggerType - 1 : 0;
+	CEM_enTriggerType = (CEM_tenTriggerType)u32TriggerType;
 	CEM_vProcessAllEdges();
 	boStat = TRUE;
 	CEM_boEdgesReady = TRUE;
@@ -220,6 +224,11 @@ static void CEM_vProcessAllEdges(void)
 
 	CEM_aboSyncEdge[0] = TRUE;
 
+	if (CEM_au16AllEdge[0] > (CEM_au16AllEdge[1] + 1))
+	{
+		u32DeltaCount = 1;
+	}
+
     for (uint32 u32ArrayIDX = 1; u32ArrayIDX < CEM_xEdgesCount; u32ArrayIDX++)
 	{
 	    s32Temp = CEM_au16AllEdge[u32ArrayIDX] - CEM_au16AllEdge[u32ArrayIDX - 1];
@@ -228,14 +237,12 @@ static void CEM_vProcessAllEdges(void)
         {
             u32DeltaCount++;
 			CEM_u8SimpleMissingSync = (u32ArrayIDX + 1) % CEM_xEdgesCount;
-
-			/* Calculate how many missing teeth there are (+10) for safety */
-			CEM_u8MissingToothCountMax = (CEM_au16AllEdge[u32ArrayIDX] + 10) / CEM_au16AllEdge[u32ArrayIDX - 1];
-			CEM_u8MissingToothCountMax--;
         }
 
 		CEM_aboSyncEdge[u32ArrayIDX] = TRUE;
 	}
+
+	CEM_u8MissingToothCountMax = u32DeltaCount;
 
 	if (CEM_enTriggerType < CEM_enTypeSuzukiM15A)
 	{
@@ -281,6 +288,13 @@ void CEM_vPrimaryEventCB(IOAPI_tenEHIOResource enEHIOResource, TEPMAPI_ttEventTi
 	bool boTemp;
 	IOAPI_tenEHIOResource enLinkedResource;
 	IOAPI_tenTriState enTriState;
+	static uint8 au8EarlyCounts[4] = {0, 0, 0, 0};
+
+
+#ifdef DEBUG_SYNC
+	static uint32 tempcount;
+	static uint32 temp1[32];
+#endif
 
 	if (FALSE == CEM_boEdgesReady) return;
 
@@ -390,6 +404,7 @@ void CEM_vPrimaryEventCB(IOAPI_tenEHIOResource enEHIOResource, TEPMAPI_ttEventTi
 		case CEM_enAutocorrelationMode: u32Temp = CEM_xEdgesCount; break;
 		case CEM_enOneGroupMissing: u32Temp = CEM_xEdgesCount; break;
 		case CEM_enTypeWVEA888: u32Temp = 4; break;
+		case CEM_enRoverTypeA: u32Temp = 4; break;
 		default: u32Temp = CEM_xEdgesCount; break;
 	}
 
@@ -623,12 +638,6 @@ void CEM_vPrimaryEventCB(IOAPI_tenEHIOResource enEHIOResource, TEPMAPI_ttEventTi
 
 				if (10 == CEM_u32CrankEdgeCounter)
 				{
-					#ifdef DEBUG_SYNC
-					tempcount = (tempcount + 1) % 16;
-					temp1[tempcount] = 	(CEM_tLastVVTHighTime << 16) + CEM_tLastVVTLowTime;
-					temp2[tempcount] = 	CEM_u32GlobalCycleFraction;
-					#endif
-
 					if (CEM_u32VVTHighToothCount[0] < CEM_u32VVTLowToothCount[0])
 					{
 						if ((0x10000 <= CEM_u32GlobalCycleFraction) && (100 < CEM_u32PrimaryEdgeCount))
@@ -746,6 +755,10 @@ void CEM_vPrimaryEventCB(IOAPI_tenEHIOResource enEHIOResource, TEPMAPI_ttEventTi
 		        else
 		        {
 		        	CEM_u32SmallestToothTime = au32InputArray[CEM_nEdgesMax - 1];
+
+		        	// calculate fast RPM
+		        	u32Temp = 938050 / CEM_u32SmallestToothTime;
+		        	CEM_u32FastRPMX4 = ((3 * CEM_u32FastRPMX4) >> 2) + u32Temp;
 		        }
 
 		        /* Is tooth prior to gap/gaps */
@@ -1051,6 +1064,275 @@ void CEM_vPrimaryEventCB(IOAPI_tenEHIOResource enEHIOResource, TEPMAPI_ttEventTi
 
 				break;
 			}
+			case CEM_enRoverTypeA:
+			{
+				CEM_u32GlobalCycleFraction += CEM_au16AllEdge[(CEM_u32CrankEdgeCounter - 1) % CEM_xEdgesCount];
+
+				u32Temp = CEM_u32GetMissingThreshold(au32InputArray[CEM_nEdgesMax - 2]);
+
+		        if (au32InputArray[CEM_nEdgesMax - 1] > u32Temp)
+				{
+		        	CEM_u8NibbleCounter = CEM_u8NibbleCounter << 4;
+
+					if (false == CEM_boPosConfirmed)
+					{
+						au8EarlyCounts[0] = au8EarlyCounts[1];
+						au8EarlyCounts[1] = au8EarlyCounts[2];
+						au8EarlyCounts[2] = au8EarlyCounts[3];
+						au8EarlyCounts[3] = 0x81;
+
+						if (((au8EarlyCounts[0] & 0xf0) == 0) &&
+								(au8EarlyCounts[1] == 0x81) &&
+								(au8EarlyCounts[2] == 0x1) &&
+								(au8EarlyCounts[3] == 0x81))
+						{
+							CEM_u8NibbleCounter = 0x10;
+							CEM_boPosConfirmed = true;
+
+							enTriState = TEPM_enGetTimerDigitalState(EH_IO_TMR9);
+
+							/* Invert the polarity because the circuit inverts */
+							boLatePhase = IOAPI_enLow == enTriState ? true : false;
+						}
+						else if (((au8EarlyCounts[0] & 0xf0) == 0) &&
+								(au8EarlyCounts[1] == 0x81) &&
+								(au8EarlyCounts[2] == 0x2) &&
+								(au8EarlyCounts[3] == 0x81))
+						{
+							CEM_u8NibbleCounter = 0x20;
+							CEM_boPosConfirmed = true;
+
+						}
+					}
+				}
+				else
+				{
+					CEM_u8NibbleCounter++;
+					CEM_u32SmallestToothTime = au32InputArray[CEM_nEdgesMax - 1];
+
+					if (false == CEM_boPosConfirmed)
+					{
+						u32Temp /= 2;
+
+				        if (au32InputArray[CEM_nEdgesMax - 1] < u32Temp)
+						{
+							au8EarlyCounts[0] = au8EarlyCounts[1];
+							au8EarlyCounts[1] = au8EarlyCounts[2];
+							au8EarlyCounts[2] = au8EarlyCounts[3];
+							au8EarlyCounts[3] = 0x1;
+						}
+				        else
+				        {
+				        	au8EarlyCounts[3]++;
+				        }
+					}
+				}
+
+#ifdef DEBUG_SYNC
+		        tempcount = (tempcount + 1) % 32;
+		        temp1[tempcount] = CEM_u8NibbleCounter;
+#endif
+
+				// Is tooth prior to gap/gaps
+				if ((CEM_u8NibbleCounter == 0x2c) ||
+					(CEM_u8NibbleCounter == 0xc1) ||
+					(CEM_u8NibbleCounter == 0x1d) ||
+					(CEM_u8NibbleCounter == 0xd2))
+				{
+					TEPM_vSetNextMissingToothInterrupt(enEHIOResource, CEM_u32SmallestToothTime, CEM_u8MissingToothCountMax);
+				}
+
+
+				if (1 == CEM_u8PhaseRepeats)
+				{
+					if ((CEM_u8NibbleCounter == 0x2c) && (true == CEM_boPosConfirmed))
+					{
+						CEM_u32GlobalCycleFraction = 0x0;
+						CEM_vSequenceReset(enEHIOResource, tEventTime, 0x0, boLatePhase);
+						TEPM_vSynchroniseEventProgramKernelQueues();
+
+						if (CEM_u32CrankEdgeCounter != 31)
+						{
+							CEM_u32CrankEdgeCounter = 31;
+							CEM_u32ToothEdgeCounter = 0;
+							CEM_boPosConfirmed = true;
+							CEM_vPhaseError(CEM_u32CrankEdgeCounter);
+						}
+					}
+					else if ((CEM_u8NibbleCounter == 0x14) && (true == CEM_boPosConfirmed))
+					{
+						enTriState = TEPM_enGetTimerDigitalState(EH_IO_TMR9);
+						boLatePhase = IOAPI_enLow == enTriState ? true : false;
+
+						CEM_u32GlobalCycleFraction = 0x4000;
+						CEM_vSequenceReset(enEHIOResource, tEventTime, 0x4000, boLatePhase);
+						TEPM_vSynchroniseEventProgramKernelQueues();
+
+						if (CEM_u32CrankEdgeCounter != 6)
+						{
+							CEM_u32CrankEdgeCounter = 6;
+							CEM_u32ToothEdgeCounter = 9;
+							CEM_boPosConfirmed = true;
+							CEM_vPhaseError(CEM_u32CrankEdgeCounter);
+						}
+					}
+					else if ((CEM_u8NibbleCounter == 0x1d) && (true == CEM_boPosConfirmed))
+					{
+						CEM_u32GlobalCycleFraction = 0x8000;
+						CEM_vSequenceReset(enEHIOResource, tEventTime, 0x8000, boLatePhase);
+						TEPM_vSynchroniseEventProgramKernelQueues();
+
+						if (CEM_u32CrankEdgeCounter != 15)
+						{
+							CEM_u32CrankEdgeCounter = 15;
+							CEM_u32ToothEdgeCounter = 18;
+							CEM_boPosConfirmed = true;
+							CEM_vPhaseError(CEM_u32CrankEdgeCounter);
+						}
+					}
+					else if ((CEM_u8NibbleCounter == 0x23) && (true == CEM_boPosConfirmed))
+					{
+						CEM_u32GlobalCycleFraction = 0xc000;
+						CEM_vSequenceReset(enEHIOResource, tEventTime, 0xc000, boLatePhase);
+						TEPM_vSynchroniseEventProgramKernelQueues();
+
+						if (CEM_u32CrankEdgeCounter != 22)
+						{
+							CEM_u32CrankEdgeCounter = 22;
+							CEM_u32ToothEdgeCounter = 27;
+							CEM_boPosConfirmed = true;
+							CEM_vPhaseError(CEM_u32CrankEdgeCounter);
+						}
+					}
+
+					CEM_u32CrankEdgeCounter = (CEM_u32CrankEdgeCounter + 1) % CEM_xEdgesCount;
+				}
+
+				if (2 == CEM_u8PhaseRepeats)
+				{
+					if ((CEM_u8NibbleCounter == 0x2c) && (true == CEM_boPosConfirmed))
+					{
+						if (false == boLatePhase)
+						{
+							CEM_u32GlobalCycleFraction = 0x10000;
+						}
+						else
+						{
+							CEM_u32GlobalCycleFraction = 0x20000;
+						}
+
+						CEM_vSequenceReset(enEHIOResource, tEventTime, CEM_u32GlobalCycleFraction, boLatePhase);
+						TEPM_vSynchroniseEventProgramKernelQueues();
+
+						if (CEM_u32CrankEdgeCounter != 0)
+						{
+							CEM_vPhaseError(CEM_u32CrankEdgeCounter);
+							CEM_u32CrankEdgeCounter = 0;
+						}
+
+						CEM_u32ToothEdgeCounter = 0;
+						CEM_boPosConfirmed = true;
+					}
+					else if ((CEM_u8NibbleCounter == 0x14) && (true == CEM_boPosConfirmed))
+					{
+						enTriState = TEPM_enGetTimerDigitalState(EH_IO_TMR9);
+						boLatePhase = IOAPI_enLow == enTriState ? true : false;
+
+						if (false == boLatePhase)
+						{
+							CEM_u32GlobalCycleFraction = 0x4000;
+						}
+						else
+						{
+							CEM_u32GlobalCycleFraction = 0x14000;
+						}
+
+						CEM_vSequenceReset(enEHIOResource, tEventTime, CEM_u32GlobalCycleFraction, boLatePhase);
+						TEPM_vSynchroniseEventProgramKernelQueues();
+
+						if (CEM_u32CrankEdgeCounter != 7)
+						{
+							CEM_vPhaseError(CEM_u32CrankEdgeCounter);
+							CEM_u32CrankEdgeCounter = 7;
+						}
+
+						CEM_u32ToothEdgeCounter = 9;
+						CEM_boPosConfirmed = true;
+					}
+					else if ((CEM_u8NibbleCounter == 0x1d) && (true == CEM_boPosConfirmed))
+					{
+						if (false == boLatePhase)
+						{
+							CEM_u32GlobalCycleFraction = 0x8000;
+						}
+						else
+						{
+							CEM_u32GlobalCycleFraction = 0x18000;
+						}
+
+						CEM_vSequenceReset(enEHIOResource, tEventTime, CEM_u32GlobalCycleFraction, boLatePhase);
+						TEPM_vSynchroniseEventProgramKernelQueues();
+
+						if (CEM_u32CrankEdgeCounter != 16)
+						{
+							CEM_vPhaseError(CEM_u32CrankEdgeCounter);
+							CEM_u32CrankEdgeCounter = 16;
+						}
+
+						CEM_u32ToothEdgeCounter = 18;
+						CEM_boPosConfirmed = true;
+					}
+					else if ((CEM_u8NibbleCounter == 0x23) && (true == CEM_boPosConfirmed))
+					{
+						if (false == boLatePhase)
+						{
+							CEM_u32GlobalCycleFraction = 0xc000;
+						}
+						else
+						{
+							CEM_u32GlobalCycleFraction = 0x1c000;
+						}
+
+						CEM_vSequenceReset(enEHIOResource, tEventTime, CEM_u32GlobalCycleFraction, boLatePhase);
+						TEPM_vSynchroniseEventProgramKernelQueues();
+
+						if (CEM_u32CrankEdgeCounter != 23)
+						{
+							CEM_vPhaseError(CEM_u32CrankEdgeCounter);
+							CEM_u32CrankEdgeCounter = 23;
+						}
+
+						CEM_u32ToothEdgeCounter = 27;
+						CEM_boPosConfirmed = true;
+					}
+
+					CEM_u32CrankEdgeCounter = (CEM_u32CrankEdgeCounter + 1) % CEM_xEdgesCount;
+				}
+
+
+				if ((1 == CEM_u8PhaseRepeats) && (TRUE == CEM_boPosConfirmed))
+				{
+					TEPM_vRunEventToothProgramKernelQueues(FALSE, CEM_u32CycleToothEdgeCounter, CEM_u32SmallestToothTime);
+					CEM_u32ToothEdgeCounter = (CEM_u32ToothEdgeCounter + 1) % CEM_xAllEdgesCount;
+					CEM_u32CycleToothEdgeCounter = CEM_u32ToothEdgeCounter;
+				}
+				else if ((2 == CEM_u8PhaseRepeats) && (TRUE == CEM_boPosConfirmed))
+				{
+					TEPM_vRunEventToothProgramKernelQueues(FALSE, CEM_u32CycleToothEdgeCounter, CEM_u32SmallestToothTime);
+					CEM_u32ToothEdgeCounter = (CEM_u32ToothEdgeCounter + 1) % CEM_xAllEdgesCount;
+					CEM_u32CycleToothEdgeCounter = (CEM_u32CycleToothEdgeCounter + 1) % (2 * CEM_xAllEdgesCount);
+
+					if ((CEM_u32CycleToothEdgeCounter != CEM_u32ToothEdgeCounter) &&
+					(CEM_u32CycleToothEdgeCounter != (CEM_u32ToothEdgeCounter + CEM_xAllEdgesCount)))
+					{
+						CEM_u32CycleToothEdgeCounter = CEM_u32ToothEdgeCounter;
+						CEM_u32CamErrorCounts++;
+					}
+				}
+
+				break;
+			}
+
 			default:
 			{
 				break;
@@ -1082,6 +1364,11 @@ static uint32 CEM_u32GetMissingThreshold(uint32 u32GapPrev)
 	else if (2 == CEM_u8MissingToothCountMax)
 	{
 		u32MissingThreshold = 2 * u32GapPrev;
+	}
+	else
+	{
+		// silly - too big gap must be 36-1-1-1
+		u32MissingThreshold = (3 * u32GapPrev) / 2;
 	}
 
 	return u32MissingThreshold;
@@ -1205,6 +1492,7 @@ static void CEM_vSequenceReset(IOAPI_tenEHIOResource enEHIOResource, TEPMAPI_ttE
 	static uint32 u32SequenceIDX;
 	static IOAPI_tenTriState enTriState;
 	IOAPI_tenEHIOResource enLinkedResource;
+	static bool boOldPhase;
 
 	CEM_tSyncTimeLast = tEventTime;
 
@@ -1218,11 +1506,22 @@ static void CEM_vSequenceReset(IOAPI_tenEHIOResource enEHIOResource, TEPMAPI_ttE
 
 			CEM_u32GlobalCycleFraction = u32OriginGlobalCycleFraction;
 			CEM_u32GlobalCycleOriginCount++;
+
+#if defined(BUILD_SPARKDOG_PF) || defined(BUILD_SPARKDOG_MKS20)
+			/* grab the primary linked resource for the phase tell-tale to slave uP */
+			enLinkedResource = TEPM_enGetPrimaryLinkedResource();
+
+			/* set the phase tell-tale */
+			enTriState = true == boOldPhase ? IOAPI_enHigh : IOAPI_enLow;
+
+			IO_vAssertDIOResource(enLinkedResource, enTriState);
+			boOldPhase = !boOldPhase;
+#endif
 		}
 	}
 	else
 	{
-		if (0 == u32OriginGlobalCycleFraction)
+		if (0 == (0x0000fffc & u32OriginGlobalCycleFraction)) //matthew
 		{
 			if (((0x10002 < CEM_u32GlobalCycleFraction) && (false == boLatePhase)) ||
 			    ((0x10000 > CEM_u32GlobalCycleFraction) && (true == boLatePhase)))
@@ -1270,12 +1569,12 @@ static void CEM_vSequenceReset(IOAPI_tenEHIOResource enEHIOResource, TEPMAPI_ttE
 			else if ((0xfffe < CEM_u32GlobalCycleFraction) && (true == boLatePhase))
 			{
 				u32SequenceIDX = 0;
-				CEM_u32GlobalCycleFraction = u32OriginGlobalCycleFraction;
+				CEM_u32GlobalCycleFraction = 0; //matthew u32OriginGlobalCycleFraction;
 				CEM_u32CycleToothEdgeCounter = 0;
 			}
 			else
 			{
-				CEM_u32GlobalCycleFraction = 0x10000 + u32OriginGlobalCycleFraction;
+				CEM_u32GlobalCycleFraction = 0x10000; //matthew + u32OriginGlobalCycleFraction;
 			}
 
 			CEM_u32GlobalCycleOriginCount++;
@@ -1285,16 +1584,17 @@ static void CEM_vSequenceReset(IOAPI_tenEHIOResource enEHIOResource, TEPMAPI_ttE
 				CEM_u32CamRunningErrorCounts = 0 < CEM_u32CamRunningErrorCounts ? CEM_u32CamRunningErrorCounts - 1 : 0;
 			}
 
-
-#if defined(BUILD_SPARKDOG_PF) || defined(BUILD_SPARKDOG_MKS20)
 			/* grab the primary linked resource for the phase tell-tale to slave uP */
 			enLinkedResource = TEPM_enGetPrimaryLinkedResource();
 
-			/* set the phase tell-tale */
-			enTriState = true == boLatePhase ? IOAPI_enHigh : IOAPI_enLow;
+			if (EH_IO_Invalid != enLinkedResource)
+			{
+				/* set the phase tell-tale */
+				enTriState = true == boLatePhase ? IOAPI_enHigh : IOAPI_enLow;
 
-			IO_vAssertDIOResource(enLinkedResource, enTriState);
-#endif
+				IO_vAssertDIOResource(enLinkedResource, enTriState);
+			}
+
 
 		}
 	}

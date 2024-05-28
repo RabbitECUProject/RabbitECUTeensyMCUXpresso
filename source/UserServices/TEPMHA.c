@@ -1064,7 +1064,7 @@ IOAPI_tenTriState TEPMHA_enGetTimerDigitalState(IOAPI_tenEHIOResource enEHIOReso
 {
     IOAPI_tenTriState enTriState = IOAPI_enError;
 
-#if defined(BUILD_MK60) || defined(BUILD_MK64) || defined(MK10) || defined(MKS20)
+#if defined(BUILD_MK60) || defined(BUILD_MK64) || defined(BUILD_MK10) || defined(BUILD_MKS20)
 	enTriState = IO_enGetDIOResourceState(enEHIOResource);
 #endif
 
@@ -1567,6 +1567,8 @@ uint32 TEPMHA_u32SetNextMissingToothInterrupt(TEPMAPI_ttEventTime tReference, TE
 	static uint32 u32Gap = 0;
 	uint32 u32TimerVal;
 	uint32 u32Temp;
+
+	u32Repeats = 2 < u32Repeats ? 1 : u32Repeats;
 
 	if (0 != u32Repeats)
 	{

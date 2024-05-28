@@ -24,6 +24,7 @@
 #include "USERMATH.h"
 #include "IAC.h"
 #include "FME.h"
+#include "DIAG.h"
 
 /* LOCAL VARIABLE DEFINITIONS (STATIC) ****************************************/
 uint32 SENSORS_u32RunCounter;
@@ -330,6 +331,8 @@ void SENSORS_vRun(puint32 const pu32Arg)
 	uint32 u32Temp;
 	static bool boSensorRPMHystLimit;
 	uint32 u32DeltaMax;
+
+	CODE_UPDATE_EXIT();
 
 	boSensorRPMHystLimit = USERCAL_stRAMCAL.u16SensorHystLimitRPM > CAM_u32RPMFiltered ? FALSE : boSensorRPMHystLimit;
 	boSensorRPMHystLimit = ((9 * USERCAL_stRAMCAL.u16SensorHystLimitRPM) / 8) < CAM_u32RPMFiltered ?

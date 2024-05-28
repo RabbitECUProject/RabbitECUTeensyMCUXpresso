@@ -45,6 +45,7 @@
 #define TEENSY_ADAPT_60M2_off
 #define TEENSY_ADAPT_2NR_FE_off
 #define TEENSY_ADAPT_24M1_off
+#define C18_ROVER_off
 
 #ifdef TESTCAL
 #include "TEST_CAL.h"	
@@ -104,6 +105,10 @@
 
 #ifdef TEENSY_ADAPT_24M1
 #include "24M1_TEENSY_ADAPT.h"
+#endif
+
+#ifdef C18_ROVER
+#include "c18_rover.h"
 #endif
 
 #pragma GCC diagnostic pop
@@ -478,8 +483,9 @@ typedef struct
 	uint8 u8ScheduleToothIgnition;
 	uint8 u8ESTRegMux;
 	uint8 u8DummyPadding1;
-	uint16 u16CRC16;
+	uint8 au8DummyFill[2486];
 	uint8* offsets;
+	uint16 u16CRC16;
 } BUILD_PACKING USERCAL_tstCalibration;
 
 
@@ -687,7 +693,7 @@ EXTERN USERCAL_tstCalibration BUILD_PACKING USERCAL_stRAMCAL;
 //ASAM mode=writevalue name="IAC 4 IO Resource" parent="USERCAL_stRAMCAL" type=uint16 offset=5405 min=0 max=255 units="ENUMERATION EH_IO_GPSE1=0 EH_IO_GPSE2=1 EH_IO_GPSE3=2 EH_IO_GPSE4=3 EH_IO_GPSE5=4 EH_IO_GPSE6=5 EH_IO_GPSE7=6 EH_IO_GPSE8=7 EH_IO_GPSE9=8 EH_IO_GPSE10=9 EH_IO_GPSE11=10 EH_I_CMP1=16 EH_I_CMP2=17 EH_I_CMP3=18 EH_IO_UART1_TX=22 EH_IO_UART1_RX=23 EH_IO_SPI1_MISO=24 EH_IO_SPI1_MOSI=25 EH_IO_SPI1_CLK=26 EH_IO_TMR1=27 EH_IO_TMR2=28 EH_IO_TMR3=29 EH_IO_TMR4=30 EH_IO_TMR5=31 EH_IO_TMR6=32 EH_IO_TMR7=33 EH_IO_TMR8=34 EH_IO_TMR9=35 EH_IO_TMR10=36 EH_IO_GP1=37 EH_IO_GP2=38 EH_IO_GP3=39 EH_IO_GP4=40 EH_IO_GP5=41 EH_IO_GP6=42 EH_IO_GP7=43 EH_IO_GP8=44 EH_IO_GP9=45 EH_IO_UNUSED=115" format=3.0 help="IAC 4 IO Resource HTML=177.HTML"
 //ASAM mode=writevalue name="OBD ISC Advance Enable" parent="USERCAL_stRAMCAL" type=uint8 offset=5407 min=0 max=1 units="ENUMERATION OFF=0 ON=1" format=1.0 help="IAC Enable OBD Idle Advance HTML=178.HTML"
 
-//ASAM mode=writevalue name="Trigger Type" parent="USERCAL_stRAMCAL" type=uint8 offset=5408 min=0 max=255 units="ENUMERATION AUTO=0 1-GROUP=MISSING=1 M15A=2 EA888=3 2NRFE=4 ROVER-TYPE-A=5" format=1.0 help="Trigger Type HTML=178.HTML"
+//ASAM mode=writevalue name="Trigger Type" parent="USERCAL_stRAMCAL" type=uint8 offset=5408 min=0 max=255 units="ENUMERATION AUTO=0 1-GROUP-MISSING=1 M15A=2 EA888=3 2NRFE=4 ROVER-TYPE-A=5" format=1.0 help="Trigger Type HTML=178.HTML"
 //ASAM mode=writevalue name="Sync Type" parent="USERCAL_stRAMCAL" type=uint8 offset=5409 min=0 max=255 units="ENUMERATION AUTO=0 M15A=1 EA888=2" format=1.0 help="Sync Type HTML=179.HTML"
 //ASAM mode=writevalue name="Trigger Pull Strength" parent="USERCAL_stRAMCAL" type=uint8 offset=5410 min=0 max=2 units="ENUMERATION WEAK=0 MEDIUM=1 STRONG=2" format=1.0 help="Trigger Pull Strength HTML=180.HTML"
 //ASAM mode=writevalue name="Sync Pull Strength" parent="USERCAL_stRAMCAL" type=uint8 offset=5411 min=0 max=2 units="ENUMERATION WEAK=0 MEDIUM=1 STRONG=2" format=1.0 help="Sync Pull Strength HTML=181.HTML"
@@ -1039,7 +1045,8 @@ EXTERN USERCAL_tstCalibration BUILD_PACKING USERCAL_stRAMCAL;
 
 //ASAM mode=writevalue name="EST Register Multiplex Enable" parent="USERCAL_stRAMCAL" type=uint8 offset=13890 min=0 max=1 m=1 b=0 units="dl" format=2.0 help="EST Register Multiplex Enable HTML=448.HTML"
 //ASAM mode=writevalue name="DUMMY RELAY" parent="USERCAL_stRAMCAL" type=uint8 offset=13891 min=1 max=255 units="ENUMERATION EH_IO_GPSE1=0 EH_IO_GPSE2=1 EH_IO_GPSE3=2 EH_IO_GPSE4=3 EH_IO_GPSE5=4 EH_IO_GPSE6=5 EH_IO_GPSE7=6 EH_IO_GPSE8=7 EH_IO_GPSE9=8 EH_IO_GPSE10=9 EH_IO_GPSE11=10 EH_I_CMP1=16 EH_I_CMP2=17 EH_I_CMP3=18 EH_IO_UART1_TX=22 EH_IO_UART1_RX=23 EH_IO_SPI1_MISO=24 EH_IO_SPI1_MOSI=25 EH_IO_SPI1_CLK=26 EH_IO_TMR1=27 EH_IO_TMR2=28 EH_IO_TMR3=29 EH_IO_TMR4=30 EH_IO_TMR5=31 EH_IO_TMR6=32 EH_IO_TMR7=33 EH_IO_TMR8=34 EH_IO_TMR9=35 EH_IO_TMR10=36 EH_IO_GP1=37 EH_IO_GP2=38 EH_IO_GP3=39 EH_IO_GP4=40 EH_IO_GP5=41 EH_IO_GP6=42 EH_IO_GP7=43 EH_IO_GP8=44 EH_IO_GP9=45 EH_IO_UNUSED=115" format=4.0 help="Thermofan Relay HTML=214.HTML"
-//ASAM mode=writevalue name="CAL CRC" parent="USERCAL_stRAMCAL" type=uint16 offset=13892 min=0 max=255 m=1 b=0 units="dl" format=3.0 help="CAL CRC16"
+//ASAM mode=writevalue name="DUMMY PADDING" parent="USERCAL_stRAMCAL" type=uint8 offset=13892 min=0 max=1 m=1 b=0 units="dl" format=2.0 help="HTML=448.HTML"
+//ASAM mode=writevalue name="CAL CRC" parent="USERCAL_stRAMCAL" type=uint16 offset=16382 min=0 max=255 m=1 b=0 units="dl" format=3.0 help="CAL CRC16"
 /* 	NOTE MUST ALWAYS INCLUDE CAL STRUCT ELEMENTS ONE FOR ONE AND IN ORDER */
 
 /* Testing offsets table for ASAM parsing tool here */
@@ -1377,6 +1384,7 @@ EXTERN USERCAL_tstCalibration BUILD_PACKING USERCAL_stRAMCAL;
 	offsetof(USERCAL_tstCalibration, u8ScheduleToothIgnition),\
 	offsetof(USERCAL_tstCalibration, u8ESTRegMux),\
 	offsetof(USERCAL_tstCalibration, u8DummyPadding1),\
+	offsetof(USERCAL_tstCalibration, au8DummyFill),\
 	offsetof(USERCAL_tstCalibration, u16CRC16)}
 
 const uint32 __attribute__((used)) au32Offsets[]=OFFSETS_DATA;

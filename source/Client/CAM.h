@@ -45,6 +45,8 @@ EXTERN uint32 CAM_u32RPMFiltered;
 EXTERN uint32 CAM_u32RPMTransitionCounter;
 EXTERN uint32 CAM_u32EngineStoppedTimer;
 //ASAM mode=readvalue name="Engine Stopped Timer" type=uint32 offset=0 min=0 max=10000 m=1 b=0 units="s" format=4.0 help="Engine Stopped Timer"
+EXTERN uint32* CAM_pu32FastRPMRaw;
+
 
 /* GLOBAL FUNCTION DECLARATIONS ***********************************************/
 void CAM_vStart(uint32 * const pu32Arg);

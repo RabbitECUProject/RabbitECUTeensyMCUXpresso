@@ -36,6 +36,8 @@
 	#define EXTERN extern
 #endif
 
+#define DEBUG_SYNC
+
 typedef enum
 {
    CEM_enAutocorrelationMode,
@@ -43,6 +45,7 @@ typedef enum
    CEM_enTypeSuzukiM15A,
    CEM_enTypeWVEA888,
    CEM_enToyota2NFE,
+   CEM_enRoverTypeA,
    CEM_enModeCount
 } CEM_tenTriggerType;
 

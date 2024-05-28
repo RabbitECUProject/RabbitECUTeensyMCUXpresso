@@ -50,7 +50,7 @@ extern int ECUHostMain(void);
 int main(void) {
   	/* Init board hardware. */
 
- 	BOARD_InitBootPins();
+  	BOARD_InitBootPins();
     BOARD_InitBootPeripherals();
 
     /* Enter an infinite loop */

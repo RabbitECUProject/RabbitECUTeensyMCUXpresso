@@ -72,7 +72,8 @@ void FEE_vTerminate( uint32* const );
 void FEE_vStartSBL(void);
 bool FEE_boCheckPartition(void);
 bool FEE_boSetWorkingData(puint8, uint16);
-bool FEE_boNVMWorkingCopy(bool, bool);
+bool FEE_boNVMWorkingCopy(bool, bool, uint32);
+bool FEE_boCheckUpdaterCRC16(void);
 bool FEE_boNVMClear(void);
 bool FEE_boPartition(void);
 bool FEE_boWriteControlBlock(COMMONNL_tstRXLargeBuffer* const, 

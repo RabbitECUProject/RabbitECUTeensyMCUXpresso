@@ -23,6 +23,7 @@
 
 #include "LSUH.h"
 #include "USERMATH.h"
+#include "DIAG.h"
 
 /* LOCAL MACRO DEFINITIONS ****************************************************/
 #define LSUH_nADConfigCount (sizeof(LSUH_rastADConfig) / sizeof(LSUH_tstADConfig))
@@ -253,6 +254,8 @@ void LSUH_vRun(uint32* const pu32Arg )
 	/* not yet tested */
 	return;
 #endif
+
+	CODE_UPDATE_EXIT();
 
 	if (0 == (u32RunCount++ % (uint32)LSUH_nCallsIn100Ms))/*CR1_57*/
 	{
