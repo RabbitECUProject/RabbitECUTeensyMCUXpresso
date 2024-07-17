@@ -1,9 +1,10 @@
-# Rabbit ECU Teensy MCIXpresso
-This code compiles on NXP MCUXpresso and runs on Teensy 3.5 and Sparkdog MKS2xDuino controller. You can communicate with the Teensy using MAP-MATE if you choose.
+# Rabbit ECU Teensy MCUXpresso
 
-There are two branches:
-1. Original Teensy 3.5 MK64 Branch (no longer developing because Teensy 3.5 is discontinued)
-2. Sparkdog MKS2xDuino MKS2x Branch - currently developing
+LEGACY BRANCH - MAIN
+This code compiles on NXP MCUXpresso and runs on Teensy 3.5 controller. You can communicate/tune/freeze program with the Teensy using MAP-MATE if you choose. Original Teensy 3.5 MK64 Branch (no longer developing because Teensy 3.5 is discontinued).
+
+ACTIVE BRANCH - RABBIT_TEENSY_MKS20
+This code compiles on NXP MCUXpresso and runs on Sparkdog MKS2xDuino controller. You can communicate/tune/freeze and firware update with the MKS2xDuino using MAP-MATE if you choose.
 
 ## Install
 To run the project, you need a Teensy 3.5 or Sparkdog MKS2xDuino controller. You can create the hex to download using binary utilities and load using Teensy.exe, or JTAG and fully debug by soldering the ARM single wire debug interface onto the Teensy 3.5. Segger J-link and PEMicro Universal are both debuggers I have used.
