@@ -90,6 +90,12 @@ EXTERN sint32 EST_tIgnitionAdvanceMthetaReport;
 EXTERN EST_tenIgnitionTimingRequest EST_enIgnitionTimingRequest;
 //ASAM mode=readvalue name="EST Timing Request Mode" type=uint16 offset=0 min=0 max=10 units="ENUMERATION PRIMARY=0 STAGE1=1 STAGE2=2 STAGE3=3 STAGE4=4" format=1.0 help="EST Dwell Start Fraction"
 
+EXTERN uint16 EST_u16KnockSensorThresholdApply;
+//ASAM mode=readvalue name="EST Applied Knock Threshold" type=uint16 offset=0 min=0 max=127 m=1 b=0 units="dl" format=3.0 help="EST applied Knock Threshold"
+
+EXTERN sint16 EST_s16KnockTimingTrim;
+//ASAM mode=readvalue name="EST Applied Knock Trim" type=sint16 offset=0 min=-30 max=0 m=0.1 b=0 units="degrees" format=3.1 help="EST applied Knock Trim"
+
 
 /* GLOBAL FUNCTION DECLARATIONS ***********************************************/
 void EST_vStart(uint32 * const pu32Arg);

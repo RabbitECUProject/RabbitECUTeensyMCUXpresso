@@ -2439,6 +2439,52 @@ EH_IO_GPSE5,\
 	1,\
     /* u8ESTRegMux */\
 	1,\
+	/* aKnocksensorThresholdSpread */\
+		{0u,\
+		500u,\
+		1000u,\
+		1500u,\
+		2000u,\
+		2500u,\
+		3000u,\
+		3500u,\
+		4000u,\
+		4500u,\
+		5000u,\
+		5500u,\
+		6000u,\
+		6500u,\
+		7000u,\
+		7500u,\
+		8000u},\
+	/* aUserKnockSensorThreshold */\
+		{30u,\
+		31u,\
+		32u,\
+		32u,\
+		33u,\
+		33u,\
+		34u,\
+		34u,\
+		35u,\
+		35u,\
+		36u,\
+		36u,\
+		37u,\
+		37u,\
+		38u,\
+		39u,\
+		55u},\
+	/* u16KnockRPMMin */\
+	1500u,\
+	/* u16KnockDecayRate */\
+	2000u,\
+	/* u16KnockReturnRate */\
+	250u,\
+	/* u16KnockRetardMax */\
+	8000u,\
+	/* u16KnockFreqTarget */\
+	9500u,\
     /* u8DummyPadding1 */\
 	0,\
     /* u8DummyFill */\

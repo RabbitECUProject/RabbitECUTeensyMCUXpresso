@@ -482,8 +482,15 @@ typedef struct
 	uint16 u16ISCCLWeight;
 	uint8 u8ScheduleToothIgnition;
 	uint8 u8ESTRegMux;
+	uint32 aUserKnockSensorThresholdSpread[17];
+	uint16 aUserKnockSensorThresholdTable[17];
+	uint16 u16KnockRPMMin;
+	uint16 u16KnockDecayRate;
+	uint16 u16KnockReturnRate;
+	uint16 u16KnockRetardMax;
+	uint16 u16KnockFreqTarget;
 	uint8 u8DummyPadding1;
-	uint8 au8DummyFill[2486];
+	uint8 au8DummyFill[2374];
 	uint8* offsets;
 	uint16 u16CRC16;
 } BUILD_PACKING USERCAL_tstCalibration;
@@ -990,7 +997,7 @@ EXTERN USERCAL_tstCalibration BUILD_PACKING USERCAL_stRAMCAL;
 //ASAM mode=writevalue name="VSS CAN Calibration" parent="USERCAL_stRAMCAL" type=uint16 offset=12199 max=65535 m=1 b=0 units="dl" format=5.0 help="VSS CAN Calibration HTML=409.HTML"
 //ASAM mode=writevalue name="ETC Override Keys" parent="USERCAL_stRAMCAL" type=uint16 offset=12201 min=0 max=65535 m=1 b=0 units="dl" format=5.0 help="ETC Override Keys HTML=410.HTML"
 //ASAM mode=writevalue name="ETC Override" parent="USERCAL_stRAMCAL"type=uint16 offset=12203 min=0 max=65535 m=1 b=0 units="dl" format=5.0 help="ETC Override HTML=411.HTML"
-//ASAM mode=writevalue name="Vehicle Model Diag" parent="USERCAL_stRAMCAL" type=uint16 offset=12205 min=0 max=255 units="ENUMERATION VAG_GTI_DSG_DQ250_Mk6=0 VAG_GTI_MT6_Mk6=1" format=3.0 help="ETC Override HTML=412.HTML"
+//ASAM mode=writevalue name="Vehicle Model Diag" parent="USERCAL_stRAMCAL" type=uint16 offset=12205 min=0 max=65535 units="ENUMERATION VAG_GTI_DSG_DQ250_Mk6=0 VAG_GTI_MT6_Mk6=1 NONE=65535" format=3.0 help="ETC Override HTML=412.HTML"
 
 //ASAM mode=writeaxis_pts name="ETC RPM Match Table_XAXIS" parent="USERCAL_stRAMCAL" type=uint32 offset=12207 min=0 max=10000 m=1 b=0 units="RPM" format=4.0 xcount=17 xindexvar="Rev Match RPM" help="TODO HTML=413.HTML"
 //ASAM mode=writecurve name="ETC RPM Match Table" parent="USERCAL_stRAMCAL" type=uint16 offset=12275 min=0 max=15 m=1 b=0 units="counts" format=3.1 xcount=17 xindexvar="Rev Match RPM" help="TODO HTML=414.HTML"
@@ -1040,12 +1047,19 @@ EXTERN USERCAL_tstCalibration BUILD_PACKING USERCAL_stRAMCAL;
 //ASAM mode=writevalue name="CLO2 Left Resource" parent="USERCAL_stRAMCAL" type=uint16 offset=13883 min=0 max=255 units="ENUMERATION EH_IO_GPSE1=0 EH_IO_GPSE2=1 EH_IO_GPSE3=2 EH_IO_GPSE4=3 EH_IO_GPSE5=4 EH_IO_GPSE6=5 EH_IO_GPSE7=6 EH_IO_GPSE8=7 EH_IO_GPSE9=8 EH_IO_GPSE10=9 EH_IO_GPSE11=10 EH_I_CMP1=16 EH_I_CMP2=17 EH_I_CMP3=18 EH_IO_UART1_TX=22 EH_IO_UART1_RX=23 EH_IO_SPI1_MISO=24 EH_IO_SPI1_MOSI=25 EH_IO_SPI1_CLK=26 EH_IO_TMR1=27 EH_IO_TMR2=28 EH_IO_TMR3=29 EH_IO_TMR4=30 EH_IO_TMR5=31 EH_IO_TMR6=32 EH_IO_TMR7=33 EH_IO_TMR8=34 EH_IO_TMR9=35 EH_IO_TMR10=36 EH_IO_GP1=37 EH_IO_GP2=38 EH_IO_GP3=39 EH_IO_GP4=40 EH_IO_GP5=41 EH_IO_GP6=42 EH_IO_GP7=43 EH_IO_GP8=44 EH_IO_GP9=45 EH_IO_UNUSED=115" format=3.0 help="AFR AD Resource HTML=445.HTML"
 //ASAM mode=writevalue name="CLO2 Right Resource" parent="USERCAL_stRAMCAL" type=uint16 offset=13885 min=0 max=255 units="ENUMERATION EH_IO_GPSE1=0 EH_IO_GPSE2=1 EH_IO_GPSE3=2 EH_IO_GPSE4=3 EH_IO_GPSE5=4 EH_IO_GPSE6=5 EH_IO_GPSE7=6 EH_IO_GPSE8=7 EH_IO_GPSE9=8 EH_IO_GPSE10=9 EH_IO_GPSE11=10 EH_I_CMP1=16 EH_I_CMP2=17 EH_I_CMP3=18 EH_IO_UART1_TX=22 EH_IO_UART1_RX=23 EH_IO_SPI1_MISO=24 EH_IO_SPI1_MOSI=25 EH_IO_SPI1_CLK=26 EH_IO_TMR1=27 EH_IO_TMR2=28 EH_IO_TMR3=29 EH_IO_TMR4=30 EH_IO_TMR5=31 EH_IO_TMR6=32 EH_IO_TMR7=33 EH_IO_TMR8=34 EH_IO_TMR9=35 EH_IO_TMR10=36 EH_IO_GP1=37 EH_IO_GP2=38 EH_IO_GP3=39 EH_IO_GP4=40 EH_IO_GP5=41 EH_IO_GP6=42 EH_IO_GP7=43 EH_IO_GP8=44 EH_IO_GP9=45 EH_IO_UNUSED=115" format=3.0 help="AFR AD Resource HTML=446.HTML"
 //ASAM mode=writevalue name="ISC Closed Loop Weight" parent="USERCAL_stRAMCAL" type=uint16 offset=13887 min=0 max=255 m=1 b=0 units="dl" format=2.0 help="Hot Off Throttle Blip HTML=447.HTML"
-
 //ASAM mode=writevalue name="Ignition Tooth Timing Enable" parent="USERCAL_stRAMCAL" type=uint8 offset=13889 min=0 max=1 m=1 b=0 units="dl" format=2.0 help="Cold Off Throttle Blip HTML=448.HTML"
-
 //ASAM mode=writevalue name="EST Register Multiplex Enable" parent="USERCAL_stRAMCAL" type=uint8 offset=13890 min=0 max=1 m=1 b=0 units="dl" format=2.0 help="EST Register Multiplex Enable HTML=448.HTML"
-//ASAM mode=writevalue name="DUMMY RELAY" parent="USERCAL_stRAMCAL" type=uint8 offset=13891 min=1 max=255 units="ENUMERATION EH_IO_GPSE1=0 EH_IO_GPSE2=1 EH_IO_GPSE3=2 EH_IO_GPSE4=3 EH_IO_GPSE5=4 EH_IO_GPSE6=5 EH_IO_GPSE7=6 EH_IO_GPSE8=7 EH_IO_GPSE9=8 EH_IO_GPSE10=9 EH_IO_GPSE11=10 EH_I_CMP1=16 EH_I_CMP2=17 EH_I_CMP3=18 EH_IO_UART1_TX=22 EH_IO_UART1_RX=23 EH_IO_SPI1_MISO=24 EH_IO_SPI1_MOSI=25 EH_IO_SPI1_CLK=26 EH_IO_TMR1=27 EH_IO_TMR2=28 EH_IO_TMR3=29 EH_IO_TMR4=30 EH_IO_TMR5=31 EH_IO_TMR6=32 EH_IO_TMR7=33 EH_IO_TMR8=34 EH_IO_TMR9=35 EH_IO_TMR10=36 EH_IO_GP1=37 EH_IO_GP2=38 EH_IO_GP3=39 EH_IO_GP4=40 EH_IO_GP5=41 EH_IO_GP6=42 EH_IO_GP7=43 EH_IO_GP8=44 EH_IO_GP9=45 EH_IO_UNUSED=115" format=4.0 help="Thermofan Relay HTML=214.HTML"
-//ASAM mode=writevalue name="DUMMY PADDING" parent="USERCAL_stRAMCAL" type=uint8 offset=13892 min=0 max=1 m=1 b=0 units="dl" format=2.0 help="HTML=448.HTML"
+//ASAM mode=writeaxis_pts name="Knock Sensor Threshold Table_XAXIS" parent="USERCAL_stRAMCAL" type=uint32 offset=13891 min=0 max=12000 m=1 b=0 units="RPM" format=5.0 help="Knock sensor threshold calibration curve x-axis points array HTML=448.HTML" xcount=17 xindexvar="Engine Speed Raw"
+//ASAM mode=writecurve name="Knock Sensor Threshold Table" parent="USERCAL_stRAMCAL" type=uint16 offset=13959 min=0 max=127 m=1 b=0 units="dl" format=3.0 help="Knock sensor threshold curve data points array HTML=448.HTML" xcount=17 xindexvar="Engine Speed Raw"
+
+
+//ASAM mode=writevalue name="Knock RPM Min" parent="USERCAL_stRAMCAL" type=uint16 offset=13993 min=0 max=12000 m=1 b=0 units="RPM" format=4.0 help="Pressure Control Hyst HTML=415.HTML"
+//ASAM mode=writevalue name="Knock Decay Rate" parent="USERCAL_stRAMCAL" type=uint16 offset=13995 min=0 max=5 m=0.001 b=0 units="degrees" format=2.3 help="Pressure Control Hyst HTML=415.HTML"
+//ASAM mode=writevalue name="Knock Return Rate" parent="USERCAL_stRAMCAL" type=uint16 offset=13997 min=0 max=5 m=0.001 b=0 units="degrees/cycle" format=2.3 help="Pressure Control Hyst HTML=415.HTML"
+//ASAM mode=writevalue name="Knock Retard Max" parent="USERCAL_stRAMCAL" type=uint16 offset=13999 min=0 max=15 m=0.001 b=0 units="degrees" format=2.3 help="Pressure Control Hyst HTML=415.HTML"
+//ASAM mode=writevalue name="Knock Freq Target" parent="USERCAL_stRAMCAL" type=uint16 offset=13401 min=0 max=15000 m=1 b=0 units="Hz" format=5.0 help="Pressure Control Hyst HTML=415.HTML"
+//ASAM mode=writevalue name="DUMMY RELAY" parent="USERCAL_stRAMCAL" type=uint8 offset=14003 min=1 max=255 units="ENUMERATION EH_IO_GPSE1=0 EH_IO_GPSE2=1 EH_IO_GPSE3=2 EH_IO_GPSE4=3 EH_IO_GPSE5=4 EH_IO_GPSE6=5 EH_IO_GPSE7=6 EH_IO_GPSE8=7 EH_IO_GPSE9=8 EH_IO_GPSE10=9 EH_IO_GPSE11=10 EH_I_CMP1=16 EH_I_CMP2=17 EH_I_CMP3=18 EH_IO_UART1_TX=22 EH_IO_UART1_RX=23 EH_IO_SPI1_MISO=24 EH_IO_SPI1_MOSI=25 EH_IO_SPI1_CLK=26 EH_IO_TMR1=27 EH_IO_TMR2=28 EH_IO_TMR3=29 EH_IO_TMR4=30 EH_IO_TMR5=31 EH_IO_TMR6=32 EH_IO_TMR7=33 EH_IO_TMR8=34 EH_IO_TMR9=35 EH_IO_TMR10=36 EH_IO_GP1=37 EH_IO_GP2=38 EH_IO_GP3=39 EH_IO_GP4=40 EH_IO_GP5=41 EH_IO_GP6=42 EH_IO_GP7=43 EH_IO_GP8=44 EH_IO_GP9=45 EH_IO_UNUSED=115" format=4.0 help="Thermofan Relay HTML=214.HTML"
+//ASAM mode=writevalue name="DUMMY PADDING" parent="USERCAL_stRAMCAL" type=uint8 offset=14004 min=0 max=1 m=1 b=0 units="dl" format=2.0 help="HTML=448.HTML"
 //ASAM mode=writevalue name="CAL CRC" parent="USERCAL_stRAMCAL" type=uint16 offset=16382 min=0 max=255 m=1 b=0 units="dl" format=3.0 help="CAL CRC16"
 /* 	NOTE MUST ALWAYS INCLUDE CAL STRUCT ELEMENTS ONE FOR ONE AND IN ORDER */
 
@@ -1383,6 +1397,13 @@ EXTERN USERCAL_tstCalibration BUILD_PACKING USERCAL_stRAMCAL;
 	offsetof(USERCAL_tstCalibration, u16ISCCLWeight),\
 	offsetof(USERCAL_tstCalibration, u8ScheduleToothIgnition),\
 	offsetof(USERCAL_tstCalibration, u8ESTRegMux),\
+	offsetof(USERCAL_tstCalibration, aUserKnockSensorThresholdSpread),\
+    offsetof(USERCAL_tstCalibration, aUserKnockSensorThresholdTable),\
+    offsetof(USERCAL_tstCalibration, u16KnockRPMMin),\
+	offsetof(USERCAL_tstCalibration, u16KnockDecayRate),\
+	offsetof(USERCAL_tstCalibration, u16KnockReturnRate),\
+	offsetof(USERCAL_tstCalibration, u16KnockRetardMax),\
+	offsetof(USERCAL_tstCalibration, u16KnockFreqTarget),\
 	offsetof(USERCAL_tstCalibration, u8DummyPadding1),\
 	offsetof(USERCAL_tstCalibration, au8DummyFill),\
 	offsetof(USERCAL_tstCalibration, u16CRC16)}

@@ -25,6 +25,7 @@
 #include "CTS.h"
 #include "FME.h"
 #include "diag.h"
+#include "EST.h"
 
 
 /* LOCAL VARIABLE DEFINITIONS (STATIC) ****************************************/
@@ -177,6 +178,7 @@ void CAM_vEngineSpeedCB(TEPMAPI_ttEventTime tEventTime)
 	}
 
 	SENSORS_vCycleUpdate();
+	EST_u16KnockSensorThresholdApply = ~0;
 }
 
 #endif //BUILD_USER

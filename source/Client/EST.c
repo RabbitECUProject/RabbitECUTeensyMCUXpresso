@@ -23,6 +23,7 @@
 #include "EST.h"
 #include "CEMAPI.h"
 #include "DIAG.h"
+#include "SENSORS.h"
 
 
 /* LOCAL VARIABLE DEFINITIONS (STATIC) ****************************************/
@@ -32,18 +33,20 @@ SPREADAPI_ttSpreadIDX EST_tSpreadTimingyIDX;
 SPREADAPI_ttSpreadIDX EST_tSpreadDwellIDX;
 SPREADAPI_ttSpreadIDX EST_tSpreadCTSTimingTrimIDX;
 SPREADAPI_ttSpreadIDX EST_tSpreadATSTimingTrimIDX;
+SPREADAPI_ttSpreadIDX EST_tSpreadKnockSensorThresholdIDX;
 TABLEAPI_ttTableIDX EST_tMapTimingIDX;
 TABLEAPI_ttTableIDX EST_tMapTimingStage1IDX;
 TABLEAPI_ttTableIDX EST_tTableDwellIDX;
 TABLEAPI_ttTableIDX EST_tCTSTimingTrimIDX;
 TABLEAPI_ttTableIDX EST_tATSTimingTrimIDX;
+TABLEAPI_ttTableIDX EST_tKnockSensorThresholdIDX;
 uint16 EST_u16TimingBase;
 sint16 EST_s16TimingStaged;
 sint16 EST_s16Timing;
 uint16 EST_u16Dwell;
 sint16 EST_s16CTSTimingTrim;
 sint16 EST_s16ATSTimingTrim;
-
+uint16 EST_u16KnockSensorThreshold;
 
 EST_tenIgnitionTimingStage EST_enIgnitionTimingStage;
 
@@ -356,6 +359,11 @@ void EST_vStart(puint32 const pu32Arg)
 	/* Request and initialise required Kernel managed table for ATS Timing Trim */
 	EST_tATSTimingTrimIDX = SETUP_tSetupTable((void*)&USERCAL_stRAMCAL.aUserATSTimingCorrectionTable, (void*)&EST_s16ATSTimingTrim, TYPE_enInt16, 17, EST_tSpreadATSTimingTrimIDX, NULL);
 
+	/* Request and initialise required Kernel managed spread for Knock Sensor Threshold */
+	EST_tSpreadKnockSensorThresholdIDX = SETUP_tSetupSpread((void*)&CAM_u32RPMFiltered, (void*)&USERCAL_stRAMCAL.aUserKnockSensorThresholdSpread, TYPE_enInt32, 17, SPREADAPI_enSpread4ms, NULL);
+
+	/* Request and initialise required Kernel managed table for Knock Sensor Threshold */
+	EST_tKnockSensorThresholdIDX = SETUP_tSetupTable((void*)&USERCAL_stRAMCAL.aUserKnockSensorThresholdTable, (void*)&EST_u16KnockSensorThreshold, TYPE_enUInt16, 17, EST_tSpreadKnockSensorThresholdIDX, NULL);
 
 	/* Enable the Motor driver enables */
 	enEHIOResource = EST_nMotor1EnablePin;
@@ -493,6 +501,8 @@ void EST_vStart(puint32 const pu32Arg)
 		IO_vAssertDIOResource(EST_nMotor2EnablePin, IOAPI_enLow);
 	}
 
+	EST_s16KnockTimingTrim = 0;
+
 
 #endif //BUILD_RABBIT_1_4_PLUS
 }
@@ -513,7 +523,8 @@ void EST_vRun(puint32 const pu32Arg)
 	IOAPI_tenEHIOResource enEHIOResource;
 	bool boESTAltMapRequestActive;
 	RELAY_tenBit enBit;
-	sint16 s16ATSCTSTimingTrim;
+	sint16 s16ATSCTSKnockTimingTrim;
+	static bool boKnockRPMEnable;
 	
 	CODE_UPDATE_EXIT();
 
@@ -628,8 +639,38 @@ void EST_vRun(puint32 const pu32Arg)
 	USER_vSVC(SYSAPI_enCalculateTable, (void*)&EST_tATSTimingTrimIDX,
 	NULL, NULL);
 
-	/* Apply CTS and ATS trims */
-	s16ATSCTSTimingTrim = EST_s16CTSTimingTrim + EST_s16ATSTimingTrim;
+	/* Calculate the current spread for knock threshold */
+	USER_vSVC(SYSAPI_enCalculateSpread, (void*)&EST_tSpreadKnockSensorThresholdIDX,
+	NULL, NULL);
+
+	/* Lookup the current trim value for knock threshold */
+	USER_vSVC(SYSAPI_enCalculateTable, (void*)&EST_tKnockSensorThresholdIDX,
+	NULL, NULL);
+
+	boKnockRPMEnable = USERCAL_stRAMCAL.u16KnockRPMMin > CAM_u32RPMRaw ? FALSE : boKnockRPMEnable;
+	boKnockRPMEnable = (USERCAL_stRAMCAL.u16KnockRPMMin + 100) < CAM_u32RPMRaw ? TRUE : boKnockRPMEnable;
+
+
+	if ((0xffff == EST_u16KnockSensorThresholdApply) && (TRUE == boKnockRPMEnable))
+	{
+		EST_u16KnockSensorThresholdApply = EST_u16KnockSensorThreshold;
+
+		if (EST_u16KnockSensorThresholdApply < SENSORS_au16ADCImport[1])
+		{
+			EST_s16KnockTimingTrim = (-1 * (sint16)USERCAL_stRAMCAL.u16KnockRetardMax) < EST_s16KnockTimingTrim ? EST_s16KnockTimingTrim - USERCAL_stRAMCAL.u16KnockDecayRate : EST_s16KnockTimingTrim;
+		}
+		else
+		{
+			EST_s16KnockTimingTrim = 0 > EST_s16KnockTimingTrim ? EST_s16KnockTimingTrim + USERCAL_stRAMCAL.u16KnockReturnRate : 0;
+		}
+	}
+	else if (FALSE == boKnockRPMEnable)
+	{
+		EST_s16KnockTimingTrim = 0;
+	}
+
+	/* Apply CTS and ATS and knock trims */
+	s16ATSCTSKnockTimingTrim = EST_s16CTSTimingTrim + EST_s16ATSTimingTrim + (EST_s16KnockTimingTrim / 100);
 
 	CPU_xEnterCritical();
 
@@ -654,7 +695,7 @@ void EST_vRun(puint32 const pu32Arg)
 		}
 		else
 		{
-			EST_tIgnitionAdvanceMtheta = 100 * (EST_s16Timing + s16ATSCTSTimingTrim) + USERCAL_stRAMCAL.u16TimingMainOffset;
+			EST_tIgnitionAdvanceMtheta = 100 * (EST_s16Timing + s16ATSCTSKnockTimingTrim) + USERCAL_stRAMCAL.u16TimingMainOffset;
 		}
 	}
 	else
@@ -662,7 +703,7 @@ void EST_vRun(puint32 const pu32Arg)
 		s32ESTTrims[0] = CLO2_s32ISCESTTrim[0] + IAC_s32ISCESTTrim[0];
 		s32ESTTrims[1] = CLO2_s32ISCESTTrim[1] + IAC_s32ISCESTTrim[1];
 
-		s32Temp = 100 * (EST_s16Timing + s16ATSCTSTimingTrim) + USERCAL_stRAMCAL.u16TimingMainOffset + s32ESTTrims[1];
+		s32Temp = 100 * (EST_s16Timing + s16ATSCTSKnockTimingTrim) + USERCAL_stRAMCAL.u16TimingMainOffset + s32ESTTrims[1];
 
 		/* Here the ignition advance angle can not be negative, but can be effectively
           negative */

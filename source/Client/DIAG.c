@@ -791,6 +791,8 @@ void USERDIAG_vRun(puint32 const pu32Arg)
 							SENSORS_aboADCNew[0] = TRUE;
 						}
 
+						SENSORS_au16ADCImport[1] = au8UARTInBuffer[2];
+
 						break;
 					}
 					default:

@@ -198,6 +198,14 @@ EXTERN bool SENSORS_boCANNewBrakePressedSample;
 EXTERN bool SENSORS_boCANNewGearPositionSample;
 EXTERN bool SENSORS_boCANNewTorqueRequestSample;
 EXTERN uint16 SENSORS_au16ADCImport[16];
+//ASAM mode=readvalue name="ADC Import 1" type=uint16 offset=0 min=0 max=4095 m=1 b=0 units="dl" format=4.0 help="ADC Import 1"
+//ASAM mode=readvalue name="Knock Sensor" type=uint16 offset=2 min=0 max=255 m=1 b=0 units="dl" format=3.0 help="Knock Sensor"
+//ASAM mode=readvalue name="ADC Import 3" type=uint16 offset=4 min=0 max=255 m=1 b=0 units="dl" format=3.0 help="ADC Import 3"
+//ASAM mode=readvalue name="ADC Import 4" type=uint16 offset=6 min=0 max=255 m=1 b=0 units="dl" format=3.0 help="ADC Import 4"
+//ASAM mode=readvalue name="ADC Import 5" type=uint16 offset=8 min=0 max=255 m=1 b=0 units="dl" format=3.0 help="ADC Import 5"
+//ASAM mode=readvalue name="ADC Import 6" type=uint16 offset=10 min=0 max=255 m=1 b=0 units="dl" format=3.0 help="ADC Import 6"
+//ASAM mode=readvalue name="ADC Import 7" type=uint16 offset=12 min=0 max=255 m=1 b=0 units="dl" format=3.0 help="ADC Import 7"
+//ASAM mode=readvalue name="ADC Import 8" type=uint16 offset=14 min=0 max=255 m=1 b=0 units="dl" format=3.0 help="ADC Import 8"
 EXTERN bool SENSORS_aboADCNew[16];
 
 EXTERN uint32 SENSORS_u32PPSMVolts;

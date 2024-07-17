@@ -822,7 +822,7 @@ void FUEL_vRun(puint32 const pu32Arg)
 
 	/* FME fuel cuts */
 #ifdef BUILD_FME
-	if (0 != USERCAL_stRAMCAL.u8DBSlaveConfig)
+	if ((uint16)~0 != USERCAL_stRAMCAL.u16DiagType)
 	{
 		u32Temp = AFM_tAirFlowVEUg > AFM_tAirFlowAFMUg ? AFM_tAirFlowVEUg : AFM_tAirFlowAFMUg;
 
