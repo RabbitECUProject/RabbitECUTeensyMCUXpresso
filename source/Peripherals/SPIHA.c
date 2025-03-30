@@ -48,7 +48,9 @@ void SPIHA_vTerminate(puint32 const pu32Stat)
 uint32 SPIHA_u32InitBus(IOAPI_tenEHIOResource enEHIOResource, IOAPI_tstPortConfigCB* pstPortConfigCB)
 {
     uint32 u32MuxSel = ~0;
+#if defined(BUILD_MK64)
 	IRQn_Type nSPIIRQ;
+#endif //defined(BUILD_MK64)
 	sint32 i32IDX = SPIHA_u32GetSPIIndex(enEHIOResource);	
 	
 	if ((-1 != i32IDX) && (TRUE == DLL_boInitDLLChannel(enEHIOResource, pstPortConfigCB)))	

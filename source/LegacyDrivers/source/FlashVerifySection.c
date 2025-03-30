@@ -163,6 +163,8 @@ EXIT:
 #endif 
     }
 
+    (void)endAddress;
+
     return(returnCode);
 }
 #if((CPU_CORE == DSC_56800EX)&&(COMPILER == CW))

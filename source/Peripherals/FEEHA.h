@@ -72,7 +72,7 @@
 #define FEEHA_DFLASH_SCTR_PHRS  (FEEHA_DFLASH_SCTR_BYTES / FEEHA_DFLASH_BYTES_PHRS)
 #define FEEHA_EEPROM_SCTR_PHRS  (FEEHA_EEPROM_SCTR_BYTES / FEEHA_EEPROM_BYTES_PHRS)
 
-#endif  defined(BUILD_MK60) || defined(BUILD_MK64)
+#endif // defined(BUILD_MK60) || defined(BUILD_MK64)
 
 #if defined(BUILD_MKS20)
 #include "SSD_Types.h"
