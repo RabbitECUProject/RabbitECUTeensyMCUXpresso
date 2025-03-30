@@ -90,12 +90,17 @@ void LSUH_vStart(uint32 * const pu32Arg)
 {
 	IOAPI_tenEHIOResource enEHIOResource;
 	IOAPI_tenEHIOType enEHIOType;
-	ADCAPI_tstADCCB stADCCB;
+
 	CTRLAPI_tstPIDCB stPIDCB;
 	CTRLAPI_tenCTRLType enCTRLType;	
 
 	IOAPI_tenDriveStrength enDriveStrength = IOAPI_enWeak;
+
+#if (0)
+	ADCAPI_tstADCCB stADCCB;
 	uint32 u32ADConfigIDX;
+#endif //TBC
+
 	bool boInitFailed = FALSE;
 	
 #ifdef BUILD_SPARKDOG_PF

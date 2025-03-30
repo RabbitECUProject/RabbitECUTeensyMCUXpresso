@@ -89,7 +89,11 @@ DLL_tstRXDLLData CAN_stRXDLLData;
 bool IRQ_boEnableRTOS = TRUE;
 static void IRQ_vCommonUART(tstUARTModule*, IOAPI_tenEHIOResource, IRQn_Type enIRQType);
 static void IRQ_vCommonCAN(tstCANModule*, IOAPI_tenEHIOResource, IRQn_Type enIRQType);
+
+#if defined(BUILD_MK60) || defined(BUILD_MK64)
 static void IRQ_vCommonSPI(tstSPIModule*, IOAPI_tenEHIOResource, IRQn_Type enIRQType);
+#endif //defined(BUILD_MK60) || defined(BUILD_MK64)
+
 static void SVC_Handler_Main(void);
 
 #if defined(BUILD_MK60) || defined(BUILD_SAM3X8E) || defined(BUILD_MK64) || defined(BUILD_MKS20)
@@ -689,15 +693,14 @@ void IRQ_vCommonUART(UART_Type* pstUART, IOAPI_tenEHIOResource enEHIOResource, I
 #endif //BUILD_MK6X
 }
 
-
+#if defined(BUILD_MK60) || defined(BUILD_MK64)
 void IRQ_vCommonSPI(SPI_Type* pstSPI, IOAPI_tenEHIOResource enEHIOResource, IRQn_Type enIRQType)
 {
-	DLL_tstRXDLLData stRXDLLData;
 
-#if defined(BUILD_MK60) || defined(BUILD_MK64)
+	DLL_tstRXDLLData stRXDLLData;
 	IRQ_apfTXCallBack[enIRQType](enEHIOResource, NULL);
-#endif //BUILD_MK6X
 }
+#endif //BUILD_MK6X
 
 void IRQ_vEnableRTOS(bool boEnable)
 {

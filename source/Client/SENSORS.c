@@ -820,6 +820,8 @@ static void SENSORS_vGetCANSensorData()
 			SENSORS_u16VSSDSGGearRPMSlipNext = SENSORS_u16VSSDSGGearRPMSlip;
 		}
 	}
+
+	(void)u8OldGear;
 }
 
 

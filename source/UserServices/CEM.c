@@ -1131,6 +1131,7 @@ void CEM_vPrimaryEventCB(IOAPI_tenEHIOResource enEHIOResource, TEPMAPI_ttEventTi
 #ifdef DEBUG_SYNC
 		        tempcount = (tempcount + 1) % 32;
 		        temp1[tempcount] = CEM_u8NibbleCounter;
+		        (void)temp1;
 #endif
 
 				// Is tooth prior to gap/gaps

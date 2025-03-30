@@ -602,7 +602,7 @@ void DLL_vReceiveUARTBytes(IOAPI_tenEHIOResource enEHIOResource, DLL_tstRXDLLDat
 				break;
 				
 			case PROTAPI_enLLUARTSZDelim:	
-				if((NULL != pRXFrame -> u8Data[0])
+				if((0 != pRXFrame -> u8Data[0])
 					&& (nASCII_LF != pRXFrame -> u8Data[0]))
 				{
 					DLL_stRXDLLData[DLLVirtualChannelIDX].u8DataCount++;

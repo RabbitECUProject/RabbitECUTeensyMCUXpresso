@@ -316,7 +316,7 @@ void TEPM_boGetMasterEHIOResourceList(IOAPI_tenEHIOResource enEHIOResource, IOAP
 	
 	while ((RESM_nMastersMax > *pu32MasterCount) && (TEPMHA_nMastersMax > u32MasterIDX))
 	{
-		if (NULL != TEPM_rastMasters[u32ChannelIDX].enEHIOResource[u32MasterIDX])
+		if (0 != TEPM_rastMasters[u32ChannelIDX].enEHIOResource[u32MasterIDX])
 		{
 			*penEHIOResource = TEPM_rastMasters[u32ChannelIDX].enEHIOResource[u32MasterIDX];
 			penEHIOResource++; 
@@ -1688,9 +1688,11 @@ void TEPM_vSetNextMissingToothInterrupt(IOAPI_tenEHIOResource enEHIOResource, TE
 	pvModule = TEPMHA_pvGetModuleFromEnum(TEPM_rastTEPMChannel[u32TableIDX].enModule);
 
 	(void)TEPMHA_u32SetNextMissingToothInterrupt(CEM_tEventTimeLast, tLastGap, u32Repeats);
+
+	(void)pvModule;
 }
 
-TEPM_vConfigureFuelPWMExport(uint32* pu32FuelPWMExport)
+void TEPM_vConfigureFuelPWMExport(uint32* pu32FuelPWMExport)
 {
 	TEPM_pu32FuelPWMExport = pu32FuelPWMExport;
 }
@@ -1711,6 +1713,7 @@ static void TEPM_vFirstStartLinkToothFractions(uint32 u32EventIDX, uint32 u32Tab
 	{
 		/* Get the bit mask of the donor */
 		u32InputBitMask = MATH_u32IDXToMask(u32TableIDX);
+		(void)u32InputBitMask;
 
 		/* Get tooth for origin channel */
 		u32Temp = u32ToothTotal * (TEPM_au32TEPMChannelSequence[u32TableIDX] & 0xff);

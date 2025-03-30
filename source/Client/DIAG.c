@@ -345,8 +345,8 @@ void USERDIAG_vRun(puint32 const pu32Arg)
 			u32StackInitVal = *pu32Image++;
 			pfUpdate = (tpfUpdate)(*pu32Image);
 
-			if (((tpfUpdate*)USERDIAG_nCODE_MIN_ADDR < pfUpdate) &&
-				((tpfUpdate*)USERDIAG_nCODE_MAX_ADDR > pfUpdate))
+			if (((tpfUpdate)USERDIAG_nCODE_MIN_ADDR < pfUpdate) &&
+				((tpfUpdate)USERDIAG_nCODE_MAX_ADDR > pfUpdate))
 			{
 				CPU_vEnterCritical();
 				__set_MSP(u32StackInitVal);

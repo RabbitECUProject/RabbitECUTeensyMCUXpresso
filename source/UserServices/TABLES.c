@@ -106,7 +106,7 @@ bool TABLE_vCalculate(TABLEAPI_ttTableIDX tTableIDX)
 	uint32 u32ShiftR = 0;
 	uint32 u32Factor;
 
-	if (0 > tTableIDX) return;
+	if (0 > tTableIDX) return false;
 
 	tSpreadIDX = TABLE_astTableCB[tTableIDX].tSpreadIDX;
 	

@@ -712,17 +712,16 @@ bool FEEHA_boCheckUpdaterCRC16(void)
 
 bool FEEHA_boEraseForDownload(puint8 pu8TargetAddress, uint32 u32EraseCount)
 {
-	tstFTFEModule* pstFTFE;
 	uint32 u32ReturnCode;
 	uint16 u16WordCount;
 	uint16 u16SectorEraseCount;
-	uint32* pu32SectorWord;	
 	puint32 pu32TargetAddress;
 	bool boEraseErr = false;
 	FEE_enPgmErrCode = enErrNone;
 	
 #if defined(BUILD_MK60) || defined(BUILD_MK64) || defined(BUILD_MKS20)
-
+	tstFTFEModule* pstFTFE;
+	uint32* pu32SectorWord;
 	pstFTFE = FTFMODULE;
 
 	if (((pstFTFE -> FSTAT) & FTFPREFIX(_FSTAT_CCIF_MASK)) == FTFPREFIX(_FSTAT_CCIF_MASK))
@@ -829,14 +828,12 @@ bool FEEHA_boEraseForDownload(puint8 pu8TargetAddress, uint32 u32EraseCount)
 
 static bool FEEHA_boPartitionDFlash(void)
 {
-	tstFTFEModule* pstFTFE;
-	uint32* pu32SectorWord;
-
 	bool boWriteErr = false;
 	
 	FEE_enPgmErrCode = enErrNone;
 
 #if defined(BUILD_MK60) || defined(BUILD_MK64)
+
 	pstFTFE = FTFE;
 	
 	if (((pstFTFE -> FSTAT) & FTFE_FSTAT_CCIF_MASK) == FTFE_FSTAT_CCIF_MASK)
