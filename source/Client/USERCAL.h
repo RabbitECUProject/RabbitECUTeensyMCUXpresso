@@ -53,6 +53,22 @@
 
 #ifdef C18CAL
 #include "C18_rover.h"
+	#if !defined(FUEL_MISSING_TOOTH_OUTPUT) || \
+	!defined(DEBUG_TMR) || \
+	!defined(BUILD_SPARKDOG_MKS20) || \
+	!defined(PFDIV2FIX) || \
+	!defined(BUILD_FME) || \
+	!defined(BUILD_USE_PPSS_AS_PPSM_OFF)
+	#error C18+ROVER trigger build is not correct for V1.3 board
+	#endif
+
+	#if defined(BUILD_SPARKDOG_TEENSY_ADAPT) || \
+	defined(BUILD_RABBIT_1_4_PLUS) || \
+	defined(BUILD_SPARKDOG_PF) || \
+	defined(BUILD_GDI_SIG_INVERT) || \
+	defined(BUILD_BSP_IAC_STEPPER)
+	#error C18+ROVER trigger build is not correct for V1.3 board
+	#endif
 #endif
 
 #ifdef L98CAL
