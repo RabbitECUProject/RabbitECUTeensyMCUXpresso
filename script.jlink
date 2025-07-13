@@ -1,5 +1,5 @@
 ExitOnError 1
-unlock kinetis 
+erase
 qc
 
 qc

@@ -33,11 +33,11 @@
 #pragma GCC diagnostic ignored "-Wmissing-braces"
 
 #define TESTCAL_off
-#define C18CAL_off
+#define C18CAL
 #define KTM_SC_CAL_off
 #define L98CAL_off
 #define M15A_CAL_off
-#define GOLF_MK6_CAL
+#define GOLF_MK6_CAL_off
 #define TEST_60_M2_off
 #define FIESTA_36_M1_off
 #define FIESTA_36_M1_TEENSY_ADAPT_off
@@ -52,7 +52,7 @@
 #endif
 
 #ifdef C18CAL
-#include "C18_CAL.h"	
+#include "C18_rover.h"
 #endif
 
 #ifdef L98CAL
