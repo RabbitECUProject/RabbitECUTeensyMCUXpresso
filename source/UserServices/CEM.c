@@ -404,6 +404,7 @@ void CEM_vPrimaryEventCB(IOAPI_tenEHIOResource enEHIOResource, TEPMAPI_ttEventTi
 		case CEM_enAutocorrelationMode: u32Temp = CEM_xEdgesCount; break;
 		case CEM_enOneGroupMissing: u32Temp = CEM_xEdgesCount; break;
 		case CEM_enTypeWVEA888: u32Temp = 4; break;
+		case CEM_enCivicGDI: u32Temp = 4; break;
 		case CEM_enRoverTypeA: u32Temp = 4; break;
 		default: u32Temp = CEM_xEdgesCount; break;
 	}
@@ -713,6 +714,7 @@ void CEM_vPrimaryEventCB(IOAPI_tenEHIOResource enEHIOResource, TEPMAPI_ttEventTi
 			}
 			case CEM_enOneGroupMissing:
 			case CEM_enTypeWVEA888:
+			case CEM_enCivicGDI:
 			{
 				CEM_u32GlobalCycleFraction += CEM_au16AllEdge[(CEM_u32CrankEdgeCounter - 1) % CEM_xEdgesCount];
 
@@ -888,6 +890,126 @@ void CEM_vPrimaryEventCB(IOAPI_tenEHIOResource enEHIOResource, TEPMAPI_ttEventTi
 		        	}
 
 		        	CEM_boVVTOld = boTemp;
+		        }
+		        /* Sync over 720 degrees */
+		        else if (CEM_enCivicGDI == CEM_enTriggerType)
+		        {
+					enTriState = TEPM_enGetTimerDigitalState(EH_IO_TMR9);
+
+					if (IOAPI_enHigh == enTriState) // is inverted
+					{
+						CEM_u32VVTLowToothCount[0]++;
+					}
+					else
+					{
+						CEM_u32VVTHighToothCount[0]++;
+					}
+
+		        	if (FALSE == CEM_boPosConfirmed)
+		        	{
+		        		if ((FALSE == CEM_boVVTOld) && (IOAPI_enLow == enTriState))
+						{
+		        			if (0 == CEM_u32VVTEventCounts[0]) // a rising edge of cam sync
+		        			{
+		        				CEM_u32VVTHighToothCount[0] = 0; // reset high time tooth count
+		        			}
+
+		        			CEM_u32VVTEventCounts[0]++;
+						}
+		        		else if ((TRUE == CEM_boVVTOld) && (IOAPI_enHigh == enTriState) && (0 != CEM_u32VVTEventCounts[0]))
+						{
+		        			CEM_u32VVTEventCounts[0]++; // a falling edge of cam sync
+
+		        			if (2 == CEM_u32VVTEventCounts[0])
+		        			{
+		        				/* If enough events seen */
+		        				if (TRUE == CEM_boMissingGapFound)
+		        				{
+		        					if (CEM_u32VVTHighToothCount[0] > 15)
+		        					{
+		        						CEM_u32CrankEdgeCounter = 6;
+		        						CEM_u32CycleToothEdgeCounter = 66;
+		        						CEM_u32GlobalCycleFraction = 0x11999;
+		        						boLatePhase = TRUE;
+		        					}
+		        					else
+		        					{
+		        						CEM_u32CrankEdgeCounter = 6;
+		        						CEM_u32CycleToothEdgeCounter = 6;
+		        						CEM_u32GlobalCycleFraction = 0x1999;
+		        						boLatePhase = FALSE;
+		        					}
+		        				}
+		        				else
+		        				{
+		        					if (CEM_u32VVTHighToothCount[0] > 15)
+		        					{
+		        						CEM_u32CrankEdgeCounter = 36;
+		        						CEM_u32CycleToothEdgeCounter = 36;
+		        						CEM_u32GlobalCycleFraction = 0x9999;
+		        						boLatePhase = FALSE;
+		        					}
+		        					else
+		        					{
+		        						CEM_u32CrankEdgeCounter = 36;
+		        						CEM_u32CycleToothEdgeCounter = 96;
+		        						CEM_u32GlobalCycleFraction = 0x19999;
+		        						boLatePhase = TRUE;
+		        					}
+		        				}
+
+		        				CEM_u32VVTLowToothCount[0] = 0;
+		        				CEM_u32VVTHighToothCount[0] = 0;
+		        				CEM_boPosConfirmed = TRUE;
+
+		        				/* grab the primary linked resource for the phase tell-tale to slave uP */
+		        				enLinkedResource = TEPM_enGetPrimaryLinkedResource();
+
+		        				/* set the phase tell-tale */
+		        				enTriState = true == boLatePhase ? IOAPI_enHigh : IOAPI_enLow;
+		        				IO_vAssertDIOResource(enLinkedResource, enTriState);
+		        			}
+						}
+		        	}
+		        	else
+		        	{
+		        		CEM_boVVTIsHigh[0] = (IOAPI_enLow == enTriState);
+
+						if ((CEM_u32GlobalCycleFraction & 0xffff) == CEM_au16SyncPoints[3])
+						{
+							if (55 > (CEM_u32VVTLowToothCount[0] + CEM_u32VVTHighToothCount[0]))
+							{
+								/* Not ready - cranking? */
+								boLatePhase = !CEM_boVVTIsHigh[0];
+							}
+							else
+							{
+								if (CEM_u32VVTLowToothCount[0] < CEM_u32VVTHighToothCount[0])
+								{
+									boLatePhase = false;
+
+									if (!CEM_boVVTIsHigh[0])
+									{
+										CEM_u32CamErrorCounts++; //uh oh a cam shift will trigger this
+									}
+								}
+								else
+								{
+									boLatePhase = true;
+
+									if (CEM_boVVTIsHigh[0])
+									{
+										CEM_u32CamErrorCounts++; //uh oh a cam shift will trigger this
+									}
+								}
+							}
+
+							CEM_u32VVTLowToothCount[0] = 0;
+							CEM_u32VVTHighToothCount[0] = 0;
+						}
+		        	}
+
+		        	CEM_boVVTOld = (IOAPI_enLow == enTriState);
 		        }
 		        else if (CEM_u32CrankEdgeCounter == stSimpleCamSync.u32CamSyncSampleToothCount)
 				{

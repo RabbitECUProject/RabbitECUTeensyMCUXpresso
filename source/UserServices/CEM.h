@@ -46,6 +46,7 @@ typedef enum
    CEM_enTypeWVEA888,
    CEM_enToyota2NFE,
    CEM_enRoverTypeA,
+   CEM_enCivicGDI,
    CEM_enModeCount
 } CEM_tenTriggerType;
 
